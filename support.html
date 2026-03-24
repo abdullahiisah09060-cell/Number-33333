@@ -1,0 +1,215 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>SBA | Internal Support Terminal</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Public+Sans:wght@400;700;900&display=swap');
+        :root { --sba-blue: #002e6d; --sba-red: #cc0000; --sba-gold: #b69121; --gov-bg: #f1f5f9; }
+        
+        body { background: var(--gov-bg); margin: 0; font-family: 'Public Sans', sans-serif; color: #001a3d; }
+
+        /* Top Govt Bar */
+        .gov-top { background: #000; color: #fff; font-size: 8px; font-weight: 900; text-align: center; padding: 8px; letter-spacing: 2px; text-transform: uppercase; border-bottom: 3px solid var(--sba-gold); }
+
+        /* Header with Verified Badge */
+        .app-header { background: white; padding: 15px 20px; border-bottom: 1px solid #cbd5e1; display: flex; justify-content: space-between; align-items: center; position: sticky; top: 0; z-index: 100; }
+        
+        .chat-container { max-width: 500px; margin: auto; padding: 15px; }
+
+        /* Industrial Chat Box */
+        .chat-window { 
+            background: #ffffff; border: 2px solid #e2e8f0; border-radius: 12px; 
+            height: 550px; display: flex; flex-direction: column; overflow: hidden;
+            box-shadow: 0 10px 25px rgba(0,46,109,0.1);
+        }
+
+        .chat-banner { background: var(--sba-blue); color: white; padding: 12px 15px; display: flex; align-items: center; gap: 12px; }
+        .chat-body { flex: 1; padding: 20px; overflow-y: auto; background-image: radial-gradient(#e2e8f0 1px, transparent 1px); background-size: 20px 20px; display: flex; flex-direction: column; gap: 15px; }
+
+        /* Message Bubbles - Heavy Package */
+        .bubble { padding: 14px; border-radius: 8px; font-size: 13px; line-height: 1.5; max-width: 88%; position: relative; border: 1px solid transparent; }
+        .bubble-agent { background: #f8fafc; color: #1e293b; align-self: flex-start; border-left: 4px solid var(--sba-gold); border-color: #e2e8f0; }
+        .bubble-user { background: var(--sba-blue); color: white; align-self: flex-end; border-right: 4px solid var(--sba-gold); box-shadow: 4px 4px 0px rgba(0,0,0,0.05); }
+
+        /* Input Zone */
+        .input-zone { background: #f8fafc; padding: 15px; border-top: 2px solid #e2e8f0; }
+        .input-group { background: white; border: 2px solid #cbd5e1; border-radius: 8px; display: flex; align-items: center; padding: 5px; }
+        .input-group input { flex: 1; border: none; padding: 10px; outline: none; font-weight: 700; font-size: 13px; color: var(--sba-blue); }
+        
+        .action-btn { background: var(--sba-blue); color: white; width: 40px; height: 40px; border-radius: 6px; display: flex; align-items: center; justify-content: center; transition: 0.2s; }
+        .clip-btn { color: #64748b; padding: 0 10px; cursor: pointer; }
+
+        /* Status Card */
+        .status-card { background: white; border: 2px solid #e2e8f0; border-radius: 12px; padding: 15px; margin-top: 15px; display: flex; align-items: center; gap: 15px; }
+        .status-icon { width: 45px; height: 45px; background: #f1f5f9; border-radius: 8px; display: flex; align-items: center; justify-content: center; color: var(--sba-blue); border: 1px solid #cbd5e1; }
+
+        .tag { font-size: 9px; font-weight: 900; padding: 4px 10px; border-radius: 4px; text-transform: uppercase; }
+        .tag-red { background: #fee2e2; color: #b91c1c; border: 1px solid #fecaca; }
+        .tag-green { background: #dcfce7; color: #15803d; border: 1px solid #bbf7d0; }
+
+        #imgPreview { display: none; background: var(--sba-gold); color: white; padding: 8px; font-size: 10px; font-weight: 900; text-transform: uppercase; margin-bottom: 8px; border-radius: 4px; justify-content: space-between; align-items: center; }
+    </style>
+</head>
+<body>
+
+    <div class="gov-top">
+        <i class="fas fa-shield-alt mr-2"></i> U.S. Small Business Administration | Secure Node 44-B
+    </div>
+
+    <div class="app-header">
+        <a href="dashboard.html" class="text-slate-400"><i class="fas fa-chevron-left"></i></a>
+        <div class="text-center">
+            <h1 class="text-[11px] font-black uppercase tracking-widest text-slate-500 leading-none">Official Channel</h1>
+            <p class="text-[13px] font-black text-[#002e6d] uppercase">Support Terminal</p>
+        </div>
+        <div class="w-8 h-8 rounded-full bg-emerald-500 flex items-center justify-center text-white text-[10px] animate-pulse">
+            <i class="fas fa-wifi"></i>
+        </div>
+    </div>
+
+    <div class="chat-container">
+        <div class="chat-window">
+            <div class="chat-banner">
+                <div class="relative">
+                    <img src="https://images.unsplash.com/photo-1573496359142-b8d87734a5a2?q=80&w=120" class="w-10 h-10 rounded-lg object-cover border-2 border-white/20">
+                    <div class="absolute -bottom-1 -right-1 w-4 h-4 bg-emerald-500 border-2 border-[#002e6d] rounded-full"></div>
+                </div>
+                <div>
+                    <p class="text-[11px] font-black uppercase leading-none mb-1">Agent Sarah Miller</p>
+                    <p class="text-[9px] font-bold text-white/60 uppercase tracking-tighter">Verified Compliance Officer</p>
+                </div>
+            </div>
+
+            <div class="chat-body" id="chatBody">
+                </div>
+
+            <div class="input-zone">
+                <div id="imgPreview">
+                    <span><i class="fas fa-file-export mr-2"></i> Encrypted Attachment Ready</span>
+                    <i class="fas fa-times cursor-pointer" onclick="clearImg()"></i>
+                </div>
+                <div class="input-group">
+                    <input type="file" id="fileInp" class="hidden" accept="image/*">
+                    <label for="fileInp" class="clip-btn"><i class="fas fa-paperclip"></i></label>
+                    <input type="text" id="msgInp" placeholder="Enter secure message..." autocomplete="off">
+                    <button id="sendBtn" class="action-btn"><i class="fas fa-paper-plane"></i></button>
+                </div>
+            </div>
+        </div>
+
+        <div class="status-card" onclick="location.href='kyc.html'">
+            <div class="status-icon">
+                <i class="fas fa-fingerprint text-xl"></i>
+            </div>
+            <div class="flex-1">
+                <p class="text-[10px] font-black text-slate-400 uppercase leading-none mb-1">Registry Status</p>
+                <p class="text-[12px] font-black text-[#002e6d] uppercase tracking-tight" id="vaultText">Identity Unverified</p>
+            </div>
+            <span class="tag tag-red" id="vaultTag">Action Required</span>
+        </div>
+
+        <div class="mt-6 text-center opacity-40">
+            <img src="https://upload.wikimedia.org/wikipedia/commons/thumb/c/cb/Small_Business_Administration_seal.svg/1200px-Small_Business_Administration_seal.svg.png" class="h-8 mx-auto grayscale mb-2">
+            <p class="text-[7px] font-black uppercase tracking-widest text-[#002e6d]">
+                This is a monitored government system. Unauthorized <br>access is prohibited under 18 U.S.C. § 1030.
+            </p>
+        </div>
+    </div>
+
+    <script type="module">
+        import { auth, db } from './firebase-config.js';
+        import { doc, onSnapshot, updateDoc, arrayUnion } from "https://www.gstatic.com/firebasejs/10.7.0/firebase-firestore.js";
+        import { onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.7.0/firebase-auth.js";
+
+        const chatBody = document.getElementById('chatBody');
+        const msgInp = document.getElementById('msgInp');
+        const sendBtn = document.getElementById('sendBtn');
+        const fileInp = document.getElementById('fileInp');
+        const imgPreview = document.getElementById('imgPreview');
+        let base64Img = null;
+
+        window.clearImg = () => { base64Img = null; imgPreview.style.display = 'none'; fileInp.value = ''; };
+
+        fileInp.onchange = (e) => {
+            const file = e.target.files[0];
+            if(file) {
+                const reader = new FileReader();
+                reader.onload = (ev) => { base64Img = ev.target.result; imgPreview.style.display = 'flex'; };
+                reader.readAsDataURL(file);
+            }
+        };
+
+        onAuthStateChanged(auth, (user) => {
+            if (!user) { window.location.href = 'login.html'; return; }
+
+            onSnapshot(doc(db, "users", user.uid), (snap) => {
+                const data = snap.data();
+                if(!data) return;
+
+                // Sync Vault UI
+                const kStatus = data.kycStatus || "NEW";
+                const vTag = document.getElementById('vaultTag');
+                const vText = document.getElementById('vaultText');
+                
+                if(kStatus === "VERIFIED") { 
+                    vTag.innerText="Certified"; vTag.className="tag tag-green"; 
+                    vText.innerText = "SBA Registry Confirmed";
+                } else if(kStatus === "UNDER_REVIEW") { 
+                    vTag.innerText="Pending"; vTag.className="tag tag-red"; 
+                    vText.innerText = "Reviewing Document";
+                }
+
+                renderMessages(data.chatHistory || [], data.fullName);
+            });
+
+            sendBtn.onclick = async () => {
+                const text = msgInp.value.trim();
+                if(!text && !base64Img) return;
+
+                sendBtn.disabled = true;
+                try {
+                    await updateDoc(doc(db, "users", user.uid), {
+                        chatHistory: arrayUnion({
+                            sender: "USER",
+                            text: text,
+                            image: base64Img,
+                            time: new Date().toISOString()
+                        })
+                    });
+                    msgInp.value = "";
+                    clearImg();
+                } catch (e) { alert("Security Error. Check connection."); } 
+                finally { sendBtn.disabled = false; }
+            };
+        });
+
+        function renderMessages(history, name) {
+            const systemMsg = `
+                <div class="bubble bubble-agent">
+                    <p class="text-[9px] font-black uppercase text-amber-600 mb-1 tracking-widest">Formal Notification</p>
+                    Hello <b>${name || 'Applicant'}</b>, I am Officer Sarah Miller. Your grant file is currently flagged for <b>ID Verification</b>. Please use the Registry link below to upload your documents immediately to clear your disbursement.
+                </div>
+            `;
+            
+            chatBody.innerHTML = systemMsg + history.map(m => `
+                <div class="bubble ${m.sender === 'ADMIN' ? 'bubble-agent' : 'bubble-user'}">
+                    <p class="text-[8px] font-black uppercase opacity-40 mb-1">
+                        ${m.sender === 'ADMIN' ? 'Officer Miller' : 'Client ID: SECURE'}
+                    </p>
+                    ${m.text ? `<p>${m.text}</p>` : ''}
+                    ${m.image ? `<img src="${m.image}" class="mt-2 rounded-lg border-2 border-white shadow-sm">` : ''}
+                    <p class="text-[7px] mt-1.5 opacity-30 text-right font-bold">${new Date(m.time).toLocaleTimeString([], {hour:'2-digit', minute:'2-digit'})}</p>
+                </div>
+            `).join('');
+            
+            chatBody.scrollTop = chatBody.scrollHeight;
+        }
+
+        msgInp.onkeydown = (e) => { if(e.key === 'Enter') sendBtn.click(); };
+    </script>
+</body>
+</html>

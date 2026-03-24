@@ -1,0 +1,167 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>SBA | Verify Case</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Public+Sans:wght@400;700;900&display=swap');
+        :root { --sba-blue: #002e6d; --sba-red: #cc0000; }
+        body { font-family: 'Public Sans', sans-serif; background-color: #f8fafc; -webkit-tap-highlight-color: transparent; overflow-x: hidden; }
+        
+        .gov-top { background: #f0f0f0; color: #444; font-size: 9px; padding: 6px 15px; border-bottom: 1px solid #ddd; font-weight: 700; }
+        .sba-logo-box { position: relative; display: inline-block; padding: 2px 6px; }
+        .sba-logo-box::before { content: ""; position: absolute; top: 0; left: 0; right: 0; bottom: 4px; border-top: 2px solid var(--sba-blue); border-left: 2px solid var(--sba-blue); border-right: 2px solid var(--sba-blue); }
+        .sba-logo-box::after { content: ""; position: absolute; bottom: 0; left: 0; right: 30%; height: 2px; background: var(--sba-red); }
+
+        .auth-card { border-radius: 4px; border-top: 5px solid var(--sba-blue); box-shadow: 0 10px 25px rgba(0,0,0,0.05); }
+        .btn-sba { background-color: var(--sba-blue); border-bottom: 3px solid #001a3d; transition: all 0.2s; }
+        
+        /* Responsive Email Display - No Capital Letters */
+        #displayEmail { 
+            word-break: break-all; 
+            overflow-wrap: break-word; 
+            display: block;
+            text-transform: none !important; 
+        }
+
+        .verify-pulse { animation: pulse-blue 2s infinite; }
+        @keyframes pulse-blue {
+            0% { box-shadow: 0 0 0 0 rgba(0, 46, 109, 0.4); }
+            70% { box-shadow: 0 0 0 10px rgba(0, 46, 109, 0); }
+            100% { box-shadow: 0 0 0 0 rgba(0, 46, 109, 0); }
+        }
+    </style>
+</head>
+<body class="min-h-screen flex flex-col">
+
+    <div class="gov-top flex items-center justify-between uppercase">
+        <div class="flex items-center gap-1.5">
+            <img src="https://upload.wikimedia.org/wikipedia/en/a/a4/Flag_of_the_United_States.svg" class="w-3" alt="US Flag">
+            <span>SECURE GOV NODE</span>
+        </div>
+        <span class="opacity-50">ENCRYPTED</span>
+    </div>
+
+    <header class="bg-white border-b border-gray-100 py-3 px-6 flex justify-center shadow-sm">
+        <div class="flex items-center gap-2">
+            <div class="sba-logo-box"><span class="text-lg font-black text-[#002e6d] tracking-tighter">SBA</span></div>
+            <div class="text-left">
+                <p class="text-[7px] font-black text-slate-400 uppercase leading-none">U.S. Small Business</p>
+                <p class="text-[9px] font-black text-[#002e6d] uppercase leading-none">Administration</p>
+            </div>
+        </div>
+    </header>
+
+    <main class="flex-grow flex items-center justify-center p-4">
+        <div class="w-full max-w-sm">
+            <div class="bg-white auth-card p-6 border border-gray-200">
+                
+                <div class="mb-5 text-center">
+                    <div class="w-12 h-12 bg-slate-50 text-[#002e6d] rounded-full flex items-center justify-center mx-auto mb-3 border border-[#002e6d] verify-pulse">
+                        <i class="fas fa-shield-alt text-xl"></i>
+                    </div>
+                    <h2 class="text-xl font-black text-slate-800 uppercase tracking-tighter">Identity Audit</h2>
+                    <p class="text-slate-400 text-[9px] font-bold uppercase tracking-widest mt-1">Awaiting Link Activation</p>
+                </div>
+
+                <div class="mb-6 text-center bg-slate-50 p-3 border border-slate-100 rounded">
+                    <p class="text-[9px] text-slate-500 font-bold uppercase mb-1">Check your inbox/spam:</p>
+                    <span id="displayEmail" class="text-[#002e6d] text-sm font-bold lowercase">loading...</span>
+                </div>
+
+                <div id="alertBox" class="hidden mb-4 p-3 rounded-sm bg-red-50 border-l-4 border-red-600 text-red-700 text-[10px] font-bold uppercase"></div>
+
+                <div class="space-y-3">
+                    <div class="p-3 bg-[#001a3d] rounded">
+                        <p class="text-white text-[9px] font-bold uppercase tracking-wider leading-relaxed text-center">
+                            The portal will <span class="text-yellow-400">auto-redirect</span> once the email link is clicked.
+                        </p>
+                    </div>
+                    
+                    <button id="checkBtn" class="btn-sba w-full text-white font-black py-4 rounded-sm shadow-lg uppercase tracking-widest text-[10px]">
+                        Manual Authorize
+                    </button>
+                </div>
+
+                <div class="mt-6 text-center border-t pt-4 border-slate-100">
+                    <button id="resendBtn" class="text-[#cc0000] font-black text-[10px] uppercase tracking-widest hover:underline">
+                        Resend Security Link
+                    </button>
+                </div>
+            </div>
+
+            <button onclick="handleLogout()" class="w-full mt-6 text-slate-400 text-[8px] font-black uppercase tracking-widest">
+                <i class="fas fa-power-off mr-1"></i> Terminate Session
+            </button>
+        </div>
+    </main>
+
+    <script type="module">
+        import { auth, db } from './firebase-config.js';
+        import { onAuthStateChanged, signOut, sendEmailVerification } from "https://www.gstatic.com/firebasejs/10.7.0/firebase-auth.js";
+        import { doc, updateDoc } from "https://www.gstatic.com/firebasejs/10.7.0/firebase-firestore.js";
+
+        const displayEmail = document.getElementById('displayEmail');
+        const alertBox = document.getElementById('alertBox');
+        const checkBtn = document.getElementById('checkBtn');
+
+        onAuthStateChanged(auth, (user) => {
+            if (!user) {
+                window.location.href = "login.html";
+            } else {
+                displayEmail.innerText = user.email; // Displaying in normal lowercase
+                
+                // AUTO-REDIRECT LOGIC: Checks every 3 seconds
+                const interval = setInterval(async () => {
+                    await user.reload();
+                    if (user.emailVerified) {
+                        clearInterval(interval);
+                        await finalize(user);
+                    }
+                }, 3000);
+            }
+        });
+
+        async function finalize(user) {
+            try {
+                await updateDoc(doc(db, "users", user.uid), {
+                    isVerified: true,
+                    accountStatus: "ACTIVE"
+                });
+                window.location.href = "welcome.html";
+            } catch (e) { console.log("Sync..."); }
+        }
+
+        checkBtn.onclick = async () => {
+            const user = auth.currentUser;
+            if (!user) return;
+            checkBtn.disabled = true;
+            checkBtn.innerHTML = '<i class="fas fa-circle-notch fa-spin"></i>';
+            
+            await user.reload();
+            if (user.emailVerified) {
+                finalize(user);
+            } else {
+                alertBox.innerText = "LINK NOT ACTIVATED. CHECK SPAM.";
+                alertBox.classList.remove('hidden');
+                checkBtn.disabled = false;
+                checkBtn.innerText = 'Manual Authorize';
+            }
+        };
+
+        document.getElementById('resendBtn').onclick = async () => {
+            try {
+                await sendEmailVerification(auth.currentUser);
+                alert("New link sent!");
+            } catch (err) { alert("Error sending link."); }
+        };
+
+        window.handleLogout = () => {
+            signOut(auth).then(() => { window.location.href = "login.html"; });
+        };
+    </script>
+</body>
+</html>

