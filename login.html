@@ -9,82 +9,80 @@
     <style>
         @import url('https://fonts.googleapis.com/css2?family=Public+Sans:wght@400;700;900&display=swap');
         :root { --sba-blue: #002e6d; --sba-red: #cc0000; }
-        body { font-family: 'Public Sans', sans-serif; background-color: #f8fafc; }
+        body { font-family: 'Public Sans', sans-serif; background-color: #f1f5f9; color: #1e293b; }
         
-        .gov-top { background: #f0f0f0; color: #444; font-size: 10px; padding: 8px 20px; border-bottom: 1px solid #ddd; font-weight: 700; }
-        .sba-logo-box { position: relative; display: inline-block; padding: 4px 8px; }
-        .sba-logo-box::before { content: ""; position: absolute; top: 0; left: 0; right: 0; bottom: 5px; border-top: 3px solid var(--sba-blue); border-left: 3px solid var(--sba-blue); border-right: 3px solid var(--sba-blue); }
-        .sba-logo-box::after { content: ""; position: absolute; bottom: 0; left: 0; right: 30%; height: 3px; background: var(--sba-red); }
+        /* Matching Logo Box from Register */
+        .sba-logo-box { position: relative; display: inline-block; padding: 4px 6px; }
+        .sba-logo-box::before { content: ""; position: absolute; top: 0; left: 0; right: 0; bottom: 4px; border-top: 2.5px solid var(--sba-blue); border-left: 2.5px solid var(--sba-blue); border-right: 2.5px solid var(--sba-blue); }
+        .sba-logo-box::after { content: ""; position: absolute; bottom: 0; left: 0; right: 30%; height: 2.5px; background: var(--sba-red); }
 
-        .auth-card { border-radius: 2px; border-top: 6px solid var(--sba-blue); box-shadow: 0 15px 30px rgba(0,0,0,0.08); }
-        .btn-sba { background-color: var(--sba-blue); transition: all 0.2s; }
-        .btn-sba:disabled { opacity: 0.7; cursor: not-allowed; }
+        /* Matching Card Constraints */
+        .auth-card { background: white; border-top: 4px solid var(--sba-blue); box-shadow: 0 4px 20px rgba(0,0,0,0.05); border-radius: 2px; }
         
-        input { font-size: 16px !important; }
+        input { font-size: 14px !important; border-radius: 2px !important; transition: all 0.2s; }
+        input:focus { border-color: var(--sba-blue) !important; outline: none !important; background: #fff !important; }
+
+        .btn-sba { background: var(--sba-blue); transition: all 0.2s; font-size: 11px; letter-spacing: 1px; font-weight: 900; }
+        .btn-sba:disabled { opacity: 0.6; cursor: not-allowed; }
     </style>
 </head>
 <body class="min-h-screen flex flex-col">
 
-    <div class="gov-top flex items-center gap-2 uppercase tracking-tight">
-        <img src="https://upload.wikimedia.org/wikipedia/en/a/a4/Flag_of_the_United_States.svg" class="w-4" alt="US Flag">
-        <span>Official U.S. Government Portal</span>
+    <div class="bg-[#f0f0f0] py-1.5 px-4 flex items-center gap-2 border-b border-gray-200">
+        <img src="https://upload.wikimedia.org/wikipedia/en/a/a4/Flag_of_the_United_States.svg" class="w-3.5 shadow-sm">
+        <span class="text-[9px] font-bold text-gray-500 uppercase tracking-tight">Official U.S. Government Portal</span>
     </div>
 
-    <header class="bg-white border-b border-gray-200 py-5 px-6 flex justify-center shadow-sm">
-        <div class="flex items-center gap-3">
+    <nav class="bg-white px-5 py-3 flex justify-between items-center border-b border-gray-100 sticky top-0 z-50">
+        <div class="flex items-center gap-2">
             <div class="sba-logo-box">
-                <span class="text-xl font-black text-[#002e6d] tracking-tighter">SBA</span>
+                <span class="text-lg font-black text-[#002e6d] tracking-tighter uppercase">SBA</span>
             </div>
-            <div class="text-left">
-                <p class="text-[8px] font-black text-slate-400 uppercase leading-none mb-0.5">U.S. Small Business</p>
-                <p class="text-[10px] font-black text-[#002e6d] uppercase leading-none">Administration</p>
-            </div>
+            <p class="text-[9px] font-black text-[#002e6d] uppercase leading-none hidden sm:block">Administration</p>
         </div>
-    </header>
+        <a href="register.html" class="text-[10px] font-black text-slate-400 hover:text-red-600 uppercase">Enroll Now</a>
+    </nav>
 
-    <main class="flex-grow flex items-center justify-center p-5">
-        <div class="w-full max-w-md">
-            <div class="bg-white auth-card p-8 md:p-12 border border-gray-200">
-                
-                <div class="mb-10 text-center">
+    <main class="flex-grow flex items-center justify-center p-4">
+        <div class="w-full max-w-[400px]"> <div class="auth-card p-6 md:p-10"> <div class="text-center mb-8">
                     <h2 class="text-2xl font-black text-slate-800 uppercase tracking-tighter">Portal Access</h2>
                     <p class="text-slate-400 text-[10px] font-bold uppercase tracking-[0.2em] mt-2">Personnel Authentication Protocol</p>
                 </div>
 
-                <div id="alertBox" class="hidden mb-6 p-4 rounded-sm bg-red-50 border-l-4 border-red-600 text-red-700 text-[11px] font-bold italic uppercase shadow-sm"></div>
+                <div id="alertBox" class="hidden mb-6 p-4 bg-red-50 border-l-4 border-red-600 text-red-700 text-[11px] font-bold uppercase italic shadow-sm"></div>
 
-                <form id="loginForm" class="space-y-6">
+                <form id="loginForm" class="space-y-5">
                     <div>
-                        <label class="block text-[10px] font-black text-slate-500 uppercase tracking-widest mb-2">Account Email</label>
+                        <label class="block text-[10px] font-black text-slate-400 uppercase tracking-widest mb-2">Account Email</label>
                         <div class="relative">
-                            <span class="absolute inset-y-0 left-0 pl-4 flex items-center text-slate-400">
-                                <i class="fas fa-user-shield"></i>
+                            <span class="absolute inset-y-0 left-0 pl-4 flex items-center text-slate-300">
+                                <i class="fas fa-user-shield text-xs"></i>
                             </span>
-                            <input type="email" id="email" required class="w-full pl-11 pr-4 py-4 bg-slate-50 border border-slate-200 rounded-sm outline-none focus:border-[#002e6d] focus:bg-white font-semibold text-sm transition-all" placeholder="Enter ID Email">
+                            <input type="email" id="email" required class="w-full pl-10 pr-4 py-3.5 bg-slate-50 border border-slate-200 outline-none" placeholder="Enter ID Email">
                         </div>
                     </div>
 
                     <div>
                         <div class="flex justify-between items-center mb-2">
-                            <label class="block text-[10px] font-black text-slate-500 uppercase tracking-widest">Secure Passkey</label>
+                            <label class="block text-[10px] font-black text-slate-400 uppercase tracking-widest">Secure Passkey</label>
                             <a href="forgot-password.html" class="text-[9px] font-black text-blue-700 uppercase hover:underline">Reset?</a>
                         </div>
                         <div class="relative">
-                            <span class="absolute inset-y-0 left-0 pl-4 flex items-center text-slate-400">
-                                <i class="fas fa-lock"></i>
+                            <span class="absolute inset-y-0 left-0 pl-4 flex items-center text-slate-300">
+                                <i class="fas fa-lock text-xs"></i>
                             </span>
-                            <input type="password" id="pass" required class="w-full pl-11 pr-4 py-4 bg-slate-50 border border-slate-200 rounded-sm outline-none focus:border-[#002e6d] focus:bg-white font-semibold text-sm transition-all" placeholder="••••••••">
+                            <input type="password" id="pass" required class="w-full pl-10 pr-4 py-3.5 bg-slate-50 border border-slate-200 outline-none" placeholder="••••••••">
                         </div>
                     </div>
 
-                    <button type="submit" id="submitBtn" class="btn-sba w-full text-white font-black py-5 rounded-sm shadow-xl uppercase tracking-[0.2em] text-xs mt-4">
+                    <button type="submit" id="submitBtn" class="btn-sba w-full text-white py-4 shadow-xl uppercase mt-4">
                         Authorize Session
                     </button>
                 </form>
 
-                <div class="mt-10 pt-8 border-t border-slate-100 text-center">
-                    <p class="text-[10px] text-slate-400 font-bold uppercase mb-4">No active case found?</p>
-                    <a href="register.html" class="inline-block text-[#cc0000] font-black text-[11px] uppercase tracking-widest border-b-2 border-[#cc0000] pb-1 hover:text-red-700 transition-all">
+                <div class="mt-8 pt-6 border-t border-slate-100 text-center">
+                    <p class="text-[10px] text-slate-400 font-bold uppercase mb-2">No active case found?</p>
+                    <a href="register.html" class="text-[#cc0000] font-black text-[11px] uppercase tracking-[0.2em] hover:text-red-700 transition-all">
                         Register New Case File
                     </a>
                 </div>
@@ -92,8 +90,8 @@
         </div>
     </main>
 
-    <footer class="py-8 text-center text-[9px] text-slate-400 font-bold uppercase tracking-widest">
-        SECURE NODE ACCESS | AES-256 ENCRYPTED | SBA-V15
+    <footer class="py-6 text-center text-[9px] text-slate-400 font-bold uppercase tracking-[0.3em]">
+        <i class="fas fa-lock mr-2 text-slate-300"></i> Encrypted 256-Bit Federal Node-V15
     </footer>
 
     <script type="module">
@@ -118,17 +116,14 @@
                 const userCredential = await signInWithEmailAndPassword(auth, email, pass);
                 const user = userCredential.user;
 
-                // 1. Check if Admin
                 if (email === ADMIN_EMAIL) {
                     window.location.href = "admin-portal.html";
                     return;
                 }
 
-                // 2. Security Check: Is the email verified?
                 if (user.emailVerified) {
                     window.location.href = "dashboard.html";
                 } else {
-                    // Force sign out if not verified to prevent ghost sessions
                     await signOut(auth);
                     window.location.href = "verify.html?email=" + encodeURIComponent(email);
                 }
@@ -138,7 +133,6 @@
                 btn.innerText = "Authorize Session";
                 alertBox.classList.remove('hidden');
                 
-                // Friendly error messages
                 if (error.code === 'auth/user-not-found') {
                     alertBox.innerText = "DENIED: Case file not found.";
                 } else if (error.code === 'auth/wrong-password') {
@@ -148,6 +142,12 @@
                 }
             }
         };
+
+        function showAlert(msg) {
+            alertBox.innerText = msg;
+            alertBox.classList.remove('hidden');
+            window.scrollTo({ top: 0, behavior: 'smooth' });
+        }
     </script>
 </body>
 </html>
