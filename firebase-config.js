@@ -18,3 +18,7 @@ const app = initializeApp(firebaseConfig);
 // Export for use in other files
 export const auth = getAuth(app);
 export const db = getFirestore(app);
+
+// Global Helper to prevent "Name Disappearing" on refresh
+export const getLocalUser = () => JSON.parse(sessionStorage.getItem('sba_user'));
+export const setLocalUser = (data) => sessionStorage.setItem('sba_user', JSON.stringify(data));
