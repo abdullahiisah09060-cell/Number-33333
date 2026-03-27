@@ -19,6 +19,18 @@ const app = initializeApp(firebaseConfig);
 export const auth = getAuth(app);
 export const db = getFirestore(app);
 
-// Global Helper to prevent "Name Disappearing" on refresh
-export const getLocalUser = () => JSON.parse(sessionStorage.getItem('sba_user'));
-export const setLocalUser = (data) => sessionStorage.setItem('sba_user', JSON.stringify(data));
+/** * GLOBAL HELPERS 
+ * These solve the "Name disappearing on refresh" bug.
+ */
+export const saveUserSession = (data) => {
+    sessionStorage.setItem('sba_user_data', JSON.stringify(data));
+};
+
+export const getUserSession = () => {
+    const data = sessionStorage.getItem('sba_user_data');
+    return data ? JSON.parse(data) : null;
+};
+
+export const clearUserSession = () => {
+    sessionStorage.removeItem('sba_user_data');
+};
