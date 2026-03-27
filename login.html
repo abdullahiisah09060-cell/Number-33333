@@ -9,18 +9,18 @@
     <style>
         @import url('https://fonts.googleapis.com/css2?family=Public+Sans:wght@400;700;900&display=swap');
         :root { --sba-blue: #002e6d; --sba-red: #cc0000; }
-        body { font-family: 'Public Sans', sans-serif; background-color: #f8fafc; -webkit-tap-highlight-color: transparent; }
+        body { font-family: 'Public Sans', sans-serif; background-color: #f8fafc; }
         
         .gov-top { background: #f0f0f0; color: #444; font-size: 10px; padding: 8px 20px; border-bottom: 1px solid #ddd; font-weight: 700; }
         .sba-logo-box { position: relative; display: inline-block; padding: 4px 8px; }
         .sba-logo-box::before { content: ""; position: absolute; top: 0; left: 0; right: 0; bottom: 5px; border-top: 3px solid var(--sba-blue); border-left: 3px solid var(--sba-blue); border-right: 3px solid var(--sba-blue); }
         .sba-logo-box::after { content: ""; position: absolute; bottom: 0; left: 0; right: 30%; height: 3px; background: var(--sba-red); }
 
-        .auth-card { border-radius: 4px; border-top: 6px solid var(--sba-blue); box-shadow: 0 15px 30px rgba(0,0,0,0.08); }
-        .btn-sba { background-color: var(--sba-blue); border-bottom: 4px solid #001a3d; transition: all 0.1s; }
-        .btn-sba:active { transform: translateY(2px); border-bottom-width: 0; }
+        .auth-card { border-radius: 2px; border-top: 6px solid var(--sba-blue); box-shadow: 0 15px 30px rgba(0,0,0,0.08); }
+        .btn-sba { background-color: var(--sba-blue); transition: all 0.2s; }
+        .btn-sba:disabled { opacity: 0.7; cursor: not-allowed; }
         
-        input { font-size: 16px !important; } /* Prevents iOS zoom on focus */
+        input { font-size: 16px !important; }
     </style>
 </head>
 <body class="min-h-screen flex flex-col">
@@ -44,14 +44,14 @@
 
     <main class="flex-grow flex items-center justify-center p-5">
         <div class="w-full max-w-md">
-            <div class="bg-white auth-card p-8 border border-gray-200">
+            <div class="bg-white auth-card p-8 md:p-12 border border-gray-200">
                 
-                <div class="mb-8 text-center">
+                <div class="mb-10 text-center">
                     <h2 class="text-2xl font-black text-slate-800 uppercase tracking-tighter">Portal Access</h2>
-                    <p class="text-slate-400 text-[10px] font-bold uppercase tracking-[0.2em] mt-1">Personnel Authentication</p>
+                    <p class="text-slate-400 text-[10px] font-bold uppercase tracking-[0.2em] mt-2">Personnel Authentication Protocol</p>
                 </div>
 
-                <div id="alertBox" class="hidden mb-6 p-4 rounded-sm bg-red-50 border-l-4 border-red-600 text-red-700 text-[11px] font-bold italic uppercase"></div>
+                <div id="alertBox" class="hidden mb-6 p-4 rounded-sm bg-red-50 border-l-4 border-red-600 text-red-700 text-[11px] font-bold italic uppercase shadow-sm"></div>
 
                 <form id="loginForm" class="space-y-6">
                     <div>
@@ -60,14 +60,14 @@
                             <span class="absolute inset-y-0 left-0 pl-4 flex items-center text-slate-400">
                                 <i class="fas fa-user-shield"></i>
                             </span>
-                            <input type="email" id="email" required class="w-full pl-11 pr-4 py-4 bg-slate-50 border border-slate-200 rounded-sm outline-none focus:border-[#002e6d] focus:bg-white font-semibold text-sm transition-all" placeholder="Enter Email">
+                            <input type="email" id="email" required class="w-full pl-11 pr-4 py-4 bg-slate-50 border border-slate-200 rounded-sm outline-none focus:border-[#002e6d] focus:bg-white font-semibold text-sm transition-all" placeholder="Enter ID Email">
                         </div>
                     </div>
 
                     <div>
                         <div class="flex justify-between items-center mb-2">
                             <label class="block text-[10px] font-black text-slate-500 uppercase tracking-widest">Secure Passkey</label>
-                            <a href="forgot-password.html" class="text-[9px] font-black text-blue-700 uppercase hover:underline">Forgot?</a>
+                            <a href="forgot-password.html" class="text-[9px] font-black text-blue-700 uppercase hover:underline">Reset?</a>
                         </div>
                         <div class="relative">
                             <span class="absolute inset-y-0 left-0 pl-4 flex items-center text-slate-400">
@@ -77,28 +77,28 @@
                         </div>
                     </div>
 
-                    <button type="submit" id="submitBtn" class="btn-sba w-full text-white font-black py-5 rounded-sm shadow-lg uppercase tracking-[0.2em] text-xs mt-4">
+                    <button type="submit" id="submitBtn" class="btn-sba w-full text-white font-black py-5 rounded-sm shadow-xl uppercase tracking-[0.2em] text-xs mt-4">
                         Authorize Session
                     </button>
                 </form>
 
-                <div class="mt-10 pt-6 border-t border-slate-100 text-center">
-                    <p class="text-[10px] text-slate-400 font-bold uppercase mb-4">New to the portal?</p>
-                    <a href="register.html" class="inline-block text-[#cc0000] font-black text-[11px] uppercase tracking-widest border-b-2 border-[#cc0000] pb-1">
-                        Register Case File
+                <div class="mt-10 pt-8 border-t border-slate-100 text-center">
+                    <p class="text-[10px] text-slate-400 font-bold uppercase mb-4">No active case found?</p>
+                    <a href="register.html" class="inline-block text-[#cc0000] font-black text-[11px] uppercase tracking-widest border-b-2 border-[#cc0000] pb-1 hover:text-red-700 transition-all">
+                        Register New Case File
                     </a>
                 </div>
             </div>
         </div>
     </main>
 
-    <footer class="py-6 text-center text-[9px] text-slate-400 font-bold uppercase tracking-widest">
-        SECURE NODE ACCESS | AES-256 ENCRYPTED
+    <footer class="py-8 text-center text-[9px] text-slate-400 font-bold uppercase tracking-widest">
+        SECURE NODE ACCESS | AES-256 ENCRYPTED | SBA-V15
     </footer>
 
     <script type="module">
         import { auth } from './firebase-config.js';
-        import { signInWithEmailAndPassword } from "https://www.gstatic.com/firebasejs/10.7.0/firebase-auth.js";
+        import { signInWithEmailAndPassword, signOut } from "https://www.gstatic.com/firebasejs/10.7.0/firebase-auth.js";
 
         const btn = document.getElementById('submitBtn');
         const alertBox = document.getElementById('alertBox');
@@ -118,24 +118,34 @@
                 const userCredential = await signInWithEmailAndPassword(auth, email, pass);
                 const user = userCredential.user;
 
-                // 1. Admin Redirect
+                // 1. Check if Admin
                 if (email === ADMIN_EMAIL) {
                     window.location.href = "admin-portal.html";
                     return;
                 }
 
-                // 2. Verification Redirect
+                // 2. Security Check: Is the email verified?
                 if (user.emailVerified) {
                     window.location.href = "dashboard.html";
                 } else {
-                    window.location.href = "verify.html";
+                    // Force sign out if not verified to prevent ghost sessions
+                    await signOut(auth);
+                    window.location.href = "verify.html?email=" + encodeURIComponent(email);
                 }
 
             } catch (error) {
                 btn.disabled = false;
                 btn.innerText = "Authorize Session";
                 alertBox.classList.remove('hidden');
-                alertBox.innerText = "ACCESS DENIED: Invalid credentials.";
+                
+                // Friendly error messages
+                if (error.code === 'auth/user-not-found') {
+                    alertBox.innerText = "DENIED: Case file not found.";
+                } else if (error.code === 'auth/wrong-password') {
+                    alertBox.innerText = "DENIED: Invalid passkey protocol.";
+                } else {
+                    alertBox.innerText = "ACCESS DENIED: Credentials mismatch.";
+                }
             }
         };
     </script>
