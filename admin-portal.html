@@ -10,24 +10,20 @@
         @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;700;900&family=JetBrains+Mono:wght@700&display=swap');
         :root { --sky: #0ea5e9; --rose: #f43f5e; --emerald: #10b981; --amber: #f59e0b; --dark: #020617; }
         body { background: var(--dark); color: #f1f5f9; font-family: 'Inter', sans-serif; font-size: 12px; overflow-x: hidden; }
-        
         .glass { background: rgba(15, 23, 42, 0.8); backdrop-filter: blur(20px); border: 1px solid rgba(255,255,255,0.05); border-radius: 12px; }
         .pane { display: none; animation: slideUp 0.3s ease-out; }
         .pane.active { display: block; }
         @keyframes slideUp { from { opacity: 0; transform: translateY(15px); } to { opacity: 1; transform: translateY(0); } }
-
         .nav-dock { position: fixed; bottom: 0; width: 100%; max-width: 500px; background: #070a14; display: grid; grid-template-columns: repeat(5, 1fr); padding: 12px 0 25px; border-top: 1px solid #1e293b; z-index: 9000; }
         .nav-item { text-align: center; color: #475569; font-size: 9px; font-weight: 900; position: relative; cursor: pointer; }
         .nav-item.active { color: var(--sky); }
         .nav-item i { font-size: 20px; display: block; margin-bottom: 4px; }
-        
         .badge { position: absolute; top: -5px; right: 15px; background: var(--rose); color: white; border-radius: 50%; width: 16px; height: 16px; font-size: 9px; display: flex; align-items: center; justify-content: center; border: 2px solid var(--dark); font-weight: 900; }
         #chat-hub { position: fixed; inset: 0; background: var(--dark); z-index: 10000; display: none; flex-direction: column; }
         .bubble { max-width: 80%; padding: 10px 14px; border-radius: 18px; margin-bottom: 8px; font-size: 13px; line-height: 1.4; }
         .b-in { background: #1e293b; align-self: flex-start; border-bottom-left-radius: 2px; }
         .b-out { background: #0369a1; align-self: flex-end; border-bottom-right-radius: 2px; }
         #loader-line { position: fixed; top: 0; left: 0; height: 2px; background: var(--sky); z-index: 9999; transition: width 0.3s; width: 0%; }
-        
         .ledger-item { border-left: 2px solid var(--sky); padding: 8px 12px; background: rgba(255,255,255,0.02); margin-bottom: 4px; font-family: 'JetBrains Mono', monospace; font-size: 9px; }
     </style>
 </head>
@@ -36,7 +32,6 @@
 <div id="loader-line"></div>
 
 <div class="w-full max-w-[500px] min-h-screen pb-32">
-    
     <header class="p-5 sticky top-0 bg-slate-900/95 backdrop-blur-md z-[8000] border-b border-slate-800 flex justify-between items-center">
         <div>
             <h1 class="text-lg font-black italic text-sky-500 uppercase">TITAN PRO V15</h1>
@@ -160,7 +155,6 @@
         setLoader(30);
         document.getElementById('master-search').oninput = render;
 
-        // SYNC GLOBAL FORGE (IRs)
         onSnapshot(doc(db, "system", "config"), s => {
             if(s.exists()){
                 document.getElementById('forge-ir').value = s.data().interestRate || 0;
@@ -168,7 +162,6 @@
             }
         });
 
-        // SYNC USERS & DETECT TASKS
         onSnapshot(collection(db, "users"), snap => {
             citizens = [];
             let tasksCount = 0; let msgsCount = 0;
@@ -176,7 +169,6 @@
                 if(d.data().email !== ADMIN_EMAIL) {
                     const u = { id: d.id, ...d.data() };
                     citizens.push(u);
-                    // Updated logic to catch 'awardStatus' from Hope's new award page
                     if(u.kycStatus === 'UNDER_REVIEW' || u.applyStatus === 'PENDING' || u.awardStatus === 'PENDING' || u.withdrawStatus === 'PENDING' || u.depositStatus === 'PENDING') tasksCount++;
                     if(u.chatHistory?.length && u.chatHistory[u.chatHistory.length-1].sender === 'USER') msgsCount++;
                 }
@@ -190,13 +182,11 @@
             setLoader(100); setTimeout(() => setLoader(0), 500);
         });
 
-        // SYNC LEDGER (Global Audit Trail)
         onSnapshot(query(collection(db, "logs"), orderBy("timestamp", "desc"), limit(30)), snap => {
             const grid = document.getElementById('ledger-grid');
             grid.innerHTML = "";
             snap.forEach(l => {
                 const log = l.data();
-                // Improved timestamp parsing
                 const timeStr = log.timestamp ? new Date(log.timestamp).toLocaleTimeString() : '--';
                 grid.innerHTML += `<div class="ledger-item"><span class="text-sky-500">[${timeStr}]</span> <span class="text-white">${log.targetUser || 'System'}</span> <span class="${log.action.includes('DECLINED') ? 'text-rose-400' : 'text-emerald-400'}">-> ${log.action}</span></div>`;
             });
@@ -215,12 +205,9 @@
             const isMatch = u.fullName?.toLowerCase().includes(q) || u.email?.toLowerCase().includes(q) || u.securityPin?.includes(q);
             if(!isMatch) return;
 
-            const isVerified = u.kycStatus === 'SUCCESSFUL';
-            const shieldColor = isVerified ? 'text-emerald-500' : 'text-slate-600';
-
             userDiv.innerHTML += `
             <div class="glass p-4 border-t-2 border-sky-500 relative">
-                <div class="absolute top-4 right-4 ${shieldColor}"><i class="fas fa-shield-alt text-lg"></i></div>
+                <div class="absolute top-4 right-4 ${u.kycStatus === 'SUCCESSFUL' ? 'text-emerald-500' : 'text-slate-600'}"><i class="fas fa-shield-alt text-lg"></i></div>
                 <div class="flex justify-between items-start mb-3">
                     <div>
                         <h4 class="font-black text-white text-[11px] uppercase">${u.fullName}</h4>
@@ -239,7 +226,6 @@
                 </div>
             </div>`;
 
-            // TASKS: Integrated Award/Grant detection
             if(u.kycStatus === 'UNDER_REVIEW') taskDiv.innerHTML += taskTemplate(u.id, u.fullName, 'KYC VERIFICATION', [u.idFront, u.idBack], 'kyc', 0);
             
             if(u.awardStatus === 'PENDING' || u.applyStatus === 'PENDING') {
@@ -259,60 +245,61 @@
                 </div>`;
             }
         });
-        
-        // Update task action count
         document.getElementById('task-count-label').innerText = taskDiv.children.length + " ACTIONS";
     }
 
-    document.getElementById('save-forge').onclick = async () => {
-        setLoader(50);
-        const ir = document.getElementById('forge-ir').value;
-        const st = document.getElementById('forge-status').value;
-        await setDoc(doc(db, "system", "config"), { interestRate: Number(ir), status: st }, { merge: true });
-        alert("GLOBAL SYSTEM UPDATED");
-        setLoader(100); setTimeout(() => setLoader(0), 300);
-    };
-
+    // FIXED: Global Bal Adjuster
     window.adjustBal = async (uid) => {
         const amt = prompt("Enter amount to add (e.g. 5000) or subtract (e.g. -5000):");
         if(amt && !isNaN(amt)) {
             setLoader(50);
             const ref = doc(db, "users", uid);
+            // Ensure we update balance correctly using increment
             await updateDoc(ref, { balance: increment(Number(amt)) });
             const uSnap = await getDoc(ref);
             await addDoc(collection(db, "logs"), { 
                 targetUser: uSnap.data().fullName, 
-                action: `BAL ADJUST: ${amt}`, 
+                action: `MANUAL BAL: ${amt > 0 ? '+' : ''}${amt}`, 
                 timestamp: new Date().toISOString() 
             });
             setLoader(100); setTimeout(() => setLoader(0), 300);
         }
     };
 
+    // FIXED: Request Processor with Balance Logic
     window.processRequest = async (uid, type, status, amount) => {
         const reason = status === 'DECLINED' ? prompt("Rejection Reason:") : "";
         if(status === 'DECLINED' && reason === null) return;
         
         setLoader(50);
         const ref = doc(db, "users", uid);
-        let up = {};
+        let updates = {};
         
-        if(type === 'kyc') up.kycStatus = status;
-        
-        if(type === 'award' || type === 'apply') { 
-            up.awardStatus = status === 'SUCCESSFUL' ? 'APPROVED' : 'DECLINED';
-            up.applyStatus = status === 'SUCCESSFUL' ? 'APPROVED' : 'DECLINED';
-            up.awardDeclineReason = reason || "";
-            if(status === 'SUCCESSFUL') up.balance = increment(Number(amount)); 
+        if(type === 'kyc') updates.kycStatus = status;
+
+        if(type === 'award' || type === 'apply') {
+            updates.awardStatus = status === 'SUCCESSFUL' ? 'APPROVED' : 'DECLINED';
+            updates.applyStatus = status === 'SUCCESSFUL' ? 'APPROVED' : 'DECLINED';
+            updates.awardDeclineReason = reason || "";
+            // Add money to balance only if approved
+            if(status === 'SUCCESSFUL') updates.balance = increment(Number(amount));
+        }
+
+        if(type === 'withdraw') {
+            updates.withdrawStatus = status;
+            // Refund balance only if declined (since user already deducted it when applying)
+            if(status === 'DECLINED') updates.balance = increment(Number(amount));
+        }
+
+        if(type === 'deposit') {
+            updates.depositStatus = status;
+            // Add balance only if proof is approved
+            if(status === 'SUCCESSFUL') updates.balance = increment(Number(amount));
         }
         
-        if(type === 'withdraw') { up.withdrawStatus = status; if(status === 'DECLINED') up.balance = increment(Number(amount)); }
-        if(type === 'deposit') { up.depositStatus = status; if(status === 'SUCCESSFUL') up.balance = increment(Number(amount)); }
-        
-        await updateDoc(ref, up);
+        await updateDoc(ref, updates);
         const uSnap = await getDoc(ref);
         
-        // LOGGING TO LEDGER
         await addDoc(collection(db, "logs"), { 
             targetUser: uSnap.data().fullName, 
             action: `${status} ${type.toUpperCase()}: $${amount}`, 
@@ -336,6 +323,24 @@
         </div>`;
     }
 
+    // Tab Switching Logic
+    window.switchTab = (id, el) => {
+        document.querySelectorAll('.pane, .nav-item').forEach(x => x.classList.remove('active'));
+        document.getElementById('pane-'+id).classList.add('active');
+        el.classList.add('active');
+    };
+
+    // Global Forge Update
+    document.getElementById('save-forge').onclick = async () => {
+        setLoader(50);
+        const ir = document.getElementById('forge-ir').value;
+        const st = document.getElementById('forge-status').value;
+        await setDoc(doc(db, "system", "config"), { interestRate: Number(ir), status: st }, { merge: true });
+        alert("GLOBAL SYSTEM UPDATED");
+        setLoader(100); setTimeout(() => setLoader(0), 300);
+    };
+
+    // Chat Functions
     window.openChat = (uid, name) => {
         activeChatId = uid;
         document.getElementById('chat-target-name').innerText = name;
@@ -358,12 +363,6 @@
             chatHistory: arrayUnion({ sender: "ADMIN", text: inp.value, image: pendingImg, time: new Date().toISOString() })
         });
         inp.value = ""; pendingImg = null; document.getElementById('chat-preview-wrap').classList.add('hidden');
-    };
-
-    window.switchTab = (id, el) => {
-        document.querySelectorAll('.pane, .nav-item').forEach(x => x.classList.remove('active'));
-        if(document.getElementById('pane-'+id)) document.getElementById('pane-'+id).classList.add('active');
-        el.classList.add('active');
     };
 
     window.closeChat = () => document.getElementById('chat-hub').style.display = 'none';
