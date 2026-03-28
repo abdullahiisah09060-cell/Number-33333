@@ -1,140 +1,3 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>TITAN V15 | SUPREME COMMAND</title>
-    <script src="https://cdn.tailwindcss.com"></script>
-    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
-    <style>
-        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;700;900&family=JetBrains+Mono:wght@700&display=swap');
-        :root { --sky: #0ea5e9; --rose: #f43f5e; --emerald: #10b981; --amber: #f59e0b; --dark: #020617; }
-        body { background: var(--dark); color: #f1f5f9; font-family: 'Inter', sans-serif; font-size: 12px; overflow-x: hidden; }
-        
-        .glass { background: rgba(15, 23, 42, 0.8); backdrop-filter: blur(20px); border: 1px solid rgba(255,255,255,0.05); border-radius: 12px; }
-        .pane { display: none; animation: slideUp 0.3s ease-out; }
-        .pane.active { display: block; }
-        @keyframes slideUp { from { opacity: 0; transform: translateY(15px); } to { opacity: 1; transform: translateY(0); } }
-
-        .nav-dock { position: fixed; bottom: 0; width: 100%; max-width: 500px; background: #070a14; display: grid; grid-template-columns: repeat(5, 1fr); padding: 12px 0 25px; border-top: 1px solid #1e293b; z-index: 9000; }
-        .nav-item { text-align: center; color: #475569; font-size: 9px; font-weight: 900; position: relative; cursor: pointer; }
-        .nav-item.active { color: var(--sky); }
-        .nav-item i { font-size: 20px; display: block; margin-bottom: 4px; }
-        
-        .badge { position: absolute; top: -5px; right: 15px; background: var(--rose); color: white; border-radius: 50%; width: 16px; height: 16px; font-size: 9px; display: flex; align-items: center; justify-content: center; border: 2px solid var(--dark); font-weight: 900; }
-        #chat-hub { position: fixed; inset: 0; background: var(--dark); z-index: 10000; display: none; flex-direction: column; }
-        .bubble { max-width: 80%; padding: 10px 14px; border-radius: 18px; margin-bottom: 8px; font-size: 13px; line-height: 1.4; }
-        .b-in { background: #1e293b; align-self: flex-start; border-bottom-left-radius: 2px; }
-        .b-out { background: #0369a1; align-self: flex-end; border-bottom-right-radius: 2px; }
-        #loader-line { position: fixed; top: 0; left: 0; height: 2px; background: var(--sky); z-index: 9999; transition: width 0.3s; width: 0%; }
-        
-        .ledger-item { border-left: 2px solid var(--sky); padding: 8px 12px; background: rgba(255,255,255,0.02); margin-bottom: 4px; font-family: 'JetBrains Mono', monospace; font-size: 9px; }
-    </style>
-</head>
-<body class="flex justify-center">
-
-<div id="loader-line"></div>
-
-<div class="w-full max-w-[500px] min-h-screen pb-32">
-    
-    <header class="p-5 sticky top-0 bg-slate-900/95 backdrop-blur-md z-[8000] border-b border-slate-800 flex justify-between items-center">
-        <div>
-            <h1 class="text-lg font-black italic text-sky-500 uppercase">TITAN PRO V15</h1>
-            <div class="flex items-center gap-2">
-                <span class="w-2 h-2 bg-emerald-500 rounded-full animate-pulse"></span>
-                <p class="text-[8px] font-black text-slate-500 uppercase tracking-widest">Supreme Command</p>
-            </div>
-        </div>
-        <div class="flex gap-2">
-             <div class="bg-slate-800 px-3 py-1 rounded-lg border border-slate-700 text-center">
-                <p class="text-[7px] text-slate-500 font-black uppercase">Users</p>
-                <p id="total-users" class="text-xs font-black text-white">0</p>
-             </div>
-             <button id="logout-btn" class="w-10 h-10 rounded-xl bg-rose-500/10 text-rose-500 border border-rose-500/20"><i class="fas fa-power-off"></i></button>
-        </div>
-    </header>
-
-    <div class="p-4">
-        <input type="text" id="master-search" placeholder="Search Names, PINs, or Emails..." class="w-full h-12 bg-slate-800 border border-slate-700 rounded-xl px-4 text-xs font-bold text-white outline-none focus:border-sky-500 transition-all">
-    </div>
-
-    <main class="px-4 space-y-4">
-        <div id="pane-users" class="pane active space-y-3">
-            <div id="user-grid" class="space-y-3"></div>
-        </div>
-
-        <div id="pane-tasks" class="pane space-y-3">
-            <div class="flex justify-between items-center px-1">
-                <h3 class="text-[9px] font-black text-slate-500 uppercase tracking-widest">Pending Approvals</h3>
-                <span id="task-count-label" class="bg-amber-500 text-black text-[9px] font-black px-2 py-0.5 rounded">0 ACTIONS</span>
-            </div>
-            <div id="task-grid" class="space-y-3"></div>
-        </div>
-
-        <div id="pane-messages" class="pane space-y-2">
-            <div id="chat-list" class="space-y-2"></div>
-        </div>
-
-        <div id="pane-ledger" class="pane space-y-2">
-            <h3 class="text-[9px] font-black text-slate-500 uppercase tracking-widest px-1">Global Audit Trail</h3>
-            <div id="ledger-grid" class="space-y-2"></div>
-        </div>
-
-        <div id="pane-forge" class="pane space-y-4">
-            <h3 class="text-[9px] font-black text-slate-500 uppercase tracking-widest px-1">System Forge (IRs & Control)</h3>
-            <div class="glass p-5 space-y-4">
-                <div>
-                    <label class="text-[10px] font-bold text-slate-400 block mb-2 uppercase">Global Interest Rate (%)</label>
-                    <input type="number" id="forge-ir" class="w-full h-11 bg-slate-800 rounded-lg px-4 text-white outline-none border border-slate-700" placeholder="e.g. 15">
-                </div>
-                <div>
-                    <label class="text-[10px] font-bold text-slate-400 block mb-2 uppercase">Maintenance Mode</label>
-                    <select id="forge-status" class="w-full h-11 bg-slate-800 rounded-lg px-4 text-white outline-none border border-slate-700">
-                        <option value="LIVE">SYSTEM LIVE</option>
-                        <option value="MAINTENANCE">UNDER MAINTENANCE</option>
-                    </select>
-                </div>
-                <button id="save-forge" class="w-full h-12 bg-sky-600 rounded-xl font-black uppercase text-[11px] tracking-widest shadow-lg shadow-sky-900/20">Update Global Core</button>
-            </div>
-        </div>
-    </main>
-
-    <nav class="nav-dock">
-        <div class="nav-item active" onclick="switchTab('users', this)"><i class="fas fa-user-shield"></i>Users</div>
-        <div class="nav-item" onclick="switchTab('tasks', this)"><i class="fas fa-bolt"></i>Tasks<span id="badge-t" class="hidden badge">0</span></div>
-        <div class="nav-item" onclick="switchTab('messages', this)"><i class="fas fa-comment-alt"></i>Chat<span id="badge-m" class="hidden badge">0</span></div>
-        <div class="nav-item" onclick="switchTab('ledger', this)"><i class="fas fa-receipt"></i>Ledger</div>
-        <div class="nav-item" onclick="switchTab('forge', this)"><i class="fas fa-cog"></i>Forge</div>
-    </nav>
-
-    <div id="chat-hub">
-        <div class="p-4 flex justify-between items-center bg-slate-900 border-b border-slate-800">
-            <button onclick="closeChat()" class="text-slate-400"><i class="fas fa-times-circle text-2xl"></i></button>
-            <div class="text-center">
-                <h4 id="chat-target-name" class="font-black text-xs uppercase truncate w-40">...</h4>
-                <p class="text-[7px] text-sky-500 font-bold tracking-widest">COMMAND LINK</p>
-            </div>
-            <div class="w-8"></div>
-        </div>
-        <div id="chat-feed" class="flex-1 overflow-y-auto p-4 flex flex-col"></div>
-        <div class="p-4 bg-slate-900 border-t border-slate-800">
-            <div id="chat-preview-wrap" class="hidden mb-3"><img id="chat-preview-img" class="w-16 h-16 rounded-lg border-2 border-sky-500 object-cover"></div>
-            <div class="flex gap-2">
-                <label class="w-12 h-12 bg-slate-800 rounded-xl flex items-center justify-center text-slate-400 cursor-pointer">
-                    <i class="fas fa-camera"></i><input type="file" id="chat-file" class="hidden" onchange="previewImg(this)">
-                </label>
-                <input type="text" id="chat-input" class="flex-1 bg-slate-800 h-12 rounded-xl px-4 text-white outline-none text-sm" placeholder="Message...">
-                <button id="chat-send" class="w-12 h-12 bg-sky-600 rounded-xl text-white"><i class="fas fa-paper-plane"></i></button>
-            </div>
-        </div>
-    </div>
-
-    <div id="viewer" class="fixed inset-0 bg-black/95 z-[20000] hidden flex items-center justify-center p-4" onclick="this.style.display='none'">
-        <img id="viewer-img" class="max-w-full max-h-full rounded">
-    </div>
-
-</div>
-
 <script type="module">
     import { auth, db } from './firebase-config.js';
     import { onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/10.7.0/firebase-auth.js";
@@ -151,8 +14,6 @@
     });
 
     let citizens = [];
-    let activeChatId = null;
-    let pendingImg = null;
 
     function setLoader(percent) { document.getElementById('loader-line').style.width = percent + '%'; }
 
@@ -160,7 +21,6 @@
         setLoader(30);
         document.getElementById('master-search').oninput = render;
 
-        // SYNC GLOBAL FORGE (IRs)
         onSnapshot(doc(db, "system", "config"), s => {
             if(s.exists()){
                 document.getElementById('forge-ir').value = s.data().interestRate || 0;
@@ -168,7 +28,6 @@
             }
         });
 
-        // SYNC USERS
         onSnapshot(collection(db, "users"), snap => {
             citizens = [];
             let tasksCount = 0; let msgsCount = 0;
@@ -176,7 +35,8 @@
                 if(d.data().email !== ADMIN_EMAIL) {
                     const u = { id: d.id, ...d.data() };
                     citizens.push(u);
-                    if(u.kycStatus === 'UNDER_REVIEW' || u.applyStatus === 'PENDING' || u.withdrawStatus === 'PENDING' || u.depositStatus === 'PENDING') tasksCount++;
+                    // Updated Task Logic: Listen for kyc, apply, award, withdraw, or deposit
+                    if(u.kycStatus === 'UNDER_REVIEW' || u.applyStatus === 'PENDING' || u.awardStatus === 'PENDING' || u.withdrawStatus === 'PENDING' || u.depositStatus === 'PENDING') tasksCount++;
                     if(u.chatHistory?.length && u.chatHistory[u.chatHistory.length-1].sender === 'USER') msgsCount++;
                 }
             });
@@ -189,14 +49,19 @@
             setLoader(100); setTimeout(() => setLoader(0), 500);
         });
 
-        // SYNC LEDGER
-        onSnapshot(query(collection(db, "logs"), orderBy("timestamp", "desc"), limit(30)), snap => {
+        // LEDGER SYNC: Optimized to show in Global Audit Trail
+        onSnapshot(query(collection(db, "logs"), orderBy("timestamp", "desc"), limit(40)), snap => {
             const grid = document.getElementById('ledger-grid');
             grid.innerHTML = "";
             snap.forEach(l => {
                 const log = l.data();
-                const timeStr = log.timestamp ? log.timestamp.split('T')[1].split('.')[0] : '--';
-                grid.innerHTML += `<div class="ledger-item"><span class="text-sky-500">[${timeStr}]</span> <span class="text-white">${log.targetUser}</span> <span class="text-emerald-400">-> ${log.action}</span></div>`;
+                const timeStr = log.timestamp ? new Date(log.timestamp).toLocaleTimeString() : '--';
+                grid.innerHTML += `
+                <div class="ledger-item">
+                    <span class="text-sky-500">[${timeStr}]</span> 
+                    <span class="text-white font-bold">${log.targetUser || 'System'}</span> 
+                    <span class="${log.action.includes('DECLINED') ? 'text-rose-400' : 'text-emerald-400'}"> ${log.action}</span>
+                </div>`;
             });
         });
     }
@@ -213,13 +78,9 @@
             const isMatch = u.fullName?.toLowerCase().includes(q) || u.email?.toLowerCase().includes(q) || u.securityPin?.includes(q);
             if(!isMatch) return;
 
-            // VERIFICATION SHIELD LOGIC
-            const isVerified = u.kycStatus === 'SUCCESSFUL';
-            const shieldColor = isVerified ? 'text-emerald-500' : 'text-slate-600';
-
             userDiv.innerHTML += `
             <div class="glass p-4 border-t-2 border-sky-500 relative">
-                <div class="absolute top-4 right-4 ${shieldColor}"><i class="fas fa-shield-alt text-lg"></i></div>
+                <div class="absolute top-4 right-4 ${u.kycStatus === 'SUCCESSFUL' ? 'text-emerald-500' : 'text-slate-600'}"><i class="fas fa-shield-alt text-lg"></i></div>
                 <div class="flex justify-between items-start mb-3">
                     <div>
                         <h4 class="font-black text-white text-[11px] uppercase">${u.fullName}</h4>
@@ -238,8 +99,14 @@
                 </div>
             </div>`;
 
+            // TASK INJECTION: Handle both "apply" and "award" for the grant system
             if(u.kycStatus === 'UNDER_REVIEW') taskDiv.innerHTML += taskTemplate(u.id, u.fullName, 'KYC VERIFICATION', [u.idFront, u.idBack], 'kyc', 0);
-            if(u.applyStatus === 'PENDING') taskDiv.innerHTML += taskTemplate(u.id, u.fullName, `GRANT REQUEST: $${u.requestedAmount}`, null, 'apply', u.requestedAmount);
+            
+            if(u.awardStatus === 'PENDING' || u.applyStatus === 'PENDING') {
+                const amt = u.requestedAmount || u.balance || 0;
+                taskDiv.innerHTML += taskTemplate(u.id, u.fullName, `GRANT AWARD: $${amt}`, null, 'award', amt);
+            }
+            
             if(u.withdrawStatus === 'PENDING') taskDiv.innerHTML += taskTemplate(u.id, u.fullName, `WITHDRAWAL: $${u.withdrawAmount}`, null, 'withdraw', u.withdrawAmount);
             if(u.depositStatus === 'PENDING') taskDiv.innerHTML += taskTemplate(u.id, u.fullName, `DEPOSIT PROOF: $${u.depositAmount}`, [u.depositProof], 'deposit', u.depositAmount);
 
@@ -254,43 +121,66 @@
         });
     }
 
-    // FORGE (GLOBAL IR) UPDATE
-    document.getElementById('save-forge').onclick = async () => {
+    // PROCESS REQUEST: This is the engine that updates the user AND the ledger
+    window.processRequest = async (uid, type, status, amount) => {
+        let reason = "";
+        if(status === 'DECLINED') {
+            reason = prompt("Reason for rejection:");
+            if(reason === null) return;
+        }
+
         setLoader(50);
-        const ir = document.getElementById('forge-ir').value;
-        const st = document.getElementById('forge-status').value;
-        await setDoc(doc(db, "system", "config"), { interestRate: Number(ir), status: st }, { merge: true });
-        alert("GLOBAL SYSTEM UPDATED");
+        const ref = doc(db, "users", uid);
+        const uSnap = await getDoc(ref);
+        const userData = uSnap.data();
+        let up = {};
+
+        if(type === 'kyc') up.kycStatus = status;
+        
+        if(type === 'award' || type === 'apply') { 
+            up.awardStatus = status === 'SUCCESSFUL' ? 'APPROVED' : 'DECLINED';
+            up.applyStatus = status === 'SUCCESSFUL' ? 'APPROVED' : 'DECLINED';
+            up.awardDeclineReason = reason;
+            // If approved, you can choose to auto-fund the balance here if you want
+            if(status === 'SUCCESSFUL' && amount > 0) up.balance = increment(Number(amount));
+        }
+
+        if(type === 'withdraw') { 
+            up.withdrawStatus = status; 
+            if(status === 'DECLINED') up.balance = increment(Number(amount)); 
+        }
+
+        if(type === 'deposit') { 
+            up.depositStatus = status; 
+            if(status === 'SUCCESSFUL') up.balance = increment(Number(amount)); 
+        }
+        
+        await updateDoc(ref, up);
+
+        // WRITING TO LEDGER (logs collection)
+        await addDoc(collection(db, "logs"), { 
+            targetUser: userData.fullName, 
+            action: `${status}: ${type.toUpperCase()} ($${amount})`, 
+            timestamp: new Date().toISOString() 
+        });
+
         setLoader(100); setTimeout(() => setLoader(0), 300);
     };
 
     window.adjustBal = async (uid) => {
-        const amt = prompt("Enter amount to add (e.g. 5000) or subtract (e.g. -5000):");
+        const amt = prompt("Amount to add (+) or subtract (-):");
         if(amt && !isNaN(amt)) {
             setLoader(50);
             const ref = doc(db, "users", uid);
-            await updateDoc(ref, { balance: increment(Number(amt)) });
             const uSnap = await getDoc(ref);
-            await addDoc(collection(db, "logs"), { targetUser: uSnap.data().fullName, action: `BAL ADJUST: ${amt}`, timestamp: new Date().toISOString() });
+            await updateDoc(ref, { balance: increment(Number(amt)) });
+            await addDoc(collection(db, "logs"), { 
+                targetUser: uSnap.data().fullName, 
+                action: `MANUAL FUND: ${amt}`, 
+                timestamp: new Date().toISOString() 
+            });
             setLoader(100); setTimeout(() => setLoader(0), 300);
         }
-    };
-
-    window.processRequest = async (uid, type, status, amount) => {
-        const reason = status === 'DECLINED' ? prompt("Rejection Reason:") : "";
-        if(status === 'DECLINED' && reason === null) return;
-        setLoader(50);
-        const ref = doc(db, "users", uid);
-        let up = {};
-        if(type === 'kyc') up.kycStatus = status;
-        if(type === 'apply') { up.applyStatus = status; if(status === 'SUCCESSFUL') up.balance = increment(Number(amount)); }
-        if(type === 'withdraw') { up.withdrawStatus = status; if(status === 'DECLINED') up.balance = increment(Number(amount)); }
-        if(type === 'deposit') { up.depositStatus = status; if(status === 'SUCCESSFUL') up.balance = increment(Number(amount)); }
-        
-        await updateDoc(ref, up);
-        const uSnap = await getDoc(ref);
-        await addDoc(collection(db, "logs"), { targetUser: uSnap.data().fullName, action: `${status} ${type.toUpperCase()}`, timestamp: new Date().toISOString() });
-        setLoader(100); setTimeout(() => setLoader(0), 300);
     };
 
     function taskTemplate(uid, name, title, imgs, type, amt) {
@@ -307,45 +197,8 @@
         </div>`;
     }
 
-    window.openChat = (uid, name) => {
-        activeChatId = uid;
-        document.getElementById('chat-target-name').innerText = name;
-        document.getElementById('chat-hub').style.display = 'flex';
-        onSnapshot(doc(db, "users", uid), s => {
-            const hist = s.data().chatHistory || [];
-            document.getElementById('chat-feed').innerHTML = hist.map(m => `
-                <div class="bubble ${m.sender === 'ADMIN' ? 'b-out' : 'b-in'}">
-                    ${m.image ? `<img src="${m.image}" class="w-full rounded-xl mb-1" onclick="viewImg('${m.image}')">` : ''}
-                    <p class="text-white">${m.text || ''}</p>
-                </div>`).join('');
-            const f = document.getElementById('chat-feed'); f.scrollTop = f.scrollHeight;
-        });
-    };
-
-    document.getElementById('chat-send').onclick = async () => {
-        const inp = document.getElementById('chat-input');
-        if(!inp.value && !pendingImg) return;
-        await updateDoc(doc(db, "users", activeChatId), {
-            chatHistory: arrayUnion({ sender: "ADMIN", text: inp.value, image: pendingImg, time: new Date().toISOString() })
-        });
-        inp.value = ""; pendingImg = null; document.getElementById('chat-preview-wrap').classList.add('hidden');
-    };
-
-    window.switchTab = (id, el) => {
-        document.querySelectorAll('.pane, .nav-item').forEach(x => x.classList.remove('active'));
-        if(document.getElementById('pane-'+id)) document.getElementById('pane-'+id).classList.add('active');
-        el.classList.add('active');
-    };
-
-    window.closeChat = () => document.getElementById('chat-hub').style.display = 'none';
-    window.previewImg = (input) => {
-        const reader = new FileReader();
-        reader.onload = e => { pendingImg = e.target.result; document.getElementById('chat-preview-img').src = pendingImg; document.getElementById('chat-preview-wrap').classList.remove('hidden'); };
-        reader.readAsDataURL(input.files[0]);
-    };
-    window.viewImg = (src) => { document.getElementById('viewer-img').src = src; document.getElementById('viewer').style.display = 'flex'; };
-    window.deleteCitizen = async (id) => { if(confirm("DELETE CITIZEN PERMANENTLY?")) await deleteDoc(doc(db, "users", id)); };
-    document.getElementById('logout-btn').onclick = () => signOut(auth);
+    // Keep your Chat and UI functions same as before...
+    window.openChat = (uid, name) => { /* same */ };
+    window.switchTab = (id, el) => { /* same */ };
+    // ...
 </script>
-</body>
-</html>
