@@ -3,31 +3,29 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>TITAN V15 | SUPREME COMMAND</title>
+    <title>TITAN V15 | SUPREME ADMIN</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
     <style>
         @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;700;900&family=Libre+Barcode+39&display=swap');
-        :root { --sky: #0ea5e9; --rose: #f43f5e; --emerald: #10b981; --amber: #f59e0b; --dark: #020617; }
+        :root { --sky: #0ea5e9; --rose: #f43f5e; --emerald: #10b981; --dark: #020617; }
         body { background: var(--dark); color: #f1f5f9; font-family: 'Inter', sans-serif; font-size: 12px; }
         .glass { background: rgba(15, 23, 42, 0.8); backdrop-filter: blur(20px); border: 1px solid rgba(255,255,255,0.05); border-radius: 12px; }
-        .pane { display: none; }
-        .pane.active { display: block; animation: fadeIn 0.3s ease; }
+        .pane { display: none; } .pane.active { display: block; animation: fadeIn 0.3s ease; }
         @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
         
         /* IRS IMAGE STYLING */
-        #irs-capture-box { background: #e2e8f0; padding: 20px; border-radius: 8px; }
-        .irs-paper { background: white; color: black; padding: 45px; font-family: 'Times New Roman', serif; position: relative; width: 100%; border: 1px solid #999; }
+        .irs-paper { background: white; color: black; padding: 50px; font-family: 'Times New Roman', serif; position: relative; border: 1px solid #999; width: 600px; margin: auto; }
         .irs-header { border-bottom: 3px solid black; padding-bottom: 10px; margin-bottom: 20px; display: flex; justify-content: space-between; }
-        .official-seal { border: 4px double #8b0000; color: #8b0000; padding: 10px; font-weight: 900; transform: rotate(-12deg); text-transform: uppercase; font-size: 10px; text-align: center; line-height: 1; }
-        .barcode-field { font-family: 'Libre Barcode 39', cursive; font-size: 40px; text-align: center; margin-top: 15px; opacity: 0.7; }
-        
+        .official-seal { border: 4px double #8b0000; color: #8b0000; padding: 8px; font-weight: 900; transform: rotate(-15deg); text-transform: uppercase; font-size: 10px; text-align: center; }
+        .barcode { font-family: 'Libre Barcode 39', cursive; font-size: 40px; text-align: center; margin-top: 15px; opacity: 0.6; }
+
         .nav-dock { position: fixed; bottom: 0; width: 100%; max-width: 500px; background: #070a14; display: grid; grid-template-columns: repeat(5, 1fr); padding: 12px 0 25px; border-top: 1px solid #1e293b; z-index: 9000; }
         .nav-item { text-align: center; color: #475569; font-size: 9px; font-weight: 900; cursor: pointer; position: relative; }
         .nav-item.active { color: var(--sky); }
         .nav-item i { font-size: 20px; display: block; margin-bottom: 4px; }
-        .dot { position: absolute; top: -2px; right: 18px; width: 8px; height: 8px; background: var(--rose); border-radius: 50%; display: none; border: 2px solid var(--dark); }
+        .badge { position: absolute; top: -5px; right: 15px; background: var(--rose); color: white; border-radius: 50%; width: 16px; height: 16px; font-size: 9px; display: flex; align-items: center; justify-content: center; border: 2px solid var(--dark); }
     </style>
 </head>
 <body class="flex justify-center">
@@ -35,335 +33,228 @@
 <div class="w-full max-w-[500px] min-h-screen pb-32">
     <header class="p-5 sticky top-0 bg-slate-900/90 backdrop-blur-md z-[8000] border-b border-slate-800 flex justify-between items-center">
         <div>
-            <h1 class="text-lg font-black italic text-sky-500 tracking-tighter">TITAN COMMAND V15</h1>
-            <p id="user-count-display" class="text-[9px] font-bold text-slate-400 uppercase tracking-widest">LOADING CITIZENS...</p>
+            <h1 class="text-lg font-black italic text-sky-500">TITAN ADMIN</h1>
+            <p id="total-users" class="text-[9px] font-bold text-slate-500 uppercase tracking-widest">CITIZENS: --</p>
         </div>
         <button id="logout-btn" class="w-10 h-10 rounded-xl bg-rose-500/10 text-rose-500 border border-rose-500/20"><i class="fas fa-power-off"></i></button>
     </header>
 
-    <div class="p-4">
-        <input type="text" id="admin-search" placeholder="Search Name, Email, or PIN..." class="w-full h-12 bg-slate-800 border border-slate-700 rounded-xl px-4 text-xs text-white outline-none focus:border-sky-500 shadow-inner">
-    </div>
+    <div class="p-4"><input type="text" id="main-search" placeholder="Search Citizens..." class="w-full h-12 bg-slate-800 border border-slate-700 rounded-xl px-4 text-xs text-white outline-none focus:border-sky-500"></div>
 
     <main class="px-4 space-y-4">
-        
         <div id="pane-users" class="pane active space-y-3"></div>
 
         <div id="pane-tasks" class="pane space-y-3">
-            <h3 class="text-[10px] font-black text-slate-500 uppercase px-1">Pending Authorizations</h3>
+            <h3 class="text-[10px] font-black text-slate-500 uppercase italic px-1">Action Required</h3>
             <div id="task-list" class="space-y-3"></div>
         </div>
 
         <div id="pane-messages" class="pane space-y-2">
-            <div id="chat-inbox" class="space-y-2"></div>
+            <div id="chat-list" class="space-y-2"></div>
         </div>
 
         <div id="pane-forge" class="pane space-y-4">
             <div class="glass p-5 space-y-3">
-                <h3 class="text-xs font-black text-sky-500 uppercase italic">IRS Document Forge</h3>
-                <select id="forge-pick-user" class="w-full h-11 bg-slate-800 rounded-lg px-4 text-white border border-slate-700 outline-none"></select>
-                <select id="forge-pick-type" class="w-full h-11 bg-slate-800 rounded-lg px-4 text-white border border-slate-700 outline-none">
-                    <option value="TAX_CLEARANCE">Federal Tax Clearance (FTC)</option>
-                    <option value="ANTI_TERROR">Anti-Terrorism Fund Certificate</option>
+                <h3 class="text-xs font-black text-sky-500 uppercase">IRS Document Forge</h3>
+                <select id="forge-user" class="w-full h-11 bg-slate-800 rounded-lg px-4 text-white border border-slate-700"></select>
+                <select id="forge-type" class="w-full h-11 bg-slate-800 rounded-lg px-4 text-white border border-slate-700">
+                    <option value="TAX_CLEARANCE">Federal Tax Clearance</option>
+                    <option value="ANTI_TERROR">Anti-Terrorism Clearance</option>
                     <option value="IMF_RELEASE">IMF Release Authorization</option>
-                    <option value="ASSET_LEVY">Asset Verification Levy</option>
-                    <option value="LEGAL_RELEASE">Supreme Court Legal Release</option>
+                    <option value="COURT_ORDER">Supreme Court Payout Order</option>
                 </select>
-                <input type="number" id="forge-pick-amt" placeholder="Settlement Amount ($)" class="w-full h-11 bg-slate-800 rounded-lg px-4 text-white border border-slate-700 outline-none">
-                <button onclick="buildLetter()" class="w-full h-12 bg-sky-600 text-white font-black rounded-xl uppercase text-[10px]">Prepare Seal & Letter</button>
+                <input type="number" id="forge-amt" placeholder="Amount ($)" class="w-full h-11 bg-slate-800 rounded-lg px-4 text-white border border-slate-700">
+                <button onclick="previewIRS()" class="w-full h-11 bg-sky-600 text-white font-black rounded-lg uppercase text-[10px]">Preview Letter</button>
             </div>
-            
-            <div id="letter-result" class="hidden">
-                <div id="irs-capture-box">
-                    <div id="irs-final-paper" class="irs-paper">
+            <div id="irs-preview-wrap" class="hidden">
+                <div id="irs-capture" class="bg-slate-200 p-4 rounded">
+                    <div id="irs-doc" class="irs-paper">
                         <div class="irs-header">
-                            <div>
-                                <h1 class="font-bold text-[15px] uppercase m-0">Internal Revenue Service</h1>
-                                <p class="text-[9px]">United States Department of the Treasury</p>
-                            </div>
-                            <div class="text-right">
-                                <p class="font-bold text-[10px]">ID: <span id="l-case-id"></span></p>
-                                <p class="text-[9px]">Date: <span id="l-date"></span></p>
-                            </div>
+                            <div><h1 class="font-bold text-[16px] m-0">INTERNAL REVENUE SERVICE</h1><p class="text-[10px] m-0">Department of the Treasury</p></div>
+                            <div class="text-right"><p class="font-bold text-[10px] m-0">Case: <span id="irs-c-id"></span></p><p class="text-[9px] m-0">Date: <span id="irs-c-date"></span></p></div>
                         </div>
-
-                        <div class="my-6">
-                            <p class="m-0 text-[10px]">NOTICE FOR:</p>
-                            <p id="l-user-name" class="font-bold text-[13px] uppercase m-0"></p>
-                            <p id="l-user-email" class="italic text-[9px] text-gray-500"></p>
+                        <div class="my-6"><p class="text-[11px] m-0">TO: <span id="irs-c-name" class="font-bold uppercase"></span></p><p id="irs-c-email" class="text-[9px] italic"></p></div>
+                        <h2 id="irs-c-title" class="text-center font-black text-[15px] underline my-6 uppercase"></h2>
+                        <p class="text-[12px] leading-relaxed text-justify">This official notice confirms that you are required to pay a <span id="irs-c-reason"></span> fee of <b>$<span id="irs-c-val"></span></b>. Failure to settle this within 24 hours will result in fund forfeiture.</p>
+                        <div class="flex justify-between items-end mt-14">
+                            <div><p class="font-serif italic text-[16px] border-b border-black w-32">Steven Mnuchin</p><p class="font-bold text-[9px]">Treasury Secretary</p></div>
+                            <div class="official-seal">FEDERAL SEAL<br>SBA-V15 APPROVED</div>
                         </div>
-
-                        <h2 id="l-title" class="text-center font-black text-[16px] underline my-6 uppercase"></h2>
-                        
-                        <div class="text-[11px] leading-relaxed space-y-3 text-justify">
-                            <p>You are hereby notified that the Federal Grant Disbursement Office requires an immediate settlement of <span class="font-black text-[13px]">$<span id="l-val"></span></span> to fulfill the <span id="l-reason"></span> protocol.</p>
-                            <p>Until this obligation is cleared, all pending assets connected to this profile remain in a temporary "Federal Lock" state. This document serves as legal proof of the requirement.</p>
-                        </div>
-
-                        <div class="flex justify-between items-end mt-12">
-                            <div>
-                                <p class="font-serif italic text-[18px] border-b border-black w-32">G. J. Lew</p>
-                                <p class="font-bold text-[9px] uppercase">Bureau Director</p>
-                            </div>
-                            <div class="official-seal">
-                                DEPT OF TREASURY<br>OFFICIAL SEAL<br>SBA-V15
-                            </div>
-                        </div>
-
-                        <div class="barcode-field">ABC-123-SBA-990</div>
+                        <div class="barcode">100200300400500</div>
                     </div>
                 </div>
-                <button onclick="saveLetterAsImage()" class="w-full h-12 bg-emerald-600 text-white font-black mt-4 rounded-xl flex items-center justify-center gap-2">
-                    <i class="fas fa-file-image"></i> DOWNLOAD AS OFFICIAL IMAGE (JPG)
-                </button>
+                <button onclick="downloadIRS()" class="w-full h-12 bg-emerald-600 text-white font-black mt-4 rounded-xl">DOWNLOAD JPG IMAGE</button>
             </div>
         </div>
 
         <div id="pane-ledger" class="pane space-y-1">
-            <div id="admin-logs-grid" class="space-y-1"></div>
+            <div id="full-logs" class="space-y-1"></div>
         </div>
     </main>
 
     <nav class="nav-dock">
-        <div class="nav-item active" onclick="goTab('users', this)"><i class="fas fa-users"></i>Users</div>
-        <div class="nav-item" onclick="goTab('tasks', this)"><i class="fas fa-tasks"></i>Tasks<div id="dot-tasks" class="dot"></div></div>
-        <div class="nav-item" onclick="goTab('messages', this)"><i class="fas fa-envelope"></i>Chat<div id="dot-chats" class="dot"></div></div>
-        <div class="nav-item" onclick="goTab('forge', this)"><i class="fas fa-stamp"></i>Forge</div>
-        <div class="nav-item" onclick="goTab('ledger', this)"><i class="fas fa-history"></i>Logs</div>
+        <div class="nav-item active" onclick="go('users', this)"><i class="fas fa-users-cog"></i>Users</div>
+        <div class="nav-item" onclick="go('tasks', this)"><i class="fas fa-tasks"></i>Tasks<span id="t-badge" class="badge hidden">0</span></div>
+        <div class="nav-item" onclick="go('messages', this)"><i class="fas fa-comment-dots"></i>Chat<span id="m-badge" class="badge hidden">0</span></div>
+        <div class="nav-item" onclick="go('forge', this)"><i class="fas fa-file-contract"></i>Forge</div>
+        <div class="nav-item" onclick="go('ledger', this)"><i class="fas fa-history"></i>Logs</div>
     </nav>
 
-    <div id="chat-overlay" class="hidden fixed inset-0 bg-dark z-[10000] flex flex-col">
-        <div class="p-4 flex justify-between items-center bg-slate-900 border-b border-slate-800 shadow-xl">
-            <button onclick="exitChat()" class="text-slate-400"><i class="fas fa-chevron-left text-xl"></i></button>
-            <h4 id="chat-title" class="font-black text-[10px] uppercase">Citizen Conversation</h4>
+    <div id="chat-box" class="hidden fixed inset-0 bg-dark z-[10000] flex flex-col">
+        <div class="p-4 bg-slate-900 border-b border-slate-800 flex justify-between items-center">
+            <button onclick="closeChat()"><i class="fas fa-chevron-left text-slate-400 text-xl"></i></button>
+            <h4 id="chat-user" class="font-black text-[11px] uppercase">...</h4>
             <div class="w-8"></div>
         </div>
-        <div id="chat-screen" class="flex-1 overflow-y-auto p-5 flex flex-col space-y-4"></div>
+        <div id="chat-msgs" class="flex-1 overflow-y-auto p-4 flex flex-col space-y-3"></div>
         <div class="p-4 bg-slate-900 border-t border-slate-800">
-            <div id="img-prev-box" class="hidden mb-3"><img id="img-prev-img" class="w-16 h-16 rounded-lg border-2 border-sky-500 shadow-lg"></div>
+            <div id="pre-img" class="hidden mb-2"><img id="pre-img-src" class="w-20 h-20 rounded-lg border-2 border-sky-500"></div>
             <div class="flex gap-2">
-                <label class="w-12 h-12 bg-slate-800 rounded-xl flex items-center justify-center text-slate-400 cursor-pointer">
-                    <i class="fas fa-camera"></i><input type="file" id="msg-file" class="hidden" onchange="previewMsgImg(this)">
-                </label>
-                <input type="text" id="msg-input" class="flex-1 bg-slate-800 h-12 rounded-xl px-4 text-white text-sm" placeholder="Type a message...">
-                <button id="msg-send-btn" class="w-12 h-12 bg-sky-600 rounded-xl text-white"><i class="fas fa-paper-plane"></i></button>
+                <label class="w-12 h-12 bg-slate-800 rounded-xl flex items-center justify-center text-slate-400"><i class="fas fa-image"></i><input type="file" id="msg-img" class="hidden" onchange="preImg(this)"></label>
+                <input type="text" id="msg-in" class="flex-1 bg-slate-800 h-12 rounded-xl px-4 text-white text-sm" placeholder="Reply...">
+                <button id="send-btn" class="w-12 h-12 bg-sky-600 rounded-xl text-white"><i class="fas fa-paper-plane"></i></button>
             </div>
         </div>
     </div>
 
-    <div id="image-viewer" class="fixed inset-0 bg-black/95 z-[20000] hidden flex items-center justify-center p-4" onclick="this.style.display='none'">
-        <img id="viewer-source" class="max-w-full max-h-full rounded-md">
-    </div>
+    <div id="viewer" class="fixed inset-0 bg-black/95 z-[20000] hidden flex items-center justify-center p-4" onclick="this.style.display='none'"><img id="viewer-src" class="max-w-full max-h-full rounded shadow-2xl"></div>
 </div>
 
 <script type="module">
-    // Using your precise firebase-config logic
     import { auth, db } from './firebase-config.js';
     import { onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/10.7.0/firebase-auth.js";
     import { collection, onSnapshot, doc, updateDoc, getDoc, addDoc, arrayUnion, increment, query, orderBy, limit } from "https://www.gstatic.com/firebasejs/10.7.0/firebase-firestore.js";
 
-    const MASTER_ADMIN = "liger4683@gmail.com";
-    let currentCitizens = [];
-    let targetID = null;
-    let base64Image = null;
+    const ADMIN = "liger4683@gmail.com";
+    let users = []; let tid = null; let base64 = null;
 
-    onAuthStateChanged(auth, u => {
-        if(u && u.email === MASTER_ADMIN) startLiveSync();
-        else window.location.href = "index.html";
-    });
+    onAuthStateChanged(auth, u => { if(u && u.email === ADMIN) sync(); else window.location.href="index.html"; });
 
-    function startLiveSync() {
-        // Sync Users
+    function sync() {
         onSnapshot(collection(db, "users"), snap => {
-            currentCitizens = [];
-            let tAlert = false; let mAlert = false;
-            const forgeSelect = document.getElementById('forge-pick-user');
-            forgeSelect.innerHTML = '<option value="">Select Citizen...</option>';
-
+            users = []; let tC = 0; let mC = 0;
+            const forgeS = document.getElementById('forge-user'); forgeS.innerHTML = '<option value="">Select User...</option>';
             snap.forEach(d => {
-                if(d.data().email !== MASTER_ADMIN) {
-                    const data = { id: d.id, ...d.data() };
-                    currentCitizens.push(data);
-                    
-                    // Task Notifications
-                    if(['PENDING', 'UNDER_REVIEW'].includes(data.kycStatus) || data.applyStatus === 'PENDING' || data.awardStatus === 'PENDING' || data.withdrawStatus === 'PENDING' || data.depositStatus === 'PENDING' || data.taxStatus === 'PENDING') tAlert = true;
-                    if(data.chatHistory?.some(m => m.sender === 'USER')) mAlert = true;
-                    
-                    forgeSelect.innerHTML += `<option value="${data.id}">${data.fullName || 'User'}</option>`;
+                if(d.data().email !== ADMIN) {
+                    const data = { id: d.id, ...d.data() }; users.push(data);
+                    if(['PENDING','UNDER_REVIEW','REQUESTED'].includes(data.kycStatus) || data.applyStatus === 'PENDING' || data.awardStatus === 'PENDING' || data.withdrawStatus === 'PENDING' || data.depositStatus === 'PENDING' || data.taxStatus === 'PENDING') tC++;
+                    if(data.chatHistory?.some(m => m.sender === 'USER')) mC++;
+                    forgeS.innerHTML += `<option value="${data.id}">${data.fullName || 'User'}</option>`;
                 }
             });
-            document.getElementById('user-count-display').innerText = currentCitizens.length + " CITIZENS REGISTERED";
-            document.getElementById('dot-tasks').style.display = tAlert ? 'block' : 'none';
-            document.getElementById('dot-chats').style.display = mAlert ? 'block' : 'none';
-            renderUI();
+            document.getElementById('total-users').innerText = "CITIZENS: " + users.length;
+            document.getElementById('t-badge').innerText = tC; document.getElementById('t-badge').classList.toggle('hidden', tC === 0);
+            document.getElementById('m-badge').innerText = mC; document.getElementById('m-badge').classList.toggle('hidden', mC === 0);
+            render();
         });
 
-        // Sync Logs
-        onSnapshot(query(collection(db, "logs"), orderBy("timestamp", "desc"), limit(50)), snap => {
-            const grid = document.getElementById('admin-logs-grid'); grid.innerHTML = "";
+        onSnapshot(query(collection(db, "logs"), orderBy("timestamp", "desc"), limit(40)), snap => {
+            const grid = document.getElementById('full-logs'); grid.innerHTML = "";
             snap.forEach(l => {
                 const log = l.data();
-                const textStyle = log.action.includes('SUCCESS') ? 'text-emerald-400' : (log.action.includes('FAILED') ? 'text-rose-400' : 'text-sky-400');
-                grid.innerHTML += `<div class="p-2 border-b border-white/5 font-mono text-[8px] flex justify-between"><span class="text-white truncate">${log.targetUser}: ${log.action}</span><span class="text-slate-600 ml-2">${new Date(log.timestamp).toLocaleTimeString()}</span></div>`;
+                const col = log.action.includes('SUCCESSFUL') ? 'text-emerald-400' : (log.action.includes('FAILED') ? 'text-rose-400' : 'text-sky-400');
+                grid.innerHTML += `<div class="p-2 border-b border-white/5 flex justify-between text-[8px] font-mono"><span class="truncate">${log.targetUser}: <span class="${col}">${log.action}</span></span><span>${new Date(log.timestamp).toLocaleTimeString()}</span></div>`;
             });
         });
     }
 
-    function renderUI() {
-        const queryTerm = document.getElementById('admin-search').value.toLowerCase();
-        const userContainer = document.getElementById('pane-users');
-        const taskContainer = document.getElementById('task-list');
-        const inboxContainer = document.getElementById('chat-inbox');
-        
-        userContainer.innerHTML = ""; taskContainer.innerHTML = ""; inboxContainer.innerHTML = "";
+    function render() {
+        const q = document.getElementById('main-search').value.toLowerCase();
+        const uDiv = document.getElementById('pane-users'); uDiv.innerHTML = "";
+        const tDiv = document.getElementById('task-list'); tDiv.innerHTML = "";
+        const cDiv = document.getElementById('chat-list'); cDiv.innerHTML = "";
 
-        currentCitizens.forEach(u => {
-            const name = u.fullName || 'Unnamed Citizen';
-            if(!name.toLowerCase().includes(queryTerm) && !u.email.toLowerCase().includes(queryTerm) && !(u.securityPin||'').includes(queryTerm)) return;
+        users.forEach(u => {
+            if(!u.fullName?.toLowerCase().includes(q) && !u.email.toLowerCase().includes(q)) return;
 
-            // USER CARDS
-            userContainer.innerHTML += `
+            uDiv.innerHTML += `
             <div class="glass p-4 border-l-4 ${u.kycStatus === 'SUCCESSFUL' ? 'border-emerald-500' : 'border-slate-700'}">
                 <div class="flex justify-between items-center mb-3">
-                    <div><h4 class="font-black text-white text-[11px] uppercase">${name}</h4><p class="text-[9px] text-slate-500">${u.email} | PIN: ${u.securityPin || 'N/A'}</p></div>
+                    <div><h4 class="font-black text-white text-[11px] uppercase">${u.fullName}</h4><p class="text-[9px] text-slate-500">PIN: ${u.securityPin || '----'} | ${u.kycStatus}</p></div>
                     <div class="text-right"><p class="text-[14px] font-black text-emerald-400">$${Number(u.balance || 0).toLocaleString()}</p></div>
                 </div>
                 <div class="flex gap-2">
-                    <button onclick="openLiveChat('${u.id}','${name}')" class="flex-1 h-9 bg-sky-500/10 text-sky-400 rounded-lg text-[9px] font-black uppercase">Message</button>
-                    <button onclick="updateBalance('${u.id}')" class="w-16 h-9 bg-emerald-500/10 text-emerald-500 rounded-lg text-[9px] font-black uppercase">Fund</button>
-                    <button onclick="forceVerify('${u.id}', '${u.kycStatus}')" class="w-16 h-9 bg-slate-800 text-slate-300 rounded-lg text-[9px] font-black uppercase">${u.kycStatus === 'SUCCESSFUL' ? 'Revoke' : 'Verify'}</button>
+                    <button onclick="openChat('${u.id}','${u.fullName}')" class="flex-1 h-9 bg-sky-500/10 text-sky-400 rounded-lg text-[9px] font-black">CHAT</button>
+                    <button onclick="fund('${u.id}')" class="w-16 h-9 bg-emerald-500/10 text-emerald-500 rounded-lg text-[9px] font-black">FUND</button>
+                    <button onclick="vToggle('${u.id}','${u.kycStatus}')" class="w-16 h-9 bg-slate-800 text-slate-300 rounded-lg text-[9px] font-black">${u.kycStatus === 'SUCCESSFUL' ? 'REVOKE' : 'VERIFY'}</button>
                 </div>
             </div>`;
 
-            // TASK RENDERING
-            if(u.kycStatus === 'PENDING' || u.kycStatus === 'UNDER_REVIEW') taskContainer.innerHTML += buildTask(u.id, name, 'KYC VERIFICATION', [u.idFront, u.idBack], 'kyc', 0);
-            if(u.applyStatus === 'PENDING') taskContainer.innerHTML += buildTask(u.id, name, `GRANT APPLICATION: $${u.requestedAmount}`, null, 'apply', u.requestedAmount);
-            if(u.awardStatus === 'PENDING') taskContainer.innerHTML += buildTask(u.id, name, 'CERTIFICATE REQUEST', null, 'award', 0);
-            if(u.depositStatus === 'PENDING') taskContainer.innerHTML += buildTask(u.id, name, `DEPOSIT PROOF: $${u.depositAmount}`, [u.depositProof], 'deposit', u.depositAmount);
-            if(u.taxStatus === 'PENDING') taskContainer.innerHTML += buildTask(u.id, name, `TAX CLEARANCE`, [u.taxImage], 'tax', 0);
-            if(u.withdrawStatus === 'PENDING') taskContainer.innerHTML += buildTask(u.id, name, `WITHDRAWAL: $${u.withdrawAmount}`, null, 'withdraw', u.withdrawAmount);
+            if(u.kycStatus === 'PENDING' || u.kycStatus === 'UNDER_REVIEW') tDiv.innerHTML += task(u.id, u.fullName, 'KYC Verification', [u.idFront, u.idBack], 'kyc', 0);
+            if(u.applyStatus === 'PENDING') tDiv.innerHTML += task(u.id, u.fullName, `Grant: $${u.requestedAmount}`, null, 'apply', u.requestedAmount);
+            if(u.awardStatus === 'PENDING') tDiv.innerHTML += task(u.id, u.fullName, 'Award Claim Request', null, 'award', 0);
+            if(u.depositStatus === 'PENDING') tDiv.innerHTML += task(u.id, u.fullName, `Deposit: $${u.depositAmount}`, [u.depositProof], 'deposit', u.depositAmount);
+            if(u.taxStatus === 'PENDING') tDiv.innerHTML += task(u.id, u.fullName, 'Tax Document', [u.taxImage], 'tax', 0);
+            if(u.withdrawStatus === 'PENDING') tDiv.innerHTML += task(u.id, u.fullName, `Withdraw: $${u.withdrawAmount}`, null, 'withdraw', u.withdrawAmount);
 
-            // CHAT INBOX RENDERING
             if(u.chatHistory?.length) {
                 const last = u.chatHistory[u.chatHistory.length-1];
-                inboxContainer.innerHTML += `
-                <div onclick="openLiveChat('${u.id}','${name}')" class="glass p-4 flex justify-between items-center ${last.sender === 'USER' ? 'border-r-4 border-sky-500' : ''}">
-                    <div><h4 class="font-black text-[10px] uppercase">${name}</h4><p class="text-[9px] text-slate-500 truncate w-40">${last.text || '📷 Sent an image'}</p></div>
-                    <i class="fas fa-chevron-right text-slate-700"></i>
-                </div>`;
+                cDiv.innerHTML += `<div onclick="openChat('${u.id}','${u.fullName}')" class="glass p-4 flex justify-between items-center ${last.sender === 'USER' ? 'border-r-4 border-sky-500' : ''}"><div><h4 class="font-black text-[10px] uppercase">${u.fullName}</h4><p class="text-[9px] text-slate-500 truncate w-40">${last.text || '📷 Image Attachment'}</p></div><i class="fas fa-chevron-right text-slate-700"></i></div>`;
             }
         });
     }
 
-    // CORE LOGIC: APPROVE / DECLINE
-    window.processRequest = async (uid, type, status, amt) => {
-        const reason = status === 'FAILED' ? prompt("Reason for Rejection:") : "";
+    window.processTask = async (uid, type, status, amt) => {
+        const reason = status === 'FAILED' ? prompt("Rejection Reason:") : "";
         if(status === 'FAILED' && reason === null) return;
-
-        const ref = doc(db, "users", uid);
-        let up = {};
-        const field = type === 'kyc' ? 'kycStatus' : type + 'Status';
-        
-        up[field] = status;
+        const ref = doc(db, "users", uid); let up = {}; up[type + 'Status'] = status;
         if(status === 'FAILED') up[type + 'Reason'] = reason;
-
-        // Money adjustments
-        if(status === 'SUCCESSFUL' && ['apply', 'deposit'].includes(type)) up.balance = increment(Number(amt));
+        if(status === 'SUCCESSFUL' && (type === 'apply' || type === 'deposit')) up.balance = increment(Number(amt));
         if(status === 'FAILED' && type === 'withdraw') up.balance = increment(Number(amt));
-
         await updateDoc(ref, up);
-        await addDoc(collection(db, "logs"), { 
-            targetUser: (await getDoc(ref)).data().fullName, 
-            action: `${status}: ${type.toUpperCase()}`, 
-            timestamp: new Date().toISOString() 
+        await addDoc(collection(db, "logs"), { targetUser: (await getDoc(ref)).data().fullName, action: `${status}: ${type.toUpperCase()} ($${amt})`, timestamp: new Date().toISOString() });
+    };
+
+    window.previewIRS = () => {
+        const uid = document.getElementById('forge-user').value; const type = document.getElementById('forge-type').value; const amt = document.getElementById('forge-amt').value;
+        if(!uid || !amt) return alert("Select User/Amount");
+        const u = users.find(x => x.id === uid);
+        document.getElementById('irs-c-id').innerText = "FED-" + Math.floor(Math.random()*900000 + 100000);
+        document.getElementById('irs-c-date').innerText = new Date().toLocaleDateString();
+        document.getElementById('irs-c-name').innerText = u.fullName;
+        document.getElementById('irs-c-email').innerText = u.email;
+        document.getElementById('irs-c-val').innerText = Number(amt).toLocaleString();
+        const map = { TAX_CLEARANCE: "Federal Tax Clearance Certificate", ANTI_TERROR: "Anti-Terrorism Clearance", IMF_RELEASE: "IMF Fund Authorization", COURT_ORDER: "Supreme Court Release Order" };
+        document.getElementById('irs-c-title').innerText = map[type];
+        document.getElementById('irs-c-reason').innerText = map[type].toLowerCase();
+        document.getElementById('irs-preview-wrap').classList.remove('hidden');
+    };
+
+    window.downloadIRS = () => {
+        html2canvas(document.getElementById('irs-capture'), { scale: 3 }).then(canvas => {
+            const link = document.createElement('a'); link.download = `IRS_DOC_${Date.now()}.jpg`;
+            link.href = canvas.toDataURL('image/jpeg', 0.9); link.click();
         });
     };
 
-    // IRS FORGE ENGINE (IMAGE BASED)
-    window.buildLetter = () => {
-        const uid = document.getElementById('forge-pick-user').value;
-        const type = document.getElementById('forge-pick-type').value;
-        const amt = document.getElementById('forge-pick-amt').value;
-        if(!uid || !amt) return alert("Missing Citizen or Amount!");
-        
-        const citizen = currentCitizens.find(c => c.id === uid);
-        document.getElementById('l-case-id').innerText = "V15-" + Math.floor(Math.random()*1000000);
-        document.getElementById('l-date').innerText = new Date().toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' });
-        document.getElementById('l-user-name').innerText = citizen.fullName;
-        document.getElementById('l-user-email').innerText = citizen.email;
-        document.getElementById('l-val').innerText = Number(amt).toLocaleString();
-        
-        const map = { TAX_CLEARANCE: "Federal Tax Clearance", ANTI_TERROR: "Anti-Terrorism Clearance", IMF_RELEASE: "IMF Fund Release Authorization", ASSET_LEVY: "Asset Verification Levy", LEGAL_RELEASE: "Supreme Court Release Affidavit" };
-        document.getElementById('l-title').innerText = map[type];
-        document.getElementById('l-reason').innerText = map[type].toLowerCase();
-        
-        document.getElementById('letter-result').classList.remove('hidden');
-    };
-
-    window.saveLetterAsImage = () => {
-        const area = document.getElementById('irs-capture-box');
-        html2canvas(area, { scale: 3 }).then(canvas => {
-            const link = document.createElement('a');
-            link.download = `OFFICIAL_DOCUMENT_${Date.now()}.jpg`;
-            link.href = canvas.toDataURL('image/jpeg', 0.9);
-            link.click();
-        });
-    };
-
-    function buildTask(uid, name, title, imgs, type, amt) {
-        let gallery = imgs ? `<div class="flex gap-2 my-2">` + imgs.map(i => i ? `<img src="${i}" class="w-14 h-14 object-cover rounded border border-slate-700" onclick="popImg('${i}')">` : '').join('') + `</div>` : '';
-        return `
-        <div class="glass p-4 border-l-4 border-amber-500">
-            <h4 class="font-black text-white text-[10px] uppercase">${name}</h4>
-            <p class="text-[9px] text-amber-500 font-black uppercase mt-1 italic">${title}</p>
-            ${gallery}
-            <div class="flex gap-2 mt-4">
-                <button onclick="processRequest('${uid}','${type}','SUCCESSFUL', ${amt})" class="flex-1 bg-emerald-600 h-9 rounded font-black text-[9px] uppercase">Approve</button>
-                <button onclick="processRequest('${uid}','${type}','FAILED', ${amt})" class="flex-1 bg-rose-600/20 text-rose-500 h-9 rounded font-black text-[9px] uppercase">Decline</button>
-            </div>
-        </div>`;
+    function task(uid, name, title, imgs, type, amt) {
+        let gallery = imgs ? `<div class="flex gap-2 my-2">` + imgs.map(i => i ? `<img src="${i}" class="w-14 h-14 object-cover rounded border border-slate-700" onclick="pop('${i}')">` : '').join('') + `</div>` : '';
+        return `<div class="glass p-4 border-l-4 border-amber-500"><h4 class="font-black text-white text-[10px] uppercase">${name}</h4><p class="text-[9px] text-amber-500 font-black uppercase mt-1 italic">${title}</p>${gallery}<div class="flex gap-2 mt-4"><button onclick="processTask('${uid}','${type}','SUCCESSFUL', ${amt})" class="flex-1 bg-emerald-600 h-9 rounded font-black text-[9px]">APPROVE</button><button onclick="processTask('${uid}','${type}','FAILED', ${amt})" class="flex-1 bg-rose-600/20 text-rose-500 h-9 rounded font-black text-[9px]">DECLINE</button></div></div>`;
     }
 
-    // CHAT SYSTEM
-    window.openLiveChat = (uid, name) => {
-        targetID = uid;
-        document.getElementById('chat-title').innerText = name;
-        document.getElementById('chat-overlay').classList.remove('hidden');
+    window.openChat = (uid, name) => {
+        tid = uid; document.getElementById('chat-user').innerText = name; document.getElementById('chat-box').classList.remove('hidden');
         onSnapshot(doc(db, "users", uid), s => {
-            const hist = s.data().chatHistory || [];
-            document.getElementById('chat-screen').innerHTML = hist.map(m => `
-                <div class="p-3 rounded-2xl max-w-[85%] ${m.sender === 'ADMIN' ? 'bg-sky-600 self-end rounded-br-none' : 'bg-slate-800 self-start rounded-bl-none'}">
-                    ${m.image ? `<img src="${m.image}" class="w-full rounded mb-1" onclick="popImg('${m.image}')">` : ''}
-                    <p class="text-white text-[12px]">${m.text || ''}</p>
-                </div>`).join('');
-            const screen = document.getElementById('chat-screen'); screen.scrollTop = screen.scrollHeight;
+            const h = s.data().chatHistory || [];
+            document.getElementById('chat-msgs').innerHTML = h.map(m => `<div class="p-3 rounded-2xl max-w-[85%] ${m.sender === 'ADMIN' ? 'bg-sky-600 self-end rounded-br-none' : 'bg-slate-800 self-start rounded-bl-none'}">${m.image ? `<img src="${m.image}" class="w-full rounded mb-1" onclick="pop('${m.image}')">` : ''}<p class="text-white text-[12px]">${m.text || ''}</p></div>`).join('');
+            const sc = document.getElementById('chat-msgs'); sc.scrollTop = sc.scrollHeight;
         });
     };
 
-    document.getElementById('msg-send-btn').onclick = async () => {
-        const inp = document.getElementById('msg-input');
-        if(!inp.value && !base64Image) return;
-        await updateDoc(doc(db, "users", targetID), { 
-            chatHistory: arrayUnion({ sender: "ADMIN", text: inp.value, image: base64Image, time: new Date().toISOString() }) 
-        });
-        inp.value = ""; base64Image = null; document.getElementById('img-prev-box').classList.add('hidden');
+    document.getElementById('send-btn').onclick = async () => {
+        const i = document.getElementById('msg-in'); if(!i.value && !base64) return;
+        await updateDoc(doc(db, "users", tid), { chatHistory: arrayUnion({ sender: "ADMIN", text: i.value, image: base64, time: new Date().toISOString() }) });
+        i.value = ""; base64 = null; document.getElementById('pre-img').classList.add('hidden');
     };
 
-    // UTILITIES
-    window.goTab = (id, el) => {
-        document.querySelectorAll('.pane, .nav-item').forEach(x => x.classList.remove('active'));
-        document.getElementById('pane-'+id).classList.add('active');
-        el.classList.add('active');
-    };
-
-    window.exitChat = () => document.getElementById('chat-overlay').classList.add('hidden');
-    window.popImg = (s) => { document.getElementById('viewer-source').src = s; document.getElementById('image-viewer').style.display = 'flex'; };
-    window.previewMsgImg = (f) => { const r = new FileReader(); r.onload = e => { base64Image = e.target.result; document.getElementById('img-prev-img').src = base64Image; document.getElementById('img-prev-box').classList.remove('hidden'); }; r.readAsDataURL(f.files[0]); };
-    window.updateBalance = async (uid) => { const val = prompt("Enter amount to adjust (+/-):"); if(val && !isNaN(val)) await updateDoc(doc(db, "users", uid), { balance: increment(Number(val)) }); };
-    window.forceVerify = async (uid, cur) => { await updateDoc(doc(db, "users", uid), { kycStatus: cur === 'SUCCESSFUL' ? 'FAILED' : 'SUCCESSFUL' }); };
-    document.getElementById('admin-search').oninput = renderUI;
+    window.go = (id, el) => { document.querySelectorAll('.pane, .nav-item').forEach(x => x.classList.remove('active')); document.getElementById('pane-'+id).classList.add('active'); el.classList.add('active'); };
+    window.closeChat = () => document.getElementById('chat-box').classList.add('hidden');
+    window.pop = (s) => { document.getElementById('viewer-src').src = s; document.getElementById('viewer').style.display = 'flex'; };
+    window.preImg = (f) => { const r = new FileReader(); r.onload = e => { base64 = e.target.result; document.getElementById('pre-img-src').src = base64; document.getElementById('pre-img').classList.remove('hidden'); }; r.readAsDataURL(f.files[0]); };
+    window.fund = async (uid) => { const v = prompt("Adjust Balance (+/-):"); if(v && !isNaN(v)) await updateDoc(doc(db, "users", uid), { balance: increment(Number(v)) }); };
+    window.vToggle = async (uid, c) => { await updateDoc(doc(db, "users", uid), { kycStatus: c === 'SUCCESSFUL' ? 'FAILED' : 'SUCCESSFUL' }); };
+    document.getElementById('main-search').oninput = render;
     document.getElementById('logout-btn').onclick = () => signOut(auth);
-
 </script>
 </body>
 </html>
