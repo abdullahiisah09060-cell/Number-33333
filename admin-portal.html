@@ -42,12 +42,12 @@
             <h1 class="text-lg font-black italic text-sky-500 uppercase">TITAN PRO V15</h1>
             <div class="flex items-center gap-2">
                 <span class="w-2 h-2 bg-emerald-500 rounded-full animate-pulse"></span>
-                <p class="text-[8px] font-black text-slate-500 uppercase tracking-widest">Live System</p>
+                <p class="text-[8px] font-black text-slate-500 uppercase tracking-widest">Supreme Command</p>
             </div>
         </div>
         <div class="flex gap-2">
              <div class="bg-slate-800 px-3 py-1 rounded-lg border border-slate-700 text-center">
-                <p class="text-[7px] text-slate-500 font-black uppercase">Registered</p>
+                <p class="text-[7px] text-slate-500 font-black uppercase">Users</p>
                 <p id="total-users" class="text-xs font-black text-white">0</p>
              </div>
              <button id="logout-btn" class="w-10 h-10 rounded-xl bg-rose-500/10 text-rose-500 border border-rose-500/20"><i class="fas fa-power-off"></i></button>
@@ -55,7 +55,7 @@
     </header>
 
     <div class="p-4">
-        <input type="text" id="master-search" placeholder="Search Clients, PINs, Status..." class="w-full h-12 bg-slate-800 border border-slate-700 rounded-xl px-4 text-xs font-bold text-white outline-none focus:border-sky-500 transition-all">
+        <input type="text" id="master-search" placeholder="Search Names, PINs, or Emails..." class="w-full h-12 bg-slate-800 border border-slate-700 rounded-xl px-4 text-xs font-bold text-white outline-none focus:border-sky-500 transition-all">
     </div>
 
     <main class="px-4 space-y-4">
@@ -65,8 +65,8 @@
 
         <div id="pane-tasks" class="pane space-y-3">
             <div class="flex justify-between items-center px-1">
-                <h3 class="text-[9px] font-black text-slate-500 uppercase tracking-widest">Action Required</h3>
-                <span id="task-count-label" class="bg-amber-500 text-black text-[9px] font-black px-2 py-0.5 rounded">0 PENDING</span>
+                <h3 class="text-[9px] font-black text-slate-500 uppercase tracking-widest">Pending Approvals</h3>
+                <span id="task-count-label" class="bg-amber-500 text-black text-[9px] font-black px-2 py-0.5 rounded">0 ACTIONS</span>
             </div>
             <div id="task-grid" class="space-y-3"></div>
         </div>
@@ -79,6 +79,24 @@
             <h3 class="text-[9px] font-black text-slate-500 uppercase tracking-widest px-1">Global Audit Trail</h3>
             <div id="ledger-grid" class="space-y-2"></div>
         </div>
+
+        <div id="pane-forge" class="pane space-y-4">
+            <h3 class="text-[9px] font-black text-slate-500 uppercase tracking-widest px-1">System Forge (IRs & Control)</h3>
+            <div class="glass p-5 space-y-4">
+                <div>
+                    <label class="text-[10px] font-bold text-slate-400 block mb-2 uppercase">Global Interest Rate (%)</label>
+                    <input type="number" id="forge-ir" class="w-full h-11 bg-slate-800 rounded-lg px-4 text-white outline-none border border-slate-700" placeholder="e.g. 15">
+                </div>
+                <div>
+                    <label class="text-[10px] font-bold text-slate-400 block mb-2 uppercase">Maintenance Mode</label>
+                    <select id="forge-status" class="w-full h-11 bg-slate-800 rounded-lg px-4 text-white outline-none border border-slate-700">
+                        <option value="LIVE">SYSTEM LIVE</option>
+                        <option value="MAINTENANCE">UNDER MAINTENANCE</option>
+                    </select>
+                </div>
+                <button id="save-forge" class="w-full h-12 bg-sky-600 rounded-xl font-black uppercase text-[11px] tracking-widest shadow-lg shadow-sky-900/20">Update Global Core</button>
+            </div>
+        </div>
     </main>
 
     <nav class="nav-dock">
@@ -86,7 +104,7 @@
         <div class="nav-item" onclick="switchTab('tasks', this)"><i class="fas fa-bolt"></i>Tasks<span id="badge-t" class="hidden badge">0</span></div>
         <div class="nav-item" onclick="switchTab('messages', this)"><i class="fas fa-comment-alt"></i>Chat<span id="badge-m" class="hidden badge">0</span></div>
         <div class="nav-item" onclick="switchTab('ledger', this)"><i class="fas fa-receipt"></i>Ledger</div>
-        <div class="nav-item" onclick="switchTab('forge', this)"><i class="fas fa-cog"></i>Settings</div>
+        <div class="nav-item" onclick="switchTab('forge', this)"><i class="fas fa-cog"></i>Forge</div>
     </nav>
 
     <div id="chat-hub">
@@ -94,7 +112,7 @@
             <button onclick="closeChat()" class="text-slate-400"><i class="fas fa-times-circle text-2xl"></i></button>
             <div class="text-center">
                 <h4 id="chat-target-name" class="font-black text-xs uppercase truncate w-40">...</h4>
-                <p class="text-[7px] text-sky-500 font-bold tracking-widest">SUPPORT CHANNEL</p>
+                <p class="text-[7px] text-sky-500 font-bold tracking-widest">COMMAND LINK</p>
             </div>
             <div class="w-8"></div>
         </div>
@@ -118,20 +136,16 @@
 </div>
 
 <script type="module">
-    // --- 1. IMPORT FROM YOUR CONFIG FILE ---
     import { auth, db } from './firebase-config.js';
     import { onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/10.7.0/firebase-auth.js";
-    import { collection, onSnapshot, doc, updateDoc, getDoc, addDoc, arrayUnion, increment, deleteDoc, query, orderBy, limit } from "https://www.gstatic.com/firebasejs/10.7.0/firebase-firestore.js";
+    import { collection, onSnapshot, doc, updateDoc, getDoc, addDoc, arrayUnion, increment, deleteDoc, query, orderBy, limit, setDoc } from "https://www.gstatic.com/firebasejs/10.7.0/firebase-firestore.js";
 
-    // --- 2. SECURITY CHECK ---
     const ADMIN_EMAIL = "liger4683@gmail.com"; 
 
     onAuthStateChanged(auth, u => {
         if(u && u.email === ADMIN_EMAIL) {
             startSync();
         } else {
-            // This prevents the "pushing out" bug if you are the right user
-            console.warn("Unauthorized access or not logged in.");
             window.location.href = "index.html";
         }
     });
@@ -146,7 +160,15 @@
         setLoader(30);
         document.getElementById('master-search').oninput = render;
 
-        // Sync Users
+        // SYNC GLOBAL FORGE (IRs)
+        onSnapshot(doc(db, "system", "config"), s => {
+            if(s.exists()){
+                document.getElementById('forge-ir').value = s.data().interestRate || 0;
+                document.getElementById('forge-status').value = s.data().status || 'LIVE';
+            }
+        });
+
+        // SYNC USERS
         onSnapshot(collection(db, "users"), snap => {
             citizens = [];
             let tasksCount = 0; let msgsCount = 0;
@@ -154,7 +176,7 @@
                 if(d.data().email !== ADMIN_EMAIL) {
                     const u = { id: d.id, ...d.data() };
                     citizens.push(u);
-                    if(u.kycStatus === 'UNDER_REVIEW' || u.applyStatus === 'PENDING' || u.withdrawStatus === 'PENDING' || u.awardStatus === 'PENDING' || u.taxStatus === 'PENDING' || u.depositStatus === 'PENDING') tasksCount++;
+                    if(u.kycStatus === 'UNDER_REVIEW' || u.applyStatus === 'PENDING' || u.withdrawStatus === 'PENDING' || u.depositStatus === 'PENDING') tasksCount++;
                     if(u.chatHistory?.length && u.chatHistory[u.chatHistory.length-1].sender === 'USER') msgsCount++;
                 }
             });
@@ -164,23 +186,17 @@
             document.getElementById('badge-m').innerText = msgsCount;
             document.getElementById('badge-m').classList.toggle('hidden', msgsCount === 0);
             render();
-            setLoader(100);
-            setTimeout(() => setLoader(0), 500);
+            setLoader(100); setTimeout(() => setLoader(0), 500);
         });
 
-        // Sync Ledger
-        onSnapshot(query(collection(db, "logs"), orderBy("timestamp", "desc"), limit(50)), snap => {
+        // SYNC LEDGER
+        onSnapshot(query(collection(db, "logs"), orderBy("timestamp", "desc"), limit(30)), snap => {
             const grid = document.getElementById('ledger-grid');
             grid.innerHTML = "";
             snap.forEach(l => {
                 const log = l.data();
-                const timeString = log.timestamp ? log.timestamp.split('T')[1].split('.')[0] : "00:00:00";
-                grid.innerHTML += `
-                <div class="ledger-item">
-                    <span class="text-sky-500">[${timeString}]</span> 
-                    <span class="text-white">${log.targetUser}</span> 
-                    <span class="text-emerald-400">-> ${log.action}</span>
-                </div>`;
+                const timeStr = log.timestamp ? log.timestamp.split('T')[1].split('.')[0] : '--';
+                grid.innerHTML += `<div class="ledger-item"><span class="text-sky-500">[${timeStr}]</span> <span class="text-white">${log.targetUser}</span> <span class="text-emerald-400">-> ${log.action}</span></div>`;
             });
         });
     }
@@ -197,14 +213,20 @@
             const isMatch = u.fullName?.toLowerCase().includes(q) || u.email?.toLowerCase().includes(q) || u.securityPin?.includes(q);
             if(!isMatch) return;
 
+            // VERIFICATION SHIELD LOGIC
+            const isVerified = u.kycStatus === 'SUCCESSFUL';
+            const shieldColor = isVerified ? 'text-emerald-500' : 'text-slate-600';
+
             userDiv.innerHTML += `
-            <div class="glass p-4 border-t-2 border-sky-500">
+            <div class="glass p-4 border-t-2 border-sky-500 relative">
+                <div class="absolute top-4 right-4 ${shieldColor}"><i class="fas fa-shield-alt text-lg"></i></div>
                 <div class="flex justify-between items-start mb-3">
                     <div>
                         <h4 class="font-black text-white text-[11px] uppercase">${u.fullName}</h4>
-                        <p class="text-[8px] text-slate-500">${u.email}</p>
+                        <p class="text-[8px] text-slate-400">${u.email}</p>
+                        <p class="text-[9px] font-mono text-amber-500 mt-1">PIN: ${u.securityPin || '----'}</p>
                     </div>
-                    <div class="text-right">
+                    <div class="text-right mr-8">
                         <p class="text-[15px] font-black text-emerald-400">$${Number(u.balance || 0).toLocaleString()}</p>
                         <p class="text-[7px] font-black text-slate-600 uppercase">Balance</p>
                     </div>
@@ -216,46 +238,58 @@
                 </div>
             </div>`;
 
-            if(u.kycStatus === 'UNDER_REVIEW') taskDiv.innerHTML += taskTemplate(u.id, u.fullName, 'KYC', [u.idFront, u.idBack], 'kyc', 0);
-            if(u.applyStatus === 'PENDING') taskDiv.innerHTML += taskTemplate(u.id, u.fullName, `Grant Request: $${u.requestedAmount}`, null, 'apply', u.requestedAmount);
-            if(u.withdrawStatus === 'PENDING') taskDiv.innerHTML += taskTemplate(u.id, u.fullName, `Withdrawal: $${u.withdrawAmount}`, null, 'withdraw', u.withdrawAmount);
-            if(u.depositStatus === 'PENDING') taskDiv.innerHTML += taskTemplate(u.id, u.fullName, `Deposit Proof: $${u.depositAmount}`, [u.depositProof], 'deposit', u.depositAmount);
-            if(u.taxStatus === 'PENDING') taskDiv.innerHTML += taskTemplate(u.id, u.fullName, 'Tax Document Review', [u.taxFile], 'tax', 0);
+            if(u.kycStatus === 'UNDER_REVIEW') taskDiv.innerHTML += taskTemplate(u.id, u.fullName, 'KYC VERIFICATION', [u.idFront, u.idBack], 'kyc', 0);
+            if(u.applyStatus === 'PENDING') taskDiv.innerHTML += taskTemplate(u.id, u.fullName, `GRANT REQUEST: $${u.requestedAmount}`, null, 'apply', u.requestedAmount);
+            if(u.withdrawStatus === 'PENDING') taskDiv.innerHTML += taskTemplate(u.id, u.fullName, `WITHDRAWAL: $${u.withdrawAmount}`, null, 'withdraw', u.withdrawAmount);
+            if(u.depositStatus === 'PENDING') taskDiv.innerHTML += taskTemplate(u.id, u.fullName, `DEPOSIT PROOF: $${u.depositAmount}`, [u.depositProof], 'deposit', u.depositAmount);
 
             if(u.chatHistory?.length) {
                 const last = u.chatHistory[u.chatHistory.length-1];
                 chatDiv.innerHTML += `
                 <div onclick="openChat('${u.id}','${u.fullName}')" class="glass p-4 flex justify-between items-center ${last.sender === 'USER' ? 'border-r-4 border-rose-500' : ''}">
-                    <div><h4 class="font-black text-[10px] uppercase">${u.fullName}</h4><p class="text-[9px] text-slate-500 truncate w-48">${last.text || '📷 Media File'}</p></div>
+                    <div><h4 class="font-black text-[10px] uppercase">${u.fullName}</h4><p class="text-[9px] text-slate-500 truncate w-48">${last.text || '📷 Image Message'}</p></div>
                     <span class="text-[7px] text-slate-600 uppercase font-black">ACTIVE</span>
                 </div>`;
             }
         });
     }
 
+    // FORGE (GLOBAL IR) UPDATE
+    document.getElementById('save-forge').onclick = async () => {
+        setLoader(50);
+        const ir = document.getElementById('forge-ir').value;
+        const st = document.getElementById('forge-status').value;
+        await setDoc(doc(db, "system", "config"), { interestRate: Number(ir), status: st }, { merge: true });
+        alert("GLOBAL SYSTEM UPDATED");
+        setLoader(100); setTimeout(() => setLoader(0), 300);
+    };
+
+    window.adjustBal = async (uid) => {
+        const amt = prompt("Enter amount to add (e.g. 5000) or subtract (e.g. -5000):");
+        if(amt && !isNaN(amt)) {
+            setLoader(50);
+            const ref = doc(db, "users", uid);
+            await updateDoc(ref, { balance: increment(Number(amt)) });
+            const uSnap = await getDoc(ref);
+            await addDoc(collection(db, "logs"), { targetUser: uSnap.data().fullName, action: `BAL ADJUST: ${amt}`, timestamp: new Date().toISOString() });
+            setLoader(100); setTimeout(() => setLoader(0), 300);
+        }
+    };
+
     window.processRequest = async (uid, type, status, amount) => {
-        const reason = status === 'DECLINED' ? prompt("Enter Rejection Reason:") : "";
+        const reason = status === 'DECLINED' ? prompt("Rejection Reason:") : "";
         if(status === 'DECLINED' && reason === null) return;
-        
         setLoader(50);
         const ref = doc(db, "users", uid);
-        let updates = {};
-
-        if(type === 'kyc') { updates.kycStatus = status; updates.kycNote = reason; }
-        if(type === 'apply') { updates.applyStatus = status; updates.applyNote = reason; if(status === 'SUCCESSFUL') updates.balance = increment(Number(amount)); }
-        if(type === 'withdraw') { updates.withdrawStatus = status; updates.withdrawNote = reason; if(status === 'DECLINED') updates.balance = increment(Number(amount)); }
-        if(type === 'deposit') { updates.depositStatus = status; updates.depositNote = reason; if(status === 'SUCCESSFUL') updates.balance = increment(Number(amount)); }
-        if(type === 'tax') { updates.taxStatus = status; updates.taxNote = reason; }
-
-        await updateDoc(ref, updates);
+        let up = {};
+        if(type === 'kyc') up.kycStatus = status;
+        if(type === 'apply') { up.applyStatus = status; if(status === 'SUCCESSFUL') up.balance = increment(Number(amount)); }
+        if(type === 'withdraw') { up.withdrawStatus = status; if(status === 'DECLINED') up.balance = increment(Number(amount)); }
+        if(type === 'deposit') { up.depositStatus = status; if(status === 'SUCCESSFUL') up.balance = increment(Number(amount)); }
         
+        await updateDoc(ref, up);
         const uSnap = await getDoc(ref);
-        await addDoc(collection(db, "logs"), {
-            targetUser: uSnap.data().fullName,
-            action: `${status} ${type.toUpperCase()}`,
-            timestamp: new Date().toISOString()
-        });
-
+        await addDoc(collection(db, "logs"), { targetUser: uSnap.data().fullName, action: `${status} ${type.toUpperCase()}`, timestamp: new Date().toISOString() });
         setLoader(100); setTimeout(() => setLoader(0), 300);
     };
 
@@ -297,15 +331,6 @@
         inp.value = ""; pendingImg = null; document.getElementById('chat-preview-wrap').classList.add('hidden');
     };
 
-    window.adjustBal = async (uid) => {
-        const amt = prompt("Enter amount to add (e.g. 5000) or subtract (e.g. -5000):");
-        if(amt) {
-            await updateDoc(doc(db, "users", uid), { balance: increment(Number(amt)) });
-            const uSnap = await getDoc(doc(db, "users", uid));
-            await addDoc(collection(db, "logs"), { targetUser: uSnap.data().fullName, action: `ADJUSTED BALANCE: ${amt}`, timestamp: new Date().toISOString() });
-        }
-    };
-
     window.switchTab = (id, el) => {
         document.querySelectorAll('.pane, .nav-item').forEach(x => x.classList.remove('active'));
         if(document.getElementById('pane-'+id)) document.getElementById('pane-'+id).classList.add('active');
@@ -319,7 +344,7 @@
         reader.readAsDataURL(input.files[0]);
     };
     window.viewImg = (src) => { document.getElementById('viewer-img').src = src; document.getElementById('viewer').style.display = 'flex'; };
-    window.deleteCitizen = async (id) => { if(confirm("PERMANENTLY DELETE USER?")) await deleteDoc(doc(db, "users", id)); };
+    window.deleteCitizen = async (id) => { if(confirm("DELETE CITIZEN PERMANENTLY?")) await deleteDoc(doc(db, "users", id)); };
     document.getElementById('logout-btn').onclick = () => signOut(auth);
 </script>
 </body>
