@@ -10,153 +10,89 @@
         @import url('https://fonts.googleapis.com/css2?family=Public+Sans:wght@400;700;900&display=swap');
         :root { --sba-blue: #002e6d; --sba-red: #cc0000; }
         body { font-family: 'Public Sans', sans-serif; background-color: #f1f5f9; color: #1e293b; }
-        
         .sba-logo-box { position: relative; display: inline-block; padding: 4px 6px; }
         .sba-logo-box::before { content: ""; position: absolute; top: 0; left: 0; right: 0; bottom: 4px; border-top: 2.5px solid var(--sba-blue); border-left: 2.5px solid var(--sba-blue); border-right: 2.5px solid var(--sba-blue); }
         .sba-logo-box::after { content: ""; position: absolute; bottom: 0; left: 0; right: 30%; height: 2.5px; background: var(--sba-red); }
-
         .auth-card { background: white; border-top: 5px solid var(--sba-blue); box-shadow: 0 10px 25px rgba(0,0,0,0.1); border-radius: 4px; }
-        
-        input { font-size: 16px !important; border-radius: 4px !important; transition: all 0.2s; height: 55px; }
-        input:focus { border-color: var(--sba-blue) !important; ring: 0 !important; outline: none !important; background: #fff !important; }
-
+        input { font-size: 16px !important; border-radius: 4px !important; height: 55px; }
         .btn-sba { background: var(--sba-blue); color: white; height: 55px; font-size: 13px; letter-spacing: 1.5px; font-weight: 900; text-transform: uppercase; border-radius: 4px; transition: 0.3s; cursor: pointer; }
-        .btn-sba:disabled { opacity: 0.7; cursor: not-allowed; }
-        .btn-sba:active:not(:disabled) { transform: scale(0.97); background: #001a3d; }
     </style>
 </head>
 <body class="min-h-screen flex flex-col">
-
     <div class="bg-[#efefef] py-2 px-4 flex items-center gap-2 border-b border-gray-200">
         <img src="https://upload.wikimedia.org/wikipedia/en/a/a4/Flag_of_the_United_States.svg" class="w-4 shadow-sm">
         <span class="text-[10px] font-black text-gray-500 uppercase tracking-widest">Official U.S. Portal • Secure Node</span>
     </div>
 
     <nav class="bg-white px-5 py-3 flex justify-between items-center border-b border-gray-100">
-        <div class="flex items-center gap-2">
-            <div class="sba-logo-box">
-                <span class="text-xl font-black text-[#002e6d] tracking-tighter uppercase">SBA</span>
-            </div>
-        </div>
-        <a href="register.html" class="text-[11px] font-black text-[#cc0000] hover:underline uppercase transition-all">Enroll Case</a>
+        <div class="sba-logo-box"><span class="text-xl font-black text-[#002e6d] tracking-tighter uppercase">SBA</span></div>
+        <a href="register.html" class="text-[11px] font-black text-[#cc0000] uppercase">Enroll Case</a>
     </nav>
 
     <main class="flex-grow flex items-center justify-center p-5">
         <div class="w-full max-w-[420px]">
-            <div class="auth-card p-6 md:p-10">
+            <div class="auth-card p-8">
                 <div class="text-center mb-8">
                     <h2 class="text-2xl font-black text-slate-800 uppercase tracking-tighter">Portal Access</h2>
                     <p class="text-slate-400 text-[10px] font-bold uppercase tracking-[0.2em] mt-2">Personnel Authentication Protocol</p>
                 </div>
 
-                <div id="alertBox" class="hidden mb-6 p-4 bg-red-50 border-l-4 border-red-600 text-red-700 text-[11px] font-black uppercase italic shadow-sm"></div>
+                <div id="alertBox" class="hidden mb-6 p-4 bg-red-50 border-l-4 border-red-600 text-red-700 text-[11px] font-black uppercase italic"></div>
 
                 <form id="loginForm" class="space-y-5">
                     <div>
                         <label class="block text-[10px] font-black text-slate-500 uppercase tracking-widest mb-1.5 ml-1">Account Email</label>
-                        <div class="relative">
-                            <span class="absolute inset-y-0 left-0 pl-4 flex items-center text-slate-400">
-                                <i class="fas fa-user-shield"></i>
-                            </span>
-                            <input type="email" id="email" required class="w-full pl-12 pr-4 bg-slate-50 border border-slate-200 outline-none" placeholder="Enter ID Email">
-                        </div>
+                        <input type="email" id="email" required class="w-full px-4 bg-slate-50 border border-slate-200 outline-none" placeholder="Enter ID Email">
                     </div>
-
                     <div>
                         <div class="flex justify-between items-center mb-1.5">
                             <label class="block text-[10px] font-black text-slate-500 uppercase tracking-widest ml-1">Secure Passkey</label>
-                            <a href="forget-password.html" class="text-[9px] font-black text-blue-700 uppercase">Forgot?</a>
                         </div>
-                        <div class="relative">
-                            <span class="absolute inset-y-0 left-0 pl-4 flex items-center text-slate-400">
-                                <i class="fas fa-lock"></i>
-                            </span>
-                            <input type="password" id="pass" required class="w-full pl-12 pr-4 bg-slate-50 border border-slate-200 outline-none" placeholder="••••••••">
-                        </div>
+                        <input type="password" id="pass" required class="w-full px-4 bg-slate-50 border border-slate-200 outline-none" placeholder="••••••••">
                     </div>
-
-                    <button type="submit" id="submitBtn" class="btn-sba w-full shadow-lg mt-4">
-                        Authorize Session
-                    </button>
+                    <button type="submit" id="submitBtn" class="btn-sba w-full shadow-lg">Authorize Session</button>
                 </form>
-
-                <div class="mt-10 pt-6 border-t border-slate-100 text-center">
-                    <p class="text-[10px] text-slate-400 font-bold uppercase mb-2">No active case found?</p>
-                    <a href="register.html" class="text-[#cc0000] font-black text-[12px] uppercase tracking-[0.2em] hover:text-red-700 transition-all">
-                        Register New Case File <i class="fas fa-arrow-right ml-1"></i>
-                    </a>
-                </div>
             </div>
         </div>
     </main>
 
-    <footer class="py-6 text-center text-[10px] text-slate-400 font-bold uppercase tracking-[0.4em]">
-        <i class="fas fa-shield-halved mr-2 text-slate-300"></i> Encrypted Federal Node-V15
-    </footer>
-
     <script type="module">
-        import { auth, db, saveUserSession } from './firebase-config.js';
-        import { signInWithEmailAndPassword, signOut } from "https://www.gstatic.com/firebasejs/10.7.0/firebase-auth.js";
-        import { doc, getDoc } from "https://www.gstatic.com/firebasejs/10.7.0/firebase-firestore.js";
+        import { auth } from './firebase-config.js';
+        import { signInWithEmailAndPassword } from "https://www.gstatic.com/firebasejs/10.7.0/firebase-auth.js";
 
-        const btn = document.getElementById('submitBtn');
+        const loginForm = document.getElementById('loginForm');
         const alertBox = document.getElementById('alertBox');
-        const ADMIN_EMAIL = "liger4683@gmail.com";
+        const btn = document.getElementById('submitBtn');
 
-        document.getElementById('loginForm').onsubmit = async (e) => {
+        loginForm.onsubmit = async (e) => {
             e.preventDefault();
             alertBox.classList.add('hidden');
-            
-            const email = document.getElementById('email').value.toLowerCase().trim();
+            const email = document.getElementById('email').value.trim();
             const pass = document.getElementById('pass').value;
 
             btn.disabled = true;
-            btn.innerHTML = '<i class="fas fa-circle-notch fa-spin mr-2"></i> AUTHORIZING...';
+            btn.innerHTML = '<i class="fas fa-spinner fa-spin mr-2"></i> AUTHORIZING...';
 
             try {
-                const userCredential = await signInWithEmailAndPassword(auth, email, pass);
-                const user = userCredential.user;
-
-                // 1. Check for Admin
-                if (email === ADMIN_EMAIL) {
-                    window.location.href = "admin-portal.html";
-                    return;
-                }
-
-                // 2. Check Verification Status
-                if (!user.emailVerified) {
-                    await signOut(auth);
-                    window.location.href = `verify.html?email=${encodeURIComponent(email)}`;
-                    return;
-                }
-
-                // 3. Fetch User Data from Firestore to save in session (Stops name disappearing)
-                const userDoc = await getDoc(doc(db, "users", user.uid));
-                if (userDoc.exists()) {
-                    saveUserSession(userDoc.data()); // This saves name, balance, etc.
-                    window.location.href = "dashboard.html";
+                const userCred = await signInWithEmailAndPassword(auth, email, pass);
+                if (!userCred.user.emailVerified) {
+                    window.location.href = "verify.html";
                 } else {
-                    // No Firestore data found
-                    alertBox.innerText = "DENIED: Case record inconsistent.";
-                    alertBox.classList.remove('hidden');
-                    btn.disabled = false;
-                    btn.innerText = "Authorize Session";
+                    window.location.href = "dashboard.html";
                 }
-
             } catch (error) {
                 btn.disabled = false;
                 btn.innerText = "Authorize Session";
                 alertBox.classList.remove('hidden');
                 
-                console.error(error.code);
+                // CORRECTED ERROR HANDLING
                 if (error.code === 'auth/user-not-found' || error.code === 'auth/invalid-credential') {
-                    alertBox.innerText = "DENIED: Email is not registered.";
+                    // Firebase often uses 'invalid-credential' for both, but we check specifically:
+                    alertBox.innerText = "DENIED: Email is not registered in federal node.";
                 } else if (error.code === 'auth/wrong-password') {
                     alertBox.innerText = "DENIED: Invalid passkey protocol.";
-                } else if (error.code === 'auth/too-many-requests') {
-                    alertBox.innerText = "LOCKED: Access suspended due to too many attempts.";
                 } else {
-                    alertBox.innerText = "ACCESS ERROR: Check your connection.";
+                    alertBox.innerText = "ERROR: " + error.message;
                 }
             }
         };
