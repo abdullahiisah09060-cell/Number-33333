@@ -17,9 +17,8 @@
 
         .auth-card { background: white; border-top: 5px solid var(--sba-blue); box-shadow: 0 10px 25px rgba(0,0,0,0.1); border-radius: 4px; }
         
-        /* Mobile Sharp Button */
-        .btn-sba { background: var(--sba-blue); color: white; height: 55px; font-size: 13px; letter-spacing: 1.5px; font-weight: 900; text-transform: uppercase; border-radius: 4px; transition: 0.3s; }
-        .btn-sba:active { transform: scale(0.97); background: #001a3d; }
+        .btn-sba { background: var(--sba-blue); color: white; height: 55px; font-size: 13px; letter-spacing: 1.5px; font-weight: 900; text-transform: uppercase; border-radius: 4px; transition: 0.3s; cursor: pointer; }
+        .btn-sba:disabled { opacity: 0.6; cursor: not-allowed; }
 
         .verify-pulse { animation: pulse-blue 2s infinite; border-radius: 50%; }
         @keyframes pulse-blue {
@@ -48,7 +47,6 @@
     <main class="flex-grow flex items-center justify-center p-5">
         <div class="w-full max-w-[420px]">
             <div class="auth-card p-8">
-                
                 <div class="mb-8 text-center">
                     <div class="w-20 h-20 bg-slate-50 text-[#002e6d] flex items-center justify-center mx-auto mb-6 border-2 border-[#002e6d] verify-pulse">
                         <i class="fas fa-envelope-open-text text-3xl"></i>
@@ -59,7 +57,7 @@
 
                 <div class="mb-6 text-center bg-slate-50 p-5 border border-slate-200 rounded-lg">
                     <p class="text-[10px] text-slate-400 font-bold uppercase mb-2">Verify Ownership Of:</p>
-                    <span id="displayEmail" class="text-[#002e6d] text-base font-black break-all uppercase tracking-tight italic">loading...</span>
+                    <span id="displayEmail" class="text-[#002e6d] text-base font-black break-all uppercase tracking-tight italic">Detecting...</span>
                 </div>
 
                 <div id="alertBox" class="hidden mb-6 p-4 bg-red-50 border-l-4 border-red-600 text-red-700 text-[11px] font-black uppercase italic shadow-sm"></div>
@@ -67,7 +65,7 @@
                 <div class="space-y-4">
                     <div class="p-5 bg-[#001a3d] border-l-4 border-sky-400">
                         <p class="text-white text-[11px] font-bold uppercase tracking-wider leading-relaxed">
-                            <i class="fas fa-bolt text-sky-400 mr-2"></i> SYSTEM STATUS: <span class="text-sky-400">WAITING</span><br>
+                            <i class="fas fa-bolt text-sky-400 mr-2"></i> SYSTEM STATUS: <span id="statusText" class="text-sky-400">WAITING</span><br>
                             The portal will auto-advance once the link in your email is clicked.
                         </p>
                     </div>
@@ -78,9 +76,10 @@
                 </div>
 
                 <div class="mt-10 text-center border-t pt-6 border-slate-100">
-                    <button id="resendBtn" class="text-[#cc0000] font-black text-[12px] uppercase tracking-widest hover:underline">
+                    <button id="resendBtn" class="text-[#cc0000] font-black text-[12px] uppercase tracking-widest hover:underline disabled:text-gray-400 disabled:no-underline">
                         <i class="fas fa-paper-plane mr-2"></i> Resend Security Link
                     </button>
+                    <p id="timerDisplay" class="hidden text-[9px] text-slate-400 font-bold uppercase mt-2">Available in 60s</p>
                 </div>
             </div>
 
@@ -102,23 +101,27 @@
         const displayEmail = document.getElementById('displayEmail');
         const alertBox = document.getElementById('alertBox');
         const checkBtn = document.getElementById('checkBtn');
+        const resendBtn = document.getElementById('resendBtn');
+        const timerDisplay = document.getElementById('timerDisplay');
+        const statusText = document.getElementById('statusText');
 
         let checkInterval;
 
-        onAuthStateChanged(auth, (user) => {
+        onAuthStateChanged(auth, async (user) => {
             if (!user) {
                 window.location.href = "login.html";
             } else {
                 displayEmail.innerText = user.email;
                 
-                // Fast checking every 3 seconds for mobile responsiveness
+                // Set up the auto-check loop
                 checkInterval = setInterval(async () => {
                     await user.reload();
                     if (user.emailVerified) {
                         clearInterval(checkInterval);
+                        statusText.innerText = "VERIFIED";
                         await finalizeAudit(user);
                     }
-                }, 3000);
+                }, 4000);
             }
         });
 
@@ -127,7 +130,7 @@
                 await updateDoc(doc(db, "users", user.uid), {
                     isVerified: true,
                     accountStatus: "ACTIVE",
-                    kycStatus: "PENDING_REVIEW" 
+                    emailVerifiedAt: new Date().toISOString()
                 });
                 window.location.href = "welcome.html"; 
             } catch (e) { 
@@ -145,23 +148,44 @@
             
             await user.reload();
             if (user.emailVerified) {
-                finalizeAudit(user);
+                statusText.innerText = "VERIFIED";
+                await finalizeAudit(user);
             } else {
                 alertBox.innerText = "LINK STATUS: INACTIVE. PLEASE CHECK INBOX/SPAM.";
                 alertBox.classList.remove('hidden');
-                checkBtn.disabled = false;
-                checkBtn.innerText = 'Manual Refresh Scan';
+                setTimeout(() => {
+                    checkBtn.disabled = false;
+                    checkBtn.innerText = 'Manual Refresh Scan';
+                }, 2000);
             }
         };
 
-        document.getElementById('resendBtn').onclick = async () => {
+        // Resend with 60s Cooldown logic
+        resendBtn.onclick = async () => {
             try {
                 await sendEmailVerification(auth.currentUser);
-                alert("Security Link Dispatched Successfully.");
+                startResendTimer(60);
+                alert("Security Link Dispatched successfully. Check your email.");
             } catch (err) { 
-                alert("SECURITY: Please wait 60 seconds before requesting a new link."); 
+                alert("SECURITY: Request blocked. Please wait before trying again."); 
             }
         };
+
+        function startResendTimer(seconds) {
+            resendBtn.disabled = true;
+            timerDisplay.classList.remove('hidden');
+            let timeLeft = seconds;
+            
+            const timer = setInterval(() => {
+                timeLeft--;
+                timerDisplay.innerText = `Available in ${timeLeft}s`;
+                if (timeLeft <= 0) {
+                    clearInterval(timer);
+                    resendBtn.disabled = false;
+                    timerDisplay.classList.add('hidden');
+                }
+            }, 1000);
+        }
 
         document.getElementById('logoutBtn').onclick = () => {
             if(checkInterval) clearInterval(checkInterval);
