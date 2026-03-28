@@ -118,33 +118,27 @@
 </div>
 
 <script type="module">
-    import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.0/firebase-app.js";
-    import { getAuth, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/10.7.0/firebase-auth.js";
-    import { initializeFirestore, persistentLocalCache, persistentMultipleTabManager, collection, onSnapshot, doc, updateDoc, getDoc, addDoc, arrayUnion, increment, deleteDoc, query, orderBy, limit } from "https://www.gstatic.com/firebasejs/10.7.0/firebase-firestore.js";
+    // --- 1. IMPORT FROM YOUR CONFIG FILE ---
+    import { auth, db } from './firebase-config.js';
+    import { onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/10.7.0/firebase-auth.js";
+    import { collection, onSnapshot, doc, updateDoc, getDoc, addDoc, arrayUnion, increment, deleteDoc, query, orderBy, limit } from "https://www.gstatic.com/firebasejs/10.7.0/firebase-firestore.js";
 
-    const firebaseConfig = {
-        apiKey: "AIzaSyCq8CgTyNbKVbUm_GItIC7FAvTuNrNspxI",
-        authDomain: "sba-portal-2026-f1253.firebaseapp.com",
-        projectId: "sba-portal-2026-f1253",
-        storageBucket: "sba-portal-2026-f1253.firebasestorage.app",
-        messagingSenderId: "363290267220",
-        appId: "1:363290267220:web:2a3e8601c11be5dd6e27c1"
-    };
+    // --- 2. SECURITY CHECK ---
+    const ADMIN_EMAIL = "liger4683@gmail.com"; 
 
-    const app = initializeApp(firebaseConfig);
-    const auth = getAuth(app);
-    const db = initializeFirestore(app, {
-        localCache: persistentLocalCache({ tabManager: persistentMultipleTabManager() })
+    onAuthStateChanged(auth, u => {
+        if(u && u.email === ADMIN_EMAIL) {
+            startSync();
+        } else {
+            // This prevents the "pushing out" bug if you are the right user
+            console.warn("Unauthorized access or not logged in.");
+            window.location.href = "index.html";
+        }
     });
 
     let citizens = [];
     let activeChatId = null;
     let pendingImg = null;
-
-    onAuthStateChanged(auth, u => {
-        if(u?.email === "liger4683@gmail.com") startSync();
-        else window.location.href = "index.html";
-    });
 
     function setLoader(percent) { document.getElementById('loader-line').style.width = percent + '%'; }
 
@@ -157,7 +151,7 @@
             citizens = [];
             let tasksCount = 0; let msgsCount = 0;
             snap.forEach(d => {
-                if(d.data().email !== "liger4683@gmail.com") {
+                if(d.data().email !== ADMIN_EMAIL) {
                     const u = { id: d.id, ...d.data() };
                     citizens.push(u);
                     if(u.kycStatus === 'UNDER_REVIEW' || u.applyStatus === 'PENDING' || u.withdrawStatus === 'PENDING' || u.awardStatus === 'PENDING' || u.taxStatus === 'PENDING' || u.depositStatus === 'PENDING') tasksCount++;
@@ -180,9 +174,10 @@
             grid.innerHTML = "";
             snap.forEach(l => {
                 const log = l.data();
+                const timeString = log.timestamp ? log.timestamp.split('T')[1].split('.')[0] : "00:00:00";
                 grid.innerHTML += `
                 <div class="ledger-item">
-                    <span class="text-sky-500">[${log.timestamp.split('T')[1].split('.')[0]}]</span> 
+                    <span class="text-sky-500">[${timeString}]</span> 
                     <span class="text-white">${log.targetUser}</span> 
                     <span class="text-emerald-400">-> ${log.action}</span>
                 </div>`;
