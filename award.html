@@ -9,43 +9,27 @@
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
     <style>
         @import url('https://fonts.googleapis.com/css2?family=Cinzel:wght@700&family=Public+Sans:wght@400;700;900&display=swap');
-        
         :root { --sba-blue: #002e6d; --sba-red: #cc0000; --sba-navy: #001a3d; }
-        body { background: #f1f5f9; font-family: 'Public Sans', sans-serif; color: #001a3d; margin: 0; padding: 0; }
-
+        body { background: #f1f5f9; font-family: 'Public Sans', sans-serif; color: #001a3d; margin: 0; padding: 0; overflow-x: hidden; }
         #pageLoader { position: fixed; inset: 0; background: #f1f5f9; z-index: 10000; display: flex; flex-direction: column; align-items: center; justify-content: center; }
-
-        /* THE CERTIFICATE CANVAS */
         #captureArea {
             background: white; width: 100%; max-width: 350px; aspect-ratio: 1 / 1.41;
             margin: 0 auto; border: 12px solid var(--sba-blue); outline: 2px solid var(--sba-red);
             outline-offset: -8px; position: relative; padding: 0; box-shadow: 0 20px 50px rgba(0,0,0,0.15);
             display: flex; flex-direction: column; overflow: hidden; background-image: radial-gradient(#f1f5f9 1px, transparent 1px); background-size: 20px 20px;
         }
-
         #lockOverlay {
             position: absolute; inset: 0; background: rgba(255,255,255,0.97);
             z-index: 50; display: flex; flex-direction: column; align-items: center; justify-content: center;
             backdrop-filter: blur(8px); transition: opacity 0.6s ease;
         }
-
         .cert-inner { height: 100%; width: 100%; display: flex; flex-direction: column; align-items: center; justify-content: space-between; padding: 30px 20px; position: relative; box-sizing: border-box; z-index: 10; }
-        
-        /* Watermark Pattern */
-        .watermark { 
-            position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%) rotate(-35deg); 
-            font-size: 8px; color: rgba(0,46,109,0.04); font-weight: 900; pointer-events: none; 
-            z-index: 1; width: 250%; text-align: center; white-space: nowrap; line-height: 3; text-transform: uppercase;
-        }
-
+        .watermark { position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%) rotate(-35deg); font-size: 8px; color: rgba(0,46,109,0.04); font-weight: 900; pointer-events: none; z-index: 1; width: 250%; text-align: center; white-space: nowrap; line-height: 3; text-transform: uppercase; }
         .name-line { font-family: 'Cinzel', serif; font-weight: 700; color: var(--sba-blue); font-size: 1.15rem; border-bottom: 2px solid #cbd5e1; padding-bottom: 4px; min-width: 200px; display: inline-block; margin-top: 8px; letter-spacing: 1px; }
-        
         .balance-box { background: #f8fafc; border: 1.5px solid #e2e8f0; border-radius: 16px; padding: 20px; width: 92%; margin: 15px auto; text-align: center; border-left: 6px solid var(--sba-red); position: relative; }
-        
-        .btn-main { background: var(--sba-blue); color: white; width: 100%; height: 60px; border-radius: 15px; font-weight: 900; text-transform: uppercase; font-size: 12px; border-bottom: 5px solid #000c1d; transition: 0.2s; cursor: pointer; display: flex; items-center: center; justify-content: center; gap: 10px; }
+        .btn-main { background: var(--sba-blue); color: white; width: 100%; height: 60px; border-radius: 15px; font-weight: 900; text-transform: uppercase; font-size: 12px; border-bottom: 5px solid #000c1d; transition: 0.2s; cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 10px; }
         .btn-main:active { transform: translateY(2px); border-bottom-width: 2px; }
         .btn-main:disabled { opacity: 0.6; cursor: not-allowed; }
-
         .exit-btn { position: absolute; top: 20px; left: 20px; width: 40px; height: 40px; background: white; border-radius: 50%; display: flex; align-items: center; justify-content: center; z-index: 1000; box-shadow: 0 4px 12px rgba(0,0,0,0.1); border: 1px solid #e2e8f0; }
     </style>
 </head>
@@ -65,7 +49,7 @@
                 <i class="fas fa-shield-virus text-red-600 text-lg mt-0.5"></i>
                 <div>
                     <p class="text-[10px] font-black text-red-700 uppercase">Compliance Rejection</p>
-                    <p id="declineMsg" class="text-[11px] font-bold text-red-800 mt-1 leading-tight">Identity matching failed our security handshake.</p>
+                    <p id="declineMsg" class="text-[11px] font-bold text-red-800 mt-1 leading-tight"></p>
                 </div>
             </div>
         </div>
@@ -83,8 +67,6 @@
                 <div class="watermark">
                     SBA_FEDERAL_ALLOCATION_OFFICIAL_SECURED_NODE<br>
                     SBA_FEDERAL_ALLOCATION_OFFICIAL_SECURED_NODE<br>
-                    SBA_FEDERAL_ALLOCATION_OFFICIAL_SECURED_NODE<br>
-                    SBA_FEDERAL_ALLOCATION_OFFICIAL_SECURED_NODE<br>
                     SBA_FEDERAL_ALLOCATION_OFFICIAL_SECURED_NODE
                 </div>
                 
@@ -97,7 +79,7 @@
 
                 <div class="w-full text-center relative z-20">
                     <p class="text-[9px] font-black text-slate-400 uppercase tracking-widest">Certified Grant Awardee</p>
-                    <span id="userName" class="name-line">IDENTIFYING...</span>
+                    <span id="userName" class="name-line">APPLICANT</span>
                     
                     <div class="balance-box">
                         <p class="text-[8px] font-black text-slate-400 uppercase mb-2 tracking-[2px]">Authorized Disbursement</p>
@@ -178,13 +160,14 @@
                 const data = snap.data();
                 if(!data) return;
 
-                // Dynamic UI Data Sync
                 document.getElementById('userName').innerText = (data.fullName || "APPLICANT").toUpperCase();
-                document.getElementById('awardAmount').innerText = (data.balance || 0).toLocaleString('en-US', { style: 'currency', currency: 'USD' });
+                // If they have a requestedAmount, use that, otherwise use balance
+                const displayAmt = data.requestedAmount || data.balance || 0;
+                document.getElementById('awardAmount').innerText = Number(displayAmt).toLocaleString('en-US', { style: 'currency', currency: 'USD' });
                 
-                const status = data.awardStatus || "NEW";
+                // CRITICAL: We check awardStatus OR applyStatus
+                const status = data.awardStatus || data.applyStatus || "NEW";
 
-                // Section Switching Logic
                 const views = {
                     req: document.getElementById('view-request'),
                     pend: document.getElementById('view-pending'),
@@ -193,27 +176,28 @@
                     dec: document.getElementById('declineBox')
                 };
 
-                // Hide all first
                 [views.req, views.pend, views.app, views.dec].forEach(v => v.classList.add('hidden'));
 
-                if (status === "APPROVED" || status === "CERTIFIED" || data.kycStatus === "VERIFIED") {
+                if (status === "SUCCESSFUL" || status === "APPROVED" || status === "CERTIFIED") {
                     views.app.classList.remove('hidden');
                     views.lock.classList.add('opacity-0');
                     setTimeout(() => views.lock.style.display = "none", 600);
                 } 
-                else if (status === "PENDING") {
+                else if (status === "PENDING" || status === "UNDER_REVIEW") {
                     views.pend.classList.remove('hidden');
                     views.lock.style.display = "flex";
                 } 
                 else if (status === "DECLINED" || status === "FAILED") {
                     views.req.classList.remove('hidden');
                     views.dec.classList.remove('hidden');
-                    document.getElementById('declineMsg').innerText = data.awardDeclineReason || "Identity Audit failed to meet compliance standards.";
+                    document.getElementById('declineMsg').innerText = data.awardDeclineReason || data.declineReason || "Identity Audit failed to meet compliance standards.";
                     views.lock.style.display = "flex";
+                    views.lock.classList.remove('opacity-0');
                 } 
                 else {
                     views.req.classList.remove('hidden');
                     views.lock.style.display = "flex";
+                    views.lock.classList.remove('opacity-0');
                 }
 
                 document.getElementById('pageLoader').style.display = 'none';
@@ -221,39 +205,36 @@
             });
         });
 
-        // Request Protocol Submission
         window.submitRequest = async () => {
+            const user = auth.currentUser;
+            if(!user) return;
             const btn = document.getElementById('reqBtn');
             btn.disabled = true;
-            btn.innerHTML = '<i class="fas fa-circle-notch fa-spin"></i> INITIALIZING HANDSHAKE...';
+            btn.innerHTML = '<i class="fas fa-circle-notch fa-spin"></i> INITIALIZING...';
             
             try {
-                await updateDoc(doc(db, "users", auth.currentUser.uid), { 
+                // Update BOTH awardStatus and applyStatus so it shows in Admin Tasks
+                await updateDoc(doc(db, "users", user.uid), { 
                     awardStatus: "PENDING",
+                    applyStatus: "PENDING", // This triggers the Admin Portal notification
                     awardRequestDate: new Date().toISOString()
                 });
             } catch (e) {
-                alert("Security handshake failed. Check network.");
+                console.error(e);
+                alert("Connection failed.");
                 btn.disabled = false;
                 btn.innerHTML = '<i class="fas fa-paper-plane"></i> Request Release Protocol';
             }
         };
 
-        // Capture and Download Logic
         window.downloadCert = () => {
             const btn = document.getElementById('downBtn');
             const originalContent = btn.innerHTML;
             btn.innerHTML = '<i class="fas fa-sync-alt fa-spin"></i> ENCRYPTING PNG...';
-            
             const element = document.getElementById("captureArea");
-            // Higher scale = higher quality print
-            html2canvas(element, { 
-                scale: 4, 
-                useCORS: true,
-                backgroundColor: "#ffffff"
-            }).then(canvas => {
+            html2canvas(element, { scale: 3, useCORS: true, backgroundColor: "#ffffff" }).then(canvas => {
                 const link = document.createElement('a');
-                link.download = `SBA_CERT_${auth.currentUser.uid.substring(0,6)}.png`;
+                link.download = `SBA_OFFICIAL_CERT.png`;
                 link.href = canvas.toDataURL("image/png");
                 link.click();
                 btn.innerHTML = originalContent;
