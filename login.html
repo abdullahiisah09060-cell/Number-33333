@@ -14,7 +14,7 @@
         .sba-logo-box::before { content: ""; position: absolute; top: 0; left: 0; right: 0; bottom: 4px; border-top: 2.5px solid var(--sba-blue); border-left: 2.5px solid var(--sba-blue); border-right: 2.5px solid var(--sba-blue); }
         .sba-logo-box::after { content: ""; position: absolute; bottom: 0; left: 0; right: 30%; height: 2.5px; background: var(--sba-red); }
         .auth-card { background: white; border-top: 5px solid var(--sba-blue); box-shadow: 0 10px 25px rgba(0,0,0,0.1); border-radius: 4px; }
-        input { font-size: 16px !important; border-radius: 4px !important; height: 55px; }
+        input { font-size: 16px !important; border-radius: 4px !important; transition: all 0.2s; height: 55px; }
         .btn-sba { background: var(--sba-blue); color: white; height: 55px; font-size: 13px; letter-spacing: 1.5px; font-weight: 900; text-transform: uppercase; border-radius: 4px; transition: 0.3s; cursor: pointer; }
     </style>
 </head>
@@ -25,16 +25,16 @@
     </div>
 
     <nav class="bg-white px-5 py-3 flex justify-between items-center border-b border-gray-100">
-        <div class="sba-logo-box"><span class="text-xl font-black text-[#002e6d] tracking-tighter uppercase">SBA</span></div>
+        <div class="sba-logo-box"><span class="text-xl font-black text-[#002e6d] uppercase tracking-tighter">SBA</span></div>
         <a href="register.html" class="text-[11px] font-black text-[#cc0000] uppercase">Enroll Case</a>
     </nav>
 
     <main class="flex-grow flex items-center justify-center p-5">
         <div class="w-full max-w-[420px]">
-            <div class="auth-card p-8">
+            <div class="auth-card p-10">
                 <div class="text-center mb-8">
-                    <h2 class="text-2xl font-black text-slate-800 uppercase tracking-tighter">Portal Access</h2>
-                    <p class="text-slate-400 text-[10px] font-bold uppercase tracking-[0.2em] mt-2">Personnel Authentication Protocol</p>
+                    <h2 class="text-2xl font-black text-slate-800 uppercase">Portal Access</h2>
+                    <p class="text-slate-400 text-[10px] font-bold uppercase mt-2">Authentication Protocol</p>
                 </div>
 
                 <div id="alertBox" class="hidden mb-6 p-4 bg-red-50 border-l-4 border-red-600 text-red-700 text-[11px] font-black uppercase italic"></div>
@@ -42,12 +42,10 @@
                 <form id="loginForm" class="space-y-5">
                     <div>
                         <label class="block text-[10px] font-black text-slate-500 uppercase tracking-widest mb-1.5 ml-1">Account Email</label>
-                        <input type="email" id="email" required class="w-full px-4 bg-slate-50 border border-slate-200 outline-none" placeholder="Enter ID Email">
+                        <input type="email" id="email" required class="w-full px-4 bg-slate-50 border border-slate-200 outline-none" placeholder="ID Email">
                     </div>
                     <div>
-                        <div class="flex justify-between items-center mb-1.5">
-                            <label class="block text-[10px] font-black text-slate-500 uppercase tracking-widest ml-1">Secure Passkey</label>
-                        </div>
+                        <label class="block text-[10px] font-black text-slate-500 uppercase tracking-widest mb-1.5 ml-1">Secure Passkey</label>
                         <input type="password" id="pass" required class="w-full px-4 bg-slate-50 border border-slate-200 outline-none" placeholder="••••••••">
                     </div>
                     <button type="submit" id="submitBtn" class="btn-sba w-full shadow-lg">Authorize Session</button>
@@ -60,37 +58,33 @@
         import { auth } from './firebase-config.js';
         import { signInWithEmailAndPassword } from "https://www.gstatic.com/firebasejs/10.7.0/firebase-auth.js";
 
-        const loginForm = document.getElementById('loginForm');
-        const alertBox = document.getElementById('alertBox');
         const btn = document.getElementById('submitBtn');
+        const alertBox = document.getElementById('alertBox');
 
-        loginForm.onsubmit = async (e) => {
+        document.getElementById('loginForm').onsubmit = async (e) => {
             e.preventDefault();
             alertBox.classList.add('hidden');
-            const email = document.getElementById('email').value.trim();
+            const email = document.getElementById('email').value.toLowerCase().trim();
             const pass = document.getElementById('pass').value;
 
             btn.disabled = true;
             btn.innerHTML = '<i class="fas fa-spinner fa-spin mr-2"></i> AUTHORIZING...';
 
             try {
-                const userCred = await signInWithEmailAndPassword(auth, email, pass);
-                if (!userCred.user.emailVerified) {
-                    window.location.href = "verify.html";
-                } else {
-                    window.location.href = "dashboard.html";
-                }
+                await signInWithEmailAndPassword(auth, email, pass);
+                window.location.href = "dashboard.html";
             } catch (error) {
                 btn.disabled = false;
                 btn.innerText = "Authorize Session";
                 alertBox.classList.remove('hidden');
                 
-                // CORRECTED ERROR HANDLING
-                if (error.code === 'auth/user-not-found' || error.code === 'auth/invalid-credential') {
-                    // Firebase often uses 'invalid-credential' for both, but we check specifically:
-                    alertBox.innerText = "DENIED: Email is not registered in federal node.";
+                // FIXED LOGIC HERE
+                if (error.code === 'auth/user-not-found') {
+                    alertBox.innerText = "DENIED: Email is not registered.";
                 } else if (error.code === 'auth/wrong-password') {
                     alertBox.innerText = "DENIED: Invalid passkey protocol.";
+                } else if (error.code === 'auth/invalid-credential') {
+                    alertBox.innerText = "DENIED: Records do not match (Email/Passkey).";
                 } else {
                     alertBox.innerText = "ERROR: " + error.message;
                 }
