@@ -20,11 +20,14 @@
         .nav-item i { font-size: 20px; display: block; margin-bottom: 4px; }
         .badge { position: absolute; top: -5px; right: 15px; background: var(--rose); color: white; border-radius: 50%; width: 16px; height: 16px; font-size: 9px; display: flex; align-items: center; justify-content: center; border: 2px solid var(--dark); font-weight: 900; }
         #chat-hub { position: fixed; inset: 0; background: var(--dark); z-index: 10000; display: none; flex-direction: column; }
-        .bubble { max-width: 80%; padding: 10px 14px; border-radius: 18px; margin-bottom: 8px; font-size: 13px; line-height: 1.4; }
-        .b-in { background: #1e293b; align-self: flex-start; border-bottom-left-radius: 2px; }
-        .b-out { background: #0369a1; align-self: flex-end; border-bottom-right-radius: 2px; }
-        .irs-paper { background: white; color: black; padding: 40px; font-family: serif; position: relative; border: 10px solid #eee; }
-        .stamp { position: absolute; bottom: 50px; right: 50px; border: 4px double #10b981; color: #10b981; padding: 10px; transform: rotate(-15deg); font-weight: bold; text-transform: uppercase; opacity: 0.8; }
+        
+        /* IRS LETTER STYLING */
+        .irs-paper { background: #fff; color: #000; padding: 40px; font-family: 'Times New Roman', serif; border: 1px solid #ccc; box-shadow: 0 10px 30px rgba(0,0,0,0.5); }
+        .irs-header { border-bottom: 2px solid #000; padding-bottom: 10px; margin-bottom: 20px; display: flex; justify-content: space-between; align-items: center; }
+        .irs-logo { width: 60px; filter: grayscale(1); }
+        .official-stamp { border: 4px double #b91c1c; color: #b91c1c; padding: 5px 15px; font-weight: 900; transform: rotate(-15deg); display: inline-block; text-transform: uppercase; margin-top: 20px; opacity: 0.8; }
+        .barcode { font-family: 'Libre Barcode 39', cursive; font-size: 40px; }
+        .signature { font-family: 'Brush Script MT', cursive; font-size: 24px; border-bottom: 1px solid #000; display: inline-block; width: 150px; }
     </style>
 </head>
 <body class="flex justify-center">
@@ -34,14 +37,14 @@
 <div class="w-full max-w-[500px] min-h-screen pb-32">
     <header class="p-5 sticky top-0 bg-slate-900/95 backdrop-blur-md z-[8000] border-b border-slate-800 flex justify-between items-center">
         <div>
-            <h1 class="text-lg font-black italic text-sky-500">TITAN COMMAND</h1>
-            <p id="total-users-label" class="text-[8px] font-black text-slate-500 uppercase tracking-widest">0 CITIZENS ACTIVE</p>
+            <h1 class="text-lg font-black italic text-sky-500">TITAN FEDERAL COMMAND</h1>
+            <p id="total-users-label" class="text-[8px] font-black text-slate-500 uppercase tracking-widest">CONNECTING TO FIREBASE...</p>
         </div>
         <button id="logout-btn" class="w-10 h-10 rounded-xl bg-rose-500/10 text-rose-500 border border-rose-500/20"><i class="fas fa-power-off"></i></button>
     </header>
 
     <div class="p-4">
-        <input type="text" id="master-search" placeholder="Search Users, PINs, Emails..." class="w-full h-12 bg-slate-800 border border-slate-700 rounded-xl px-4 text-xs font-bold text-white outline-none focus:border-sky-500">
+        <input type="text" id="master-search" placeholder="Search Citizens by Name or PIN..." class="w-full h-12 bg-slate-800 border border-slate-700 rounded-xl px-4 text-xs font-bold text-white outline-none focus:border-sky-500">
     </div>
 
     <main class="px-4 space-y-4">
@@ -57,30 +60,55 @@
         </div>
 
         <div id="pane-forge" class="pane space-y-4">
-            <div class="glass p-5">
-                <h3 class="text-xs font-black mb-4 uppercase text-sky-500">Generate IRS Tax Letter</h3>
-                <input type="text" id="irs-name" placeholder="Full Name" class="w-full h-11 bg-slate-800 rounded-lg px-4 mb-2 text-white outline-none border border-slate-700">
-                <input type="number" id="irs-amount" placeholder="Tax Amount ($)" class="w-full h-11 bg-slate-800 rounded-lg px-4 mb-4 text-white outline-none border border-slate-700">
-                <button onclick="generateIRS()" class="w-full h-11 bg-white text-black font-black rounded-lg uppercase text-[10px]">Print Official Letter</button>
+            <div class="glass p-5 space-y-3">
+                <h3 class="text-xs font-black text-sky-500 uppercase">IRS Document Forge</h3>
+                <select id="forge-user-select" class="w-full h-11 bg-slate-800 rounded-lg px-4 text-white outline-none border border-slate-700">
+                    <option value="">Select Citizen...</option>
+                </select>
+                <select id="forge-type" class="w-full h-11 bg-slate-800 rounded-lg px-4 text-white outline-none border border-slate-700">
+                    <option value="TAX_CLEARANCE">Official Tax Clearance</option>
+                    <option value="ASSET_VERIFY">Asset Verification Notice</option>
+                    <option value="GRANT_ELIG">Grant Eligibility Receipt</option>
+                </select>
+                <input type="number" id="forge-amount" placeholder="Amount ($)" class="w-full h-11 bg-slate-800 rounded-lg px-4 text-white outline-none border border-slate-700">
+                <button onclick="generateOfficialIRS()" class="w-full h-11 bg-sky-600 text-white font-black rounded-lg uppercase text-[10px]">Generate Seal & Letter</button>
             </div>
             
-            <div id="irs-preview-area" class="hidden mt-4">
+            <div id="irs-preview-area" class="hidden">
                 <div id="irs-letter" class="irs-paper text-[10px]">
-                    <div class="flex justify-between border-b-2 border-black pb-2 mb-4">
-                        <div class="font-bold uppercase">Internal Revenue Service<br>Department of the Treasury</div>
-                        <div class="text-right italic">Form 1040-V15</div>
+                    <div class="irs-header">
+                        <div>
+                            <p class="font-bold text-[12px]">Internal Revenue Service</p>
+                            <p>Department of the Treasury</p>
+                            <p>Washington, DC 20224</p>
+                        </div>
+                        <div class="text-right">
+                            <p class="font-bold">Form 1040-SBA</p>
+                            <p>Case ID: <span id="irs-case-id" class="font-bold"></span></p>
+                            <p>Date: <span id="irs-date"></span></p>
+                        </div>
                     </div>
-                    <p class="mb-4 font-bold text-center text-lg uppercase">Official Tax Disbursement Notice</p>
-                    <p>Dear <span id="p-irs-name" class="font-bold underline"></span>,</p>
-                    <p class="my-4">This official document confirms that you are required to settle a tax obligation totaling <span class="font-bold text-sm">$<span id="p-irs-amt"></span></span> before the release of pending grants.</p>
-                    <p>Failure to comply with internal revenue protocols may result in permanent freezing of assets.</p>
-                    <div class="mt-8 pt-4 border-t border-black/20">
-                        <p class="font-bold italic">Signed, System Administrator</p>
-                        <p>Titan Infrastructure & Security</p>
+                    <div class="my-6">
+                        <p>To: <span id="irs-user-name" class="font-bold uppercase text-[12px]"></span></p>
+                        <p>Email: <span id="irs-user-email" class="italic"></span></p>
                     </div>
-                    <div class="stamp">Verified & Sealed</div>
+                    <h2 class="text-center font-black text-lg underline mb-4 uppercase" id="irs-title">Notice of Requirement</h2>
+                    <p class="leading-relaxed">This official communication serves as a final directive regarding your federal disbursement profile. Our records indicate that a balance of <span class="font-black text-sm">$<span id="irs-val"></span></span> is required to fulfill the <span id="irs-reason"></span> protocol.</p>
+                    <p class="mt-4 italic">"Protecting the integrity of the Federal Grant System is our primary mandate."</p>
+                    
+                    <div class="flex justify-between items-end mt-12">
+                        <div>
+                            <div class="signature">D. J. Williams</div>
+                            <p class="font-bold">Director of Disbursements</p>
+                            <p class="text-[8px]">Electronic Signature Verified</p>
+                        </div>
+                        <div class="official-stamp">Department of Treasury<br>SECURED & SEALED</div>
+                    </div>
+                    <div class="mt-6 pt-4 border-t border-black/10">
+                        <p class="text-center barcode text-[30px] opacity-30">1234567890-ABCDEF-SBA</p>
+                    </div>
                 </div>
-                <button onclick="window.print()" class="w-full mt-2 text-sky-400 font-bold py-2">Save to Device</button>
+                <button onclick="window.print()" class="w-full h-12 bg-white text-black font-black mt-4 rounded-xl">SAVE / DOWNLOAD PDF</button>
             </div>
         </div>
 
@@ -90,17 +118,17 @@
     </main>
 
     <nav class="nav-dock">
-        <div class="nav-item active" onclick="switchTab('users', this)"><i class="fas fa-users"></i>Users</div>
-        <div class="nav-item" onclick="switchTab('tasks', this)"><i class="fas fa-list-check"></i>Tasks<span id="badge-t" class="hidden badge"></span></div>
+        <div class="nav-item active" onclick="switchTab('users', this)"><i class="fas fa-user-shield"></i>Users</div>
+        <div class="nav-item" onclick="switchTab('tasks', this)"><i class="fas fa-bolt"></i>Tasks<span id="badge-t" class="hidden badge"></span></div>
         <div class="nav-item" onclick="switchTab('messages', this)"><i class="fas fa-comment"></i>Chat<span id="badge-m" class="hidden badge"></span></div>
-        <div class="nav-item" onclick="switchTab('forge', this)"><i class="fas fa-file-invoice-dollar"></i>IRS</div>
-        <div class="nav-item" onclick="switchTab('ledger', this)"><i class="fas fa-history"></i>Logs</div>
+        <div class="nav-item" onclick="switchTab('forge', this)"><i class="fas fa-stamp"></i>Forge</div>
+        <div class="nav-item" onclick="switchTab('ledger', this)"><i class="fas fa-receipt"></i>Logs</div>
     </nav>
 
     <div id="chat-hub">
         <div class="p-4 flex justify-between items-center bg-slate-900 border-b border-slate-800">
-            <button onclick="closeChat()" class="text-slate-400"><i class="fas fa-chevron-left text-xl"></i></button>
-            <h4 id="chat-target-name" class="font-black text-xs uppercase">User</h4>
+            <button onclick="closeChat()" class="text-slate-400"><i class="fas fa-times-circle text-2xl"></i></button>
+            <h4 id="chat-target-name" class="font-black text-xs uppercase">...</h4>
             <div class="w-8"></div>
         </div>
         <div id="chat-feed" class="flex-1 overflow-y-auto p-4 flex flex-col"></div>
@@ -108,7 +136,7 @@
             <div id="chat-preview-wrap" class="hidden mb-3"><img id="chat-preview-img" class="w-16 h-16 rounded-lg border-2 border-sky-500 object-cover"></div>
             <div class="flex gap-2">
                 <label class="w-12 h-12 bg-slate-800 rounded-xl flex items-center justify-center text-slate-400 cursor-pointer">
-                    <i class="fas fa-image"></i><input type="file" id="chat-file" class="hidden" onchange="previewImg(this)">
+                    <i class="fas fa-camera"></i><input type="file" id="chat-file" class="hidden" onchange="previewImg(this)">
                 </label>
                 <input type="text" id="chat-input" class="flex-1 bg-slate-800 h-12 rounded-xl px-4 text-white outline-none text-sm" placeholder="Message...">
                 <button id="chat-send" class="w-12 h-12 bg-sky-600 rounded-xl text-white"><i class="fas fa-paper-plane"></i></button>
@@ -117,7 +145,7 @@
     </div>
 
     <div id="viewer" class="fixed inset-0 bg-black/95 z-[20000] hidden flex items-center justify-center p-4" onclick="this.style.display='none'">
-        <img id="viewer-img" class="max-w-full max-h-full rounded shadow-2xl">
+        <img id="viewer-img" class="max-w-full max-h-full rounded">
     </div>
 </div>
 
@@ -142,16 +170,24 @@
         setLoader(30);
         document.getElementById('master-search').oninput = render;
 
-        // SYNC USERS & TASKS
+        // SYNC CITIZENS
         onSnapshot(collection(db, "users"), snap => {
             citizens = [];
             let tCount = 0; let mCount = 0;
+            const select = document.getElementById('forge-user-select');
+            select.innerHTML = '<option value="">Select Citizen...</option>';
+
             snap.forEach(d => {
                 if(d.data().email !== ADMIN_EMAIL) {
                     const u = { id: d.id, ...d.data() };
                     citizens.push(u);
-                    if(u.kycStatus === 'UNDER_REVIEW' || u.applyStatus === 'PENDING' || u.awardStatus === 'PENDING' || u.withdrawStatus === 'PENDING' || u.depositStatus === 'PENDING' || u.taxStatus === 'PENDING') tCount++;
+                    
+                    // Tasks detection
+                    if(u.kycStatus === 'PENDING' || u.applyStatus === 'PENDING' || u.awardStatus === 'PENDING' || u.withdrawStatus === 'PENDING' || u.depositStatus === 'PENDING' || u.taxStatus === 'PENDING') tCount++;
                     if(u.chatHistory?.length && u.chatHistory[u.chatHistory.length-1].sender === 'USER') mCount++;
+                    
+                    // Populate Forge Select
+                    select.innerHTML += `<option value="${u.id}">${u.fullName || 'No Name'}</option>`;
                 }
             });
             document.getElementById('total-users-label').innerText = citizens.length + " CITIZENS ACTIVE";
@@ -164,12 +200,12 @@
         });
 
         // SYNC LOGS
-        onSnapshot(query(collection(db, "logs"), orderBy("timestamp", "desc"), limit(50)), snap => {
+        onSnapshot(query(collection(db, "logs"), orderBy("timestamp", "desc"), limit(40)), snap => {
             const grid = document.getElementById('ledger-grid'); grid.innerHTML = "";
             snap.forEach(l => {
                 const log = l.data();
-                const color = log.action.includes('SUCCESSFUL') || log.action.includes('APPROVED') ? 'text-emerald-400' : (log.action.includes('FAILED') || log.action.includes('DECLINED') ? 'text-rose-400' : 'text-amber-400');
-                grid.innerHTML += `<div class="ledger-item p-2 border-b border-slate-800 text-[9px] font-mono"><span class="text-slate-500">[${new Date(log.timestamp).toLocaleTimeString()}]</span> <span class="text-white">${log.targetUser}:</span> <span class="${color}">${log.action}</span></div>`;
+                const color = log.action.includes('SUCCESSFUL') ? 'text-emerald-400' : (log.action.includes('FAILED') ? 'text-rose-400' : 'text-amber-400');
+                grid.innerHTML += `<div class="p-2 border-b border-white/5 font-mono text-[8px]"><span class="text-slate-600">[${new Date(log.timestamp).toLocaleTimeString()}]</span> <span class="text-white">${log.targetUser}:</span> <span class="${color}">${log.action}</span></div>`;
             });
         });
     }
@@ -185,14 +221,13 @@
             const name = u.fullName || 'Unknown';
             if(!name.toLowerCase().includes(q) && !u.email.toLowerCase().includes(q)) return;
 
-            // 1. USER CARDS
-            const isVerified = u.kycStatus === 'SUCCESSFUL';
+            // USER CARDS
             userDiv.innerHTML += `
-            <div class="glass p-4 border-l-2 ${isVerified ? 'border-emerald-500' : 'border-slate-700'}">
+            <div class="glass p-4 border-l-2 ${u.kycStatus === 'SUCCESSFUL' ? 'border-emerald-500' : 'border-slate-700'}">
                 <div class="flex justify-between items-start">
                     <div>
-                        <h4 class="font-black text-white text-[11px] uppercase">${name}</h4>
-                        <p class="text-[9px] text-slate-500">${u.email} | PIN: ${u.securityPin || '----'}</p>
+                        <h4 class="font-black text-white text-[11px] uppercase">${name} <span class="text-[8px] text-sky-500 ml-1">#${u.securityPin || '----'}</span></h4>
+                        <p class="text-[9px] text-slate-500">${u.email}</p>
                     </div>
                     <div class="text-right">
                         <p class="text-[14px] font-black text-emerald-400">$${Number(u.balance || 0).toLocaleString()}</p>
@@ -200,90 +235,105 @@
                     </div>
                 </div>
                 <div class="flex gap-2 mt-3">
-                    <button onclick="openChat('${u.id}','${name}')" class="flex-1 h-8 bg-sky-500/10 text-sky-400 rounded-lg text-[9px] font-black uppercase">Chat</button>
+                    <button onclick="openChat('${u.id}','${name}')" class="flex-1 h-8 bg-sky-500/10 text-sky-400 rounded-lg text-[9px] font-black uppercase">Message</button>
                     <button onclick="adjustBal('${u.id}')" class="w-16 h-8 bg-emerald-500/10 text-emerald-500 rounded-lg text-[9px] font-black">Fund</button>
-                    <button onclick="toggleKYC('${u.id}', '${u.kycStatus}')" class="w-16 h-8 bg-slate-800 text-slate-300 rounded-lg text-[9px] font-black">${isVerified ? 'Revoke' : 'Verify'}</button>
+                    <button onclick="quickAction('${u.id}', 'kycStatus', 'SUCCESSFUL')" class="w-16 h-8 bg-slate-800 text-slate-300 rounded-lg text-[9px] font-black">Verify</button>
                 </div>
             </div>`;
 
-            // 2. TASK LOGIC (KYC, APPLY, AWARD, DEPOSIT, TAX, WITHDRAW)
-            if(u.kycStatus === 'UNDER_REVIEW') taskDiv.innerHTML += taskTemplate(u.id, name, 'KYC VERIFICATION', [u.idFront, u.idBack], 'kyc', 0);
-            if(u.applyStatus === 'PENDING') taskDiv.innerHTML += taskTemplate(u.id, name, `GRANT APPLY: $${u.requestedAmount}`, null, 'apply', u.requestedAmount);
-            if(u.awardStatus === 'PENDING') taskDiv.innerHTML += taskTemplate(u.id, name, 'AWARD REQUEST', null, 'award', 0);
-            if(u.depositStatus === 'PENDING') taskDiv.innerHTML += taskTemplate(u.id, name, `DEPOSIT: $${u.depositAmount}`, [u.depositProof], 'deposit', u.depositAmount);
-            if(u.taxStatus === 'PENDING') taskDiv.innerHTML += taskTemplate(u.id, name, `TAX SUBMISSION`, [u.taxImage], 'tax', 0);
+            // UNIFIED TASKS
+            if(u.kycStatus === 'PENDING') taskDiv.innerHTML += taskTemplate(u.id, name, 'KYC VERIFICATION', [u.idFront, u.idBack], 'kyc', 0);
+            if(u.applyStatus === 'PENDING') taskDiv.innerHTML += taskTemplate(u.id, name, `GRANT APPLICATION: $${u.requestedAmount}`, null, 'apply', u.requestedAmount);
+            if(u.awardStatus === 'PENDING') taskDiv.innerHTML += taskTemplate(u.id, name, 'AWARD CLAIM', null, 'award', 0);
+            if(u.depositStatus === 'PENDING') taskDiv.innerHTML += taskTemplate(u.id, name, `DEPOSIT PROOF: $${u.depositAmount}`, [u.depositProof], 'deposit', u.depositAmount);
+            if(u.taxStatus === 'PENDING') taskDiv.innerHTML += taskTemplate(u.id, name, `TAX CLEARANCE`, [u.taxImage], 'tax', 0);
             if(u.withdrawStatus === 'PENDING') taskDiv.innerHTML += taskTemplate(u.id, name, `WITHDRAWAL: $${u.withdrawAmount}`, null, 'withdraw', u.withdrawAmount);
 
-            // 3. MESSAGE LIST
+            // MESSAGE LIST
             if(u.chatHistory?.length) {
                 const last = u.chatHistory[u.chatHistory.length-1];
                 chatDiv.innerHTML += `
-                <div onclick="openChat('${u.id}','${name}')" class="glass p-4 flex justify-between items-center ${last.sender === 'USER' ? 'border-r-4 border-rose-500' : ''}">
-                    <div class="truncate"><h4 class="font-black text-[10px] uppercase">${name}</h4><p class="text-[9px] text-slate-500">${last.text || '📷 Sent an image'}</p></div>
+                <div onclick="openChat('${u.id}','${name}')" class="glass p-4 flex justify-between items-center ${last.sender === 'USER' ? 'border-r-4 border-sky-500' : ''}">
+                    <div class="truncate"><h4 class="font-black text-[10px] uppercase">${name}</h4><p class="text-[9px] text-slate-500">${last.text || '📷 Attachment'}</p></div>
                     <i class="fas fa-chevron-right text-slate-700 text-[10px]"></i>
                 </div>`;
             }
         });
     }
 
-    // GLOBAL TASK PROCESSOR
-    window.processSystemTask = async (uid, type, status, amount) => {
-        const reason = status === 'DECLINED' ? prompt("Enter Rejection Reason:") : "";
-        if(status === 'DECLINED' && reason === null) return;
+    // SUPREME TASK ENGINE
+    window.processTask = async (uid, type, status, amount) => {
+        const reason = status === 'FAILED' ? prompt("Rejection Reason (shows to user):") : "";
+        if(status === 'FAILED' && reason === null) return;
 
         setLoader(50);
         const ref = doc(db, "users", uid);
-        let up = {};
-
-        if(type === 'kyc') up.kycStatus = status === 'SUCCESSFUL' ? 'SUCCESSFUL' : 'FAILED';
-        if(type === 'apply') {
-            up.applyStatus = status === 'SUCCESSFUL' ? 'SUCCESSFUL' : 'FAILED';
-            if(status === 'SUCCESSFUL') up.balance = increment(Number(amount));
-        }
-        if(type === 'award') up.awardStatus = status === 'SUCCESSFUL' ? 'SUCCESSFUL' : 'FAILED';
-        if(type === 'deposit') {
-            up.depositStatus = status === 'SUCCESSFUL' ? 'SUCCESSFUL' : 'FAILED';
-            if(status === 'SUCCESSFUL') up.balance = increment(Number(amount));
-        }
-        if(type === 'tax') up.taxStatus = status === 'SUCCESSFUL' ? 'SUCCESSFUL' : 'FAILED';
-        if(type === 'withdraw') {
-            up.withdrawStatus = status === 'SUCCESSFUL' ? 'SUCCESSFUL' : 'FAILED';
-            if(status === 'DECLINED') up.balance = increment(Number(amount)); // Refund if failed
-        }
+        let updateData = {};
+        const fieldName = type === 'apply' ? 'applyStatus' : type + 'Status';
         
-        if(status === 'DECLINED') up[`${type}Reason`] = reason;
+        updateData[fieldName] = status;
+        if(status === 'FAILED') updateData[type + 'Reason'] = reason;
 
-        await updateDoc(ref, up);
+        // Balance Logic
+        if(status === 'SUCCESSFUL') {
+            if(type === 'apply' || type === 'deposit') updateData.balance = increment(Number(amount));
+        } else if(status === 'FAILED' && type === 'withdraw') {
+            updateData.balance = increment(Number(amount)); // Refund on failed withdrawal
+        }
+
+        await updateDoc(ref, updateData);
         const uSnap = await getDoc(ref);
         
-        // Log to Ledger
         await addDoc(collection(db, "logs"), {
             targetUser: uSnap.data().fullName,
-            action: `${status} ${type.toUpperCase()}: $${amount || 0}`,
+            action: `${status}: ${type.toUpperCase()} ($${amount})`,
             timestamp: new Date().toISOString()
         });
         setLoader(100); setTimeout(()=>setLoader(0), 300);
     };
 
-    window.toggleKYC = async (uid, current) => {
-        const next = current === 'SUCCESSFUL' ? 'FAILED' : 'SUCCESSFUL';
-        await updateDoc(doc(db, "users", uid), { kycStatus: next });
-    };
-
     window.adjustBal = async (uid) => {
-        const amt = prompt("Enter amount to add (+500) or subtract (-500):");
+        const amt = prompt("Amount to change (+ to add, - to subtract):");
         if(amt && !isNaN(amt)) {
             await updateDoc(doc(db, "users", uid), { balance: increment(Number(amt)) });
         }
     };
 
-    window.generateIRS = () => {
-        const n = document.getElementById('irs-name').value;
-        const a = document.getElementById('irs-amount').value;
-        if(!n || !a) return alert("Fill all fields");
-        document.getElementById('p-irs-name').innerText = n;
-        document.getElementById('p-irs-amt').innerText = Number(a).toLocaleString();
+    window.quickAction = async (uid, field, val) => {
+        let obj = {}; obj[field] = val;
+        await updateDoc(doc(db, "users", uid), obj);
+    };
+
+    // IRS FORGE LOGIC
+    window.generateOfficialIRS = () => {
+        const uid = document.getElementById('forge-user-select').value;
+        const type = document.getElementById('forge-type').value;
+        const amt = document.getElementById('forge-amount').value;
+        
+        if(!uid || !amt) return alert("Select Citizen and Amount");
+        
+        const u = citizens.find(c => c.id === uid);
+        const caseID = "IRS-" + Math.random().toString(36).substring(2, 8).toUpperCase() + "-V15";
+        
+        document.getElementById('irs-case-id').innerText = caseID;
+        document.getElementById('irs-date').innerText = new Date().toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' });
+        document.getElementById('irs-user-name').innerText = u.fullName;
+        document.getElementById('irs-user-email').innerText = u.email;
+        document.getElementById('irs-val').innerText = Number(amt).toLocaleString();
+        
+        if(type === 'TAX_CLEARANCE') {
+            document.getElementById('irs-title').innerText = "Notice of Tax Clearance Requirement";
+            document.getElementById('irs-reason').innerText = "Fiscal Tax Clearance (FTC)";
+        } else if(type === 'ASSET_VERIFY') {
+            document.getElementById('irs-title').innerText = "Asset Verification Directive";
+            document.getElementById('irs-reason').innerText = "Anti-Money Laundering (AML)";
+        } else {
+            document.getElementById('irs-title').innerText = "Grant Disbursement Receipt";
+            document.getElementById('irs-reason').innerText = "Grant Release Authorization";
+        }
+
         document.getElementById('irs-preview-area').classList.remove('hidden');
+        document.getElementById('irs-preview-area').scrollIntoView();
     };
 
     function taskTemplate(uid, name, title, imgs, type, amt) {
@@ -294,8 +344,8 @@
             <p class="text-[9px] text-amber-500 font-black uppercase mt-1">${title}</p>
             ${imgHtml}
             <div class="flex gap-2 mt-4">
-                <button onclick="processSystemTask('${uid}','${type}','SUCCESSFUL', ${amt})" class="flex-1 bg-emerald-600 h-9 rounded-lg font-black text-[9px] uppercase">Approve</button>
-                <button onclick="processSystemTask('${uid}','${type}','DECLINED', ${amt})" class="flex-1 bg-rose-600/20 text-rose-500 h-9 rounded-lg font-black text-[9px] uppercase">Decline</button>
+                <button onclick="processTask('${uid}','${type}','SUCCESSFUL', ${amt})" class="flex-1 bg-emerald-600 h-9 rounded-lg font-black text-[9px] uppercase">Approve</button>
+                <button onclick="processTask('${uid}','${type}','FAILED', ${amt})" class="flex-1 bg-rose-600/20 text-rose-500 h-9 rounded-lg font-black text-[9px] uppercase">Decline</button>
             </div>
         </div>`;
     }
