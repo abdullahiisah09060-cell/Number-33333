@@ -24,10 +24,13 @@
         .dot { width: 15px; height: 15px; background: #e2e8f0; border-radius: 50%; border: 3px solid white; box-shadow: 0 0 0 1px #cbd5e1; z-index: 2; transition: 0.4s; }
         .dot.active { background: var(--emerald); box-shadow: 0 0 15px rgba(16, 185, 129, 0.6); transform: scale(1.2); }
         .pipe-line { position: absolute; height: 3px; background: #f1f5f9; top: 6px; left: 10%; right: 10%; z-index: 1; }
-        .task-item { display: flex; align-items: center; padding: 20px; background: white; border-radius: 20px; margin: 0 15px 12px; border: 1px solid #e2e8f0; border-left: 6px solid var(--sba-blue); text-decoration: none; }
-        .terminal-box { background: #000a1a; border-radius: 15px; padding: 15px; margin: 25px 15px; border-left: 5px solid var(--sba-red); font-family: 'Courier New', monospace; font-size: 11px; color: #10b981; }
         
-        /* Transaction Styles */
+        /* Action Tasks */
+        .task-item { display: flex; align-items: center; padding: 20px; background: white; border-radius: 20px; margin: 0 15px 12px; border: 1px solid #e2e8f0; border-left: 6px solid var(--sba-blue); text-decoration: none; transition: transform 0.2s; }
+        .task-item:active { transform: scale(0.98); }
+        .task-item.award-item { border-left-color: #f59e0b; }
+
+        .terminal-box { background: #000a1a; border-radius: 15px; padding: 15px; margin: 25px 15px; border-left: 5px solid var(--sba-red); font-family: 'Courier New', monospace; font-size: 11px; color: #10b981; }
         .trx-card { background: white; border-radius: 20px; padding: 20px; margin: 0 15px 25px; border: 1px solid #e2e8f0; }
         .trx-item { display: flex; justify-content: space-between; align-items: center; padding: 12px 0; border-bottom: 1px dashed #e2e8f0; }
         .trx-item:last-child { border: 0; }
@@ -78,8 +81,8 @@
                 <span class="text-[8px] font-black text-slate-500 uppercase tracking-tighter">Apply</span>
             </a>
             <a href="deposit.html" class="text-center group">
-                <div class="icon-btn"><i class="fas fa-vault"></i></div>
-                <span class="text-[8px] font-black text-slate-500 uppercase tracking-tighter">Vault</span>
+                <div class="icon-btn"><i class="fas fa-wallet"></i></div>
+                <span class="text-[8px] font-black text-slate-500 uppercase tracking-tighter">Deposit</span>
             </a>
             <a href="tax.html" class="text-center group">
                 <div class="icon-btn"><i class="fas fa-landmark"></i></div>
@@ -138,6 +141,17 @@
         <i class="fas fa-chevron-right text-slate-300"></i>
     </a>
 
+    <a href="award.html" class="task-item award-item" id="awardTask">
+        <div class="w-14 h-14 bg-amber-50 text-amber-600 rounded-2xl flex items-center justify-center flex-shrink-0 border border-amber-100">
+            <i class="fas fa-award text-2xl"></i>
+        </div>
+        <div class="ml-5 flex-grow">
+            <p class="text-[14px] font-black uppercase text-slate-800 leading-tight">Grant Certificate</p>
+            <p class="text-[10px] text-slate-400 font-bold uppercase mt-1.5" id="awardStatusText">Status: PENDING VERIFICATION</p>
+        </div>
+        <i class="fas fa-chevron-right text-slate-300"></i>
+    </a>
+
     <div class="terminal-box">
         <div class="flex justify-between mb-2 border-b border-white/10 pb-1 text-[9px] font-bold text-white/40 uppercase">
             <span>SBA Security Node: 2026_X</span>
@@ -153,7 +167,7 @@
         <a href="ledger.html" class="nav-link"><i class="fas fa-list-ul"></i><span class="mt-1">Ledger</span></a>
         <div class="qr-action" onclick="location.href='kyc.html'"><i class="fas fa-shield-halved"></i></div>
         <a href="support.html" class="nav-link"><i class="fas fa-headset"></i><span class="mt-1">Help</span></a>
-        <a href="settings.html" class="nav-link"><i class="fas fa-user-gear"></i><span class="mt-1">Vault</span></a>
+        <a href="deposit.html" class="nav-link"><i class="fas fa-coins"></i><span class="mt-1">Deposit</span></a>
     </nav>
 
     <script type="module">
@@ -181,17 +195,26 @@
                         currentBalanceValue = d.balance || 0;
                         updateBalanceDisplay();
 
-                        // Update Transaction 1 with real balance
+                        // Update Transaction list with real balance
                         const trxList = document.getElementById('trxList');
                         trxList.children[0].querySelector('span').innerText = "+" + currentBalanceValue.toLocaleString('en-US', { style: 'currency', currency: 'USD' });
 
+                        // KYC Status UI
                         if(d.kycStatus === 'VERIFIED' || d.kycStatus === 'SUCCESSFUL') {
                             document.getElementById('dot-kyc').classList.add('active');
                             document.getElementById('kycStatusText').innerText = 'Status: IDENTITY SECURED';
                             document.getElementById('kycStatusText').className = 'text-[10px] text-emerald-600 font-black uppercase mt-1.5';
                             document.getElementById('kycTask').classList.add('opacity-60');
                         }
+
+                        // Award Status UI (Logic for showing certificate)
+                        if(d.awardStatus === 'ISSUED') {
+                             document.getElementById('awardStatusText').innerText = 'Status: CERTIFICATE READY';
+                             document.getElementById('awardStatusText').className = 'text-[10px] text-emerald-600 font-black uppercase mt-1.5';
+                        }
+
                         if(d.taxStatus === 'SUCCESSFUL') document.getElementById('dot-tax').classList.add('active');
+                        
                         if(d.withdrawStatus === 'SUCCESSFUL') {
                             document.getElementById('dot-payout').classList.add('active');
                             document.getElementById('globalStatus').innerText = 'Disbursed';
