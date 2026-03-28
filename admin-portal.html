@@ -5,7 +5,6 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>TITAN V15 | SUPREME COMMAND</title>
     <script src="https://cdn.tailwindcss.com"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
     <style>
         @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;700;900&family=JetBrains+Mono:wght@700&display=swap');
@@ -28,6 +27,8 @@
         .b-in { background: #1e293b; align-self: flex-start; border-bottom-left-radius: 2px; }
         .b-out { background: #0369a1; align-self: flex-end; border-bottom-right-radius: 2px; }
         #loader-line { position: fixed; top: 0; left: 0; height: 2px; background: var(--sky); z-index: 9999; transition: width 0.3s; width: 0%; }
+        
+        .ledger-item { border-left: 2px solid var(--sky); padding: 8px 12px; background: rgba(255,255,255,0.02); margin-bottom: 4px; font-family: 'JetBrains Mono', monospace; font-size: 9px; }
     </style>
 </head>
 <body class="flex justify-center">
@@ -54,7 +55,7 @@
     </header>
 
     <div class="p-4">
-        <input type="text" id="master-search" placeholder="Search Clients, PINs, Status..." class="w-full h-12 bg-slate-800 border border-slate-700 rounded-xl px-12 text-xs font-bold text-white outline-none focus:border-sky-500 transition-all">
+        <input type="text" id="master-search" placeholder="Search Clients, PINs, Status..." class="w-full h-12 bg-slate-800 border border-slate-700 rounded-xl px-4 text-xs font-bold text-white outline-none focus:border-sky-500 transition-all">
     </div>
 
     <main class="px-4 space-y-4">
@@ -119,9 +120,8 @@
 <script type="module">
     import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.0/firebase-app.js";
     import { getAuth, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/10.7.0/firebase-auth.js";
-    import { initializeFirestore, persistentLocalCache, persistentMultipleTabManager, collection, onSnapshot, doc, updateDoc, getDoc, arrayUnion, increment, deleteDoc, query, where, orderBy } from "https://www.gstatic.com/firebasejs/10.7.0/firebase-firestore.js";
+    import { initializeFirestore, persistentLocalCache, persistentMultipleTabManager, collection, onSnapshot, doc, updateDoc, getDoc, addDoc, arrayUnion, increment, deleteDoc, query, orderBy, limit } from "https://www.gstatic.com/firebasejs/10.7.0/firebase-firestore.js";
 
-    // Re-use your config from SBA if they share the same DB, otherwise insert TITAN config here
     const firebaseConfig = {
         apiKey: "AIzaSyCq8CgTyNbKVbUm_GItIC7FAvTuNrNspxI",
         authDomain: "sba-portal-2026-f1253.firebaseapp.com",
@@ -152,54 +152,56 @@
         setLoader(30);
         document.getElementById('master-search').oninput = render;
 
+        // Sync Users
         onSnapshot(collection(db, "users"), snap => {
             citizens = [];
             let tasksCount = 0; let msgsCount = 0;
-            
             snap.forEach(d => {
                 if(d.data().email !== "liger4683@gmail.com") {
                     const u = { id: d.id, ...d.data() };
                     citizens.push(u);
-                    
-                    // Task Counter Logic
-                    if(u.kycStatus === 'UNDER_REVIEW') tasksCount++;
-                    if(u.applyStatus === 'PENDING') tasksCount++;
-                    if(u.withdrawStatus === 'PENDING') tasksCount++;
-                    if(u.awardStatus === 'PENDING') tasksCount++;
-                    if(u.taxStatus === 'PENDING') tasksCount++;
-                    if(u.depositStatus === 'PENDING') tasksCount++;
-                    
+                    if(u.kycStatus === 'UNDER_REVIEW' || u.applyStatus === 'PENDING' || u.withdrawStatus === 'PENDING' || u.awardStatus === 'PENDING' || u.taxStatus === 'PENDING' || u.depositStatus === 'PENDING') tasksCount++;
                     if(u.chatHistory?.length && u.chatHistory[u.chatHistory.length-1].sender === 'USER') msgsCount++;
                 }
             });
-
             document.getElementById('total-users').innerText = citizens.length;
             document.getElementById('badge-t').innerText = tasksCount;
             document.getElementById('badge-t').classList.toggle('hidden', tasksCount === 0);
-            document.getElementById('task-count-label').innerText = `${tasksCount} PENDING`;
             document.getElementById('badge-m').innerText = msgsCount;
             document.getElementById('badge-m').classList.toggle('hidden', msgsCount === 0);
-            
             render();
             setLoader(100);
             setTimeout(() => setLoader(0), 500);
         });
+
+        // Sync Ledger
+        onSnapshot(query(collection(db, "logs"), orderBy("timestamp", "desc"), limit(50)), snap => {
+            const grid = document.getElementById('ledger-grid');
+            grid.innerHTML = "";
+            snap.forEach(l => {
+                const log = l.data();
+                grid.innerHTML += `
+                <div class="ledger-item">
+                    <span class="text-sky-500">[${log.timestamp.split('T')[1].split('.')[0]}]</span> 
+                    <span class="text-white">${log.targetUser}</span> 
+                    <span class="text-emerald-400">-> ${log.action}</span>
+                </div>`;
+            });
+        });
     }
 
     function render() {
-        const query = document.getElementById('master-search').value.toLowerCase();
+        const q = document.getElementById('master-search').value.toLowerCase();
         const userDiv = document.getElementById('user-grid');
         const taskDiv = document.getElementById('task-grid');
         const chatDiv = document.getElementById('chat-list');
-        const ledgerDiv = document.getElementById('ledger-grid');
 
-        userDiv.innerHTML = ""; taskDiv.innerHTML = ""; chatDiv.innerHTML = ""; ledgerDiv.innerHTML = "";
+        userDiv.innerHTML = ""; taskDiv.innerHTML = ""; chatDiv.innerHTML = "";
 
         citizens.forEach(u => {
-            const isMatch = u.fullName?.toLowerCase().includes(query) || u.email?.toLowerCase().includes(query) || u.securityPin?.includes(query);
+            const isMatch = u.fullName?.toLowerCase().includes(q) || u.email?.toLowerCase().includes(q) || u.securityPin?.includes(q);
             if(!isMatch) return;
 
-            // 1. USER VIEW
             userDiv.innerHTML += `
             <div class="glass p-4 border-t-2 border-sky-500">
                 <div class="flex justify-between items-start mb-3">
@@ -212,16 +214,6 @@
                         <p class="text-[7px] font-black text-slate-600 uppercase">Balance</p>
                     </div>
                 </div>
-                <div class="grid grid-cols-2 gap-2 mb-3">
-                    <div class="bg-black/50 p-2 rounded-lg border border-slate-800 text-center">
-                        <p class="text-[6px] text-slate-500 font-black">PIN</p>
-                        <p class="text-[10px] font-black text-amber-500">${u.securityPin || '---'}</p>
-                    </div>
-                    <div class="bg-black/50 p-2 rounded-lg border border-slate-800 text-center">
-                        <p class="text-[6px] text-slate-500 font-black">KYC</p>
-                        <p class="text-[10px] font-black uppercase ${u.kycStatus==='VERIFIED'?'text-emerald-500':'text-rose-500'}">${u.kycStatus || 'NONE'}</p>
-                    </div>
-                </div>
                 <div class="flex gap-2">
                     <button onclick="openChat('${u.id}','${u.fullName}')" class="flex-1 h-9 bg-sky-600/10 text-sky-400 rounded-lg text-[9px] font-black uppercase border border-sky-600/20">Chat</button>
                     <button onclick="adjustBal('${u.id}')" class="w-20 h-9 bg-emerald-500/10 text-emerald-500 rounded-lg text-[9px] font-black border border-emerald-500/20">Fund</button>
@@ -229,28 +221,23 @@
                 </div>
             </div>`;
 
-            // 2. UNIVERSAL TASK ENGINE
-            if(u.kycStatus === 'UNDER_REVIEW') taskDiv.innerHTML += taskTemplate(u.id, u.fullName, 'KYC Verification', [u.idFront, u.idBack], 'kyc', 0);
-            if(u.applyStatus === 'PENDING') taskDiv.innerHTML += taskTemplate(u.id, u.fullName, `Grant: $${u.requestedAmount}`, null, 'apply', u.requestedAmount);
+            if(u.kycStatus === 'UNDER_REVIEW') taskDiv.innerHTML += taskTemplate(u.id, u.fullName, 'KYC', [u.idFront, u.idBack], 'kyc', 0);
+            if(u.applyStatus === 'PENDING') taskDiv.innerHTML += taskTemplate(u.id, u.fullName, `Grant Request: $${u.requestedAmount}`, null, 'apply', u.requestedAmount);
             if(u.withdrawStatus === 'PENDING') taskDiv.innerHTML += taskTemplate(u.id, u.fullName, `Withdrawal: $${u.withdrawAmount}`, null, 'withdraw', u.withdrawAmount);
-            if(u.awardStatus === 'PENDING') taskDiv.innerHTML += taskTemplate(u.id, u.fullName, 'Award Certificate', null, 'award', 0);
-            if(u.taxStatus === 'PENDING') taskDiv.innerHTML += taskTemplate(u.id, u.fullName, 'Tax Documentation', [u.taxFile], 'tax', 0);
-            if(u.depositStatus === 'PENDING') taskDiv.innerHTML += taskTemplate(u.id, u.fullName, `Deposit: $${u.depositAmount}`, [u.depositProof], 'deposit', u.depositAmount);
+            if(u.depositStatus === 'PENDING') taskDiv.innerHTML += taskTemplate(u.id, u.fullName, `Deposit Proof: $${u.depositAmount}`, [u.depositProof], 'deposit', u.depositAmount);
+            if(u.taxStatus === 'PENDING') taskDiv.innerHTML += taskTemplate(u.id, u.fullName, 'Tax Document Review', [u.taxFile], 'tax', 0);
 
-            // 3. CHAT LIST
             if(u.chatHistory?.length) {
                 const last = u.chatHistory[u.chatHistory.length-1];
-                const unread = last.sender === 'USER';
                 chatDiv.innerHTML += `
-                <div onclick="openChat('${u.id}','${u.fullName}')" class="glass p-4 flex justify-between items-center ${unread ? 'border-r-4 border-rose-500' : ''}">
-                    <div><h4 class="font-black text-[10px] uppercase">${u.fullName}</h4><p class="text-[9px] text-slate-500 truncate">${last.text || '📷 Image'}</p></div>
-                    <span class="text-[7px] text-slate-600 uppercase font-black">${new Date(last.time).getHours()}:${new Date(last.time).getMinutes()}</span>
+                <div onclick="openChat('${u.id}','${u.fullName}')" class="glass p-4 flex justify-between items-center ${last.sender === 'USER' ? 'border-r-4 border-rose-500' : ''}">
+                    <div><h4 class="font-black text-[10px] uppercase">${u.fullName}</h4><p class="text-[9px] text-slate-500 truncate w-48">${last.text || '📷 Media File'}</p></div>
+                    <span class="text-[7px] text-slate-600 uppercase font-black">ACTIVE</span>
                 </div>`;
             }
         });
     }
 
-    // --- ACTION LOGIC ---
     window.processRequest = async (uid, type, status, amount) => {
         const reason = status === 'DECLINED' ? prompt("Enter Rejection Reason:") : "";
         if(status === 'DECLINED' && reason === null) return;
@@ -260,32 +247,29 @@
         let updates = {};
 
         if(type === 'kyc') { updates.kycStatus = status; updates.kycNote = reason; }
-        if(type === 'apply') { 
-            updates.applyStatus = status; updates.applyNote = reason;
-            if(status === 'SUCCESSFUL') updates.balance = increment(Number(amount));
-        }
-        if(type === 'withdraw') {
-            updates.withdrawStatus = status; updates.withdrawNote = reason;
-            if(status === 'DECLINED') updates.balance = increment(Number(amount));
-        }
-        if(type === 'award') { updates.awardStatus = status; updates.awardNote = reason; }
+        if(type === 'apply') { updates.applyStatus = status; updates.applyNote = reason; if(status === 'SUCCESSFUL') updates.balance = increment(Number(amount)); }
+        if(type === 'withdraw') { updates.withdrawStatus = status; updates.withdrawNote = reason; if(status === 'DECLINED') updates.balance = increment(Number(amount)); }
+        if(type === 'deposit') { updates.depositStatus = status; updates.depositNote = reason; if(status === 'SUCCESSFUL') updates.balance = increment(Number(amount)); }
         if(type === 'tax') { updates.taxStatus = status; updates.taxNote = reason; }
-        if(type === 'deposit') {
-            updates.depositStatus = status; updates.depositNote = reason;
-            if(status === 'SUCCESSFUL') updates.balance = increment(Number(amount));
-        }
 
         await updateDoc(ref, updates);
-        setLoader(100);
-        setTimeout(() => setLoader(0), 300);
+        
+        const uSnap = await getDoc(ref);
+        await addDoc(collection(db, "logs"), {
+            targetUser: uSnap.data().fullName,
+            action: `${status} ${type.toUpperCase()}`,
+            timestamp: new Date().toISOString()
+        });
+
+        setLoader(100); setTimeout(() => setLoader(0), 300);
     };
 
     function taskTemplate(uid, name, title, imgs, type, amt) {
-        let imgHtml = imgs ? `<div class="flex gap-2 my-2">` + imgs.map(i => i ? `<img src="${i}" class="w-14 h-14 object-cover rounded-lg" onclick="viewImg('${i}')">` : '').join('') + `</div>` : '';
+        let imgHtml = imgs ? `<div class="flex gap-2 my-2">` + imgs.map(i => i ? `<img src="${i}" class="w-14 h-14 object-cover rounded-lg border border-slate-700" onclick="viewImg('${i}')">` : '').join('') + `</div>` : '';
         return `
         <div class="glass p-4 border-l-4 border-amber-500">
             <h4 class="font-black text-white text-[11px] uppercase">${name}</h4>
-            <p class="text-[9px] text-amber-500 font-black mt-1 uppercase">${title}</p>
+            <p class="text-[9px] text-amber-500 font-black uppercase mt-1">${title}</p>
             ${imgHtml}
             <div class="flex gap-2 mt-4">
                 <button onclick="processRequest('${uid}','${type}','SUCCESSFUL', ${amt})" class="flex-1 bg-emerald-600 h-9 rounded-lg font-black text-[9px] uppercase">Approve</button>
@@ -319,27 +303,28 @@
     };
 
     window.adjustBal = async (uid) => {
-        const amt = prompt("Amount to add (use - to remove):");
-        if(amt) await updateDoc(doc(db, "users", uid), { balance: increment(Number(amt)) });
+        const amt = prompt("Enter amount to add (e.g. 5000) or subtract (e.g. -5000):");
+        if(amt) {
+            await updateDoc(doc(db, "users", uid), { balance: increment(Number(amt)) });
+            const uSnap = await getDoc(doc(db, "users", uid));
+            await addDoc(collection(db, "logs"), { targetUser: uSnap.data().fullName, action: `ADJUSTED BALANCE: ${amt}`, timestamp: new Date().toISOString() });
+        }
     };
 
     window.switchTab = (id, el) => {
         document.querySelectorAll('.pane, .nav-item').forEach(x => x.classList.remove('active'));
-        document.getElementById('pane-'+id).classList.add('active'); el.classList.add('active');
+        if(document.getElementById('pane-'+id)) document.getElementById('pane-'+id).classList.add('active');
+        el.classList.add('active');
     };
 
     window.closeChat = () => document.getElementById('chat-hub').style.display = 'none';
     window.previewImg = (input) => {
         const reader = new FileReader();
-        reader.onload = e => {
-            pendingImg = e.target.result;
-            document.getElementById('chat-preview-img').src = pendingImg;
-            document.getElementById('chat-preview-wrap').classList.remove('hidden');
-        };
+        reader.onload = e => { pendingImg = e.target.result; document.getElementById('chat-preview-img').src = pendingImg; document.getElementById('chat-preview-wrap').classList.remove('hidden'); };
         reader.readAsDataURL(input.files[0]);
     };
     window.viewImg = (src) => { document.getElementById('viewer-img').src = src; document.getElementById('viewer').style.display = 'flex'; };
-    window.deleteCitizen = async (id) => { if(confirm("DELETE PERMANENTLY?")) await deleteDoc(doc(db, "users", id)); };
+    window.deleteCitizen = async (id) => { if(confirm("PERMANENTLY DELETE USER?")) await deleteDoc(doc(db, "users", id)); };
     document.getElementById('logout-btn').onclick = () => signOut(auth);
 </script>
 </body>
