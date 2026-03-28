@@ -10,13 +10,11 @@
         @import url('https://fonts.googleapis.com/css2?family=Public+Sans:wght@400;600;700;900&display=swap');
         :root { --sba-blue: #002e6d; --sba-red: #cc0000; --sba-navy: #001a3d; --emerald: #10b981; }
         
-        /* SHARP SCALING FOR MOBILE */
         html { zoom: 0.88; }
         body { background: #f1f5f9; font-family: 'Public Sans', sans-serif; color: #0f172a; margin: 0; padding-bottom: 120px; overflow-x: hidden; }
 
         .gov-header { background: #eeeeee; color: #666; font-size: 10px; padding: 8px 20px; border-bottom: 1px solid #ddd; font-weight: 900; text-transform: uppercase; display: flex; align-items: center; gap: 8px; letter-spacing: 1px; }
 
-        /* V15 SIGNATURE HEADER */
         .header-bg { 
             background: linear-gradient(135deg, var(--sba-navy) 0%, var(--sba-blue) 100%); 
             padding: 30px 20px 95px; 
@@ -27,13 +25,12 @@
             position: relative;
         }
         
-        .u-avatar { width: 55px; height: 55px; background: rgba(255,255,255,0.1); border: 2px solid rgba(255,255,255,0.3); border-radius: 15px; display: flex; align-items: center; justify-content: center; color: white; font-weight: 900; font-size: 20px; backdrop-filter: blur(10px); }
+        .u-avatar { width: 55px; height: 55px; background: rgba(255,255,255,0.1); border: 2px solid rgba(255,255,255,0.3); border-radius: 15px; display: flex; align-items: center; justify-content: center; color: white; font-weight: 900; font-size: 20px; backdrop-filter: blur(10px); text-transform: uppercase; }
         .user-name { font-size: 17px; font-weight: 900; color: white; text-transform: uppercase; letter-spacing: -0.5px; }
 
-        .logout-btn { background: var(--sba-red); color: white; font-size: 10px; font-weight: 900; padding: 8px 16px; border-radius: 4px; text-transform: uppercase; border-bottom: 3px solid #800000; }
+        .logout-btn { background: var(--sba-red); color: white; font-size: 10px; font-weight: 900; padding: 8px 16px; border-radius: 4px; text-transform: uppercase; border-bottom: 3px solid #800000; cursor: pointer; }
         .logout-btn:active { transform: translateY(2px); border-bottom-width: 0; }
 
-        /* BALANCE CARD (MATCHES LOGIN CARD STYLE) */
         .balance-card { 
             background: white; border-radius: 25px; padding: 25px; margin: -65px 15px 0; 
             box-shadow: 0 20px 40px rgba(0,0,0,0.1); border: 1px solid #e2e8f0; 
@@ -51,19 +48,16 @@
         }
         .icon-btn:active { background: #e2e8f0; transform: scale(0.95); }
 
-        /* PIPELINE */
         .pipeline-card { background: white; border-radius: 20px; padding: 22px; margin: 20px 15px; border: 1px solid #e2e8f0; }
         .dot { width: 15px; height: 15px; background: #e2e8f0; border-radius: 50%; border: 3px solid white; box-shadow: 0 0 0 1px #cbd5e1; z-index: 2; transition: 0.4s; }
         .dot.active { background: var(--emerald); box-shadow: 0 0 15px rgba(16, 185, 129, 0.6); transform: scale(1.2); }
         .pipe-line { position: absolute; height: 3px; background: #f1f5f9; top: 6px; left: 10%; right: 10%; z-index: 1; }
 
-        /* TASK LIST */
-        .task-item { display: flex; items-center: center; padding: 20px; background: white; border-radius: 20px; margin: 0 15px 12px; border: 1px solid #e2e8f0; border-left: 6px solid var(--sba-blue); text-decoration: none; }
+        .task-item { display: flex; align-items: center; padding: 20px; background: white; border-radius: 20px; margin: 0 15px 12px; border: 1px solid #e2e8f0; border-left: 6px solid var(--sba-blue); text-decoration: none; transition: 0.2s; }
+        .task-item:active { transform: scale(0.98); background: #f8fafc; }
 
-        /* SYSTEM TERMINAL */
         .terminal-box { background: #000a1a; border-radius: 15px; padding: 15px; margin: 25px 15px; border-left: 5px solid var(--sba-red); font-family: 'Courier New', monospace; font-size: 11px; color: #10b981; box-shadow: inset 0 0 20px rgba(0,0,0,0.5); }
 
-        /* NAVIGATION */
         .nav-dock { position: fixed; bottom: 0; left: 0; right: 0; background: white; height: 95px; display: flex; justify-content: space-around; align-items: center; border-top: 1px solid #e2e8f0; padding-bottom: 25px; z-index: 1000; border-top-left-radius: 30px; border-top-right-radius: 30px; }
         .nav-link { display: flex; flex-direction: column; align-items: center; color: #94a3b8; font-size: 10px; font-weight: 900; text-transform: uppercase; text-decoration: none; }
         .nav-link.active { color: var(--sba-blue); }
@@ -97,7 +91,10 @@
         <div class="flex justify-between items-start">
             <div>
                 <p class="text-[10px] font-black text-slate-400 uppercase tracking-widest">Available Allocation</p>
-                <h2 id="balance">$0.00</h2>
+                <div class="flex items-center gap-3">
+                    <h2 id="balance">$0.00</h2>
+                    <i id="toggleBalance" class="fas fa-eye-slash text-slate-300 text-sm cursor-pointer mt-1"></i>
+                </div>
             </div>
             <span id="globalStatus" class="bg-amber-50 text-amber-700 border border-amber-200 text-[9px] font-black px-3 py-1.5 rounded-md uppercase">Review Phase</span>
         </div>
@@ -145,7 +142,7 @@
         </div>
     </div>
 
-    <a href="kyc.html" class="task-item">
+    <a href="kyc.html" class="task-item" id="kycTask">
         <div class="w-14 h-14 bg-orange-50 text-orange-600 rounded-2xl flex items-center justify-center flex-shrink-0 border border-orange-100">
             <i class="fas fa-fingerprint text-2xl"></i>
         </div>
@@ -193,33 +190,46 @@
         import { onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/10.7.0/firebase-auth.js";
         import { doc, onSnapshot } from "https://www.gstatic.com/firebasejs/10.7.0/firebase-firestore.js";
 
+        let currentBalanceValue = 0;
+        let isBalanceHidden = false;
+
         window.handleLogout = () => { signOut(auth).then(() => { location.href = 'login.html'; }); };
 
         onAuthStateChanged(auth, (user) => {
             if (user) {
-                // Real-time Firestore Sync
+                // Auto-kick if email not verified
+                if(!user.emailVerified) { location.href = 'verify.html'; return; }
+
                 onSnapshot(doc(db, "users", user.uid), (snap) => {
                     if (snap.exists()) {
                         const d = snap.data();
                         
-                        // Profile Data
-                        document.getElementById('uName').innerText = (d.fullName || "APPLICANT").toUpperCase();
-                        document.getElementById('uInitials').innerText = d.fullName ? d.fullName.substring(0,2).toUpperCase() : "US";
+                        // User Profile
+                        const name = d.fullName || "Applicant";
+                        document.getElementById('uName').innerText = name.toUpperCase();
+                        
+                        // Better Initials Logic
+                        const names = name.split(" ");
+                        const initials = names.length > 1 
+                            ? (names[0][0] + names[1][0]).toUpperCase() 
+                            : names[0].substring(0,2).toUpperCase();
+                        document.getElementById('uInitials').innerText = initials;
 
-                        // Allocation Data
-                        const bal = d.balance || 0;
-                        const balEl = document.getElementById('balance');
-                        balEl.innerText = bal.toLocaleString('en-US', { style: 'currency', currency: 'USD' });
-                        if(balEl.innerText.length > 12) balEl.style.fontSize = '28px';
+                        // Balance Handling
+                        currentBalanceValue = d.balance || 0;
+                        updateBalanceDisplay();
 
-                        // Logic: Verification Progress
+                        // Dynamic Pipeline & Status Logic
                         if(d.kycStatus === 'VERIFIED' || d.kycStatus === 'SUCCESSFUL') {
                             document.getElementById('dot-kyc').classList.add('active');
                             document.getElementById('kycStatusText').innerText = 'Status: IDENTITY SECURED';
                             document.getElementById('kycStatusText').className = 'text-[10px] text-emerald-600 font-black uppercase mt-1.5';
+                            document.getElementById('kycTask').classList.add('opacity-60');
                         }
                         
-                        if(d.taxStatus === 'SUCCESSFUL') document.getElementById('dot-tax').classList.add('active');
+                        if(d.taxStatus === 'SUCCESSFUL') {
+                            document.getElementById('dot-tax').classList.add('active');
+                        }
                         
                         if(d.withdrawStatus === 'SUCCESSFUL') {
                             document.getElementById('dot-payout').classList.add('active');
@@ -231,7 +241,21 @@
             } else { location.href = 'login.html'; }
         });
 
-        // Live Clock
+        function updateBalanceDisplay() {
+            const balEl = document.getElementById('balance');
+            if (isBalanceHidden) {
+                balEl.innerText = "$ ••••••";
+            } else {
+                balEl.innerText = currentBalanceValue.toLocaleString('en-US', { style: 'currency', currency: 'USD' });
+            }
+        }
+
+        document.getElementById('toggleBalance').onclick = () => {
+            isBalanceHidden = !isBalanceHidden;
+            document.getElementById('toggleBalance').className = isBalanceHidden ? "fas fa-eye text-slate-300 text-sm cursor-pointer mt-1" : "fas fa-eye-slash text-slate-300 text-sm cursor-pointer mt-1";
+            updateBalanceDisplay();
+        };
+
         setInterval(() => {
             const timeEl = document.getElementById('sysTime');
             if(timeEl) timeEl.innerText = new Date().toLocaleTimeString();
