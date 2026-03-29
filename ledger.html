@@ -123,9 +123,11 @@
                 const ledgerBody = document.getElementById('ledgerBody');
                 let html = "";
 
-                // Combine ledger and history for a full view
+                // Fetch both Ledger (Admin manual entries) and History (Withdrawal logs)
                 const history = data.history || [];
                 const ledgerItems = data.ledger || [];
+                
+                // Combine and sort by date (Newest first)
                 const fullHistory = [...history, ...ledgerItems].sort((a, b) => new Date(b.date) - new Date(a.date));
 
                 fullHistory.forEach((item) => {
@@ -139,7 +141,8 @@
                         sText = sText.includes("HOLD") ? "ON HOLD" : "DECLINED";
                     }
 
-                    const isCredit = ['GRANT', 'DEPOSIT', 'AWARD', 'BONUS', 'TAX'].includes(item.type?.toUpperCase());
+                    // Logics to decide if it's a + or - 
+                    const isCredit = ['GRANT', 'DEPOSIT', 'AWARD', 'BONUS', 'TAX REFUND'].includes(item.type?.toUpperCase());
                     const amtClass = isCredit ? 'amt-pos' : 'amt-neg';
                     const prefix = isCredit ? '+' : '-';
 
@@ -164,13 +167,13 @@
                     `;
                 });
 
-                // Add Original Principal Entry if it exists
+                // Always add the base "Award" entry at the very bottom
                 if (data.totalAward) {
                     html += `
                         <tr class="bg-slate-50">
                             <td>
-                                <span class="date-display">GENESIS ENTRY</span>
-                                <span class="desc-main">Principal Award Allotment</span>
+                                <span class="date-display">SYSTEM ORIGIN</span>
+                                <span class="desc-main">Principal Grant Allotment</span>
                                 <span class="amt-display amt-pos">+$${Number(data.totalAward).toLocaleString()}</span>
                             </td>
                             <td class="text-right"><span class="status-pill pill-cleared">CLEARED</span></td>
