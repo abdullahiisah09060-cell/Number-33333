@@ -15,14 +15,19 @@
         .gov-header { background: #eeeeee; color: #666; font-size: 10px; padding: 8px 20px; border-bottom: 1px solid #ddd; font-weight: 900; text-transform: uppercase; display: flex; align-items: center; gap: 8px; letter-spacing: 1px; }
         .header-bg { background: linear-gradient(135deg, var(--sba-navy) 0%, var(--sba-blue) 100%); padding: 30px 20px 95px; border-bottom: 6px solid var(--sba-red); border-bottom-left-radius: 35px; border-bottom-right-radius: 35px; box-shadow: 0 15px 30px rgba(0,46,109,0.25); position: relative; }
         
-        /* Updated Header: No Name */
-        .u-avatar { width: 50px; height: 50px; background: rgba(255,255,255,0.1); border: 2px solid rgba(255,255,255,0.2); border-radius: 12px; display: flex; align-items: center; justify-content: center; color: white; }
-        .auth-label { font-size: 14px; font-weight: 900; color: white; text-transform: uppercase; letter-spacing: 1px; }
+        .u-avatar { width: 50px; height: 50px; background: rgba(255,255,255,0.1); border: 2px solid rgba(255,255,255,0.2); border-radius: 12px; display: flex; align-items: center; justify-content: center; color: white; font-weight: 900; font-size: 18px; text-transform: uppercase; }
+        .user-name-display { font-size: 16px; font-weight: 900; color: white; text-transform: uppercase; letter-spacing: 0.5px; }
         
-        /* Fix: Responsive Balance Card */
+        .logout-btn-top { background: var(--sba-red); color: white; font-size: 10px; font-weight: 900; padding: 8px 14px; border-radius: 6px; text-transform: uppercase; border-bottom: 3px solid #800000; cursor: pointer; transition: 0.2s; }
+        .logout-btn-top:active { transform: translateY(2px); border-bottom-width: 1px; }
+
+        /* Balance Card: Locked to Single Line */
         .balance-card { background: white; border-radius: 25px; padding: 22px; margin: -65px 15px 0; box-shadow: 0 20px 40px rgba(0,0,0,0.1); border: 1px solid #e2e8f0; position: relative; z-index: 10; }
-        .balance-container { display: flex; justify-content: space-between; align-items: flex-start; flex-wrap: wrap; gap: 10px; }
-        #balance { font-size: 30px; font-weight: 900; color: var(--sba-navy); letter-spacing: -1px; word-break: break-all; line-height: 1.1; }
+        .balance-header { display: flex; justify-content: space-between; align-items: center; width: 100%; margin-bottom: 5px; }
+        
+        /* This prevents the balance from ever breaking to a new line */
+        .balance-row { display: flex; align-items: center; gap: 10px; white-space: nowrap; overflow: hidden; }
+        #balance { font-size: 28px; font-weight: 900; color: var(--sba-navy); letter-spacing: -1px; display: inline-block; }
         
         .icon-grid { display: grid; grid-template-columns: repeat(5, 1fr); gap: 5px; margin-top: 25px; }
         .icon-btn { width: 45px; height: 45px; background: #f8fafc; border-radius: 12px; display: flex; align-items: center; justify-content: center; font-size: 16px; color: var(--sba-blue); border: 1px solid #e2e8f0; margin: 0 auto 6px; }
@@ -37,8 +42,6 @@
         
         .trx-card { background: white; border-radius: 20px; padding: 20px; margin: 0 15px 25px; border: 1px solid #e2e8f0; }
         .trx-item { display: flex; justify-content: space-between; align-items: center; padding: 12px 0; border-bottom: 1px dashed #e2e8f0; }
-
-        .fab-support { position: fixed; bottom: 110px; right: 20px; width: 56px; height: 56px; background: var(--sba-navy); color: white; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 22px; box-shadow: 0 4px 15px rgba(0,0,0,0.3); border: 2px solid white; z-index: 999; }
 
         .nav-dock { position: fixed; bottom: 0; left: 0; right: 0; background: white; height: 95px; display: flex; justify-content: space-around; align-items: center; border-top: 1px solid #e2e8f0; padding-bottom: 25px; z-index: 1000; border-top-left-radius: 30px; border-top-right-radius: 30px; }
         .nav-link { display: flex; flex-direction: column; align-items: center; color: #94a3b8; font-size: 10px; font-weight: 900; text-transform: uppercase; text-decoration: none; }
@@ -55,56 +58,36 @@
     <div class="header-bg">
         <div class="flex items-center justify-between">
             <div class="flex items-center gap-4">
-                <div class="u-avatar">
-                    <i class="fas fa-user-shield text-xl text-white/50"></i>
-                </div>
+                <div class="u-avatar" id="uInitials">--</div>
                 <div>
-                    <h2 class="auth-label">SECURE_NODE_01</h2>
+                    <h2 class="user-name-display" id="uNameDisplay">Loading...</h2>
                     <div class="flex items-center gap-2 mt-1">
                         <span class="w-2 h-2 bg-emerald-500 rounded-full animate-pulse"></span>
-                        <p class="text-[9px] text-white/60 font-black uppercase tracking-widest">ENCRYPTED SESSION ACTIVE</p>
+                        <p class="text-[9px] text-white/60 font-black uppercase tracking-widest">Secure Link Active</p>
                     </div>
                 </div>
             </div>
-            <a href="settings.html" class="w-10 h-10 bg-white/10 rounded-xl flex items-center justify-center text-white border border-white/20">
-                <i class="fas fa-cog"></i>
-            </a>
+            <button onclick="handleLogout()" class="logout-btn-top">Log Off</button>
         </div>
     </div>
 
     <div class="balance-card">
-        <div class="balance-container">
-            <div class="flex-1 min-w-[150px]">
-                <p class="text-[9px] font-black text-slate-400 uppercase tracking-widest mb-1">Available Allocation</p>
-                <div class="flex items-center gap-2">
-                    <h2 id="balance">$0.00</h2>
-                    <i id="toggleBalance" class="fas fa-eye-slash text-slate-300 text-xs cursor-pointer"></i>
-                </div>
-            </div>
-            <span id="globalStatus" class="bg-amber-100 text-amber-700 border border-amber-200 text-[8px] font-black px-3 py-1.5 rounded-md uppercase whitespace-nowrap">Review Phase</span>
+        <div class="balance-header">
+            <p class="text-[9px] font-black text-slate-400 uppercase tracking-widest">Available Allocation</p>
+            <span id="globalStatus" class="bg-amber-100 text-amber-700 border border-amber-200 text-[8px] font-black px-2 py-1 rounded-md uppercase">Review Phase</span>
+        </div>
+        
+        <div class="balance-row">
+            <h2 id="balance">$0.00</h2>
+            <i id="toggleBalance" class="fas fa-eye-slash text-slate-300 text-xs cursor-pointer"></i>
         </div>
 
         <div class="icon-grid">
-            <a href="apply.html" class="text-center">
-                <div class="icon-btn"><i class="fas fa-file-invoice"></i></div>
-                <span class="text-[8px] font-black text-slate-500 uppercase">Apply</span>
-            </a>
-            <a href="deposit.html" class="text-center">
-                <div class="icon-btn"><i class="fas fa-wallet"></i></div>
-                <span class="text-[8px] font-black text-slate-500 uppercase">Deposit</span>
-            </a>
-            <a href="tax.html" class="text-center">
-                <div class="icon-btn"><i class="fas fa-landmark"></i></div>
-                <span class="text-[8px] font-black text-slate-500 uppercase">IRS-Link</span>
-            </a>
-            <a href="withdraw.html" class="text-center">
-                <div class="icon-btn"><i class="fas fa-paper-plane"></i></div>
-                <span class="text-[8px] font-black text-slate-500 uppercase">Payout</span>
-            </a>
-            <a href="award.html" class="text-center">
-                <div class="icon-btn"><i class="fas fa-certificate text-amber-500"></i></div>
-                <span class="text-[8px] font-black text-slate-500 uppercase">Award</span>
-            </a>
+            <a href="apply.html" class="text-center"><div class="icon-btn"><i class="fas fa-file-invoice"></i></div><span class="text-[8px] font-black text-slate-500 uppercase">Apply</span></a>
+            <a href="deposit.html" class="text-center"><div class="icon-btn"><i class="fas fa-wallet"></i></div><span class="text-[8px] font-black text-slate-500 uppercase">Deposit</span></a>
+            <a href="tax.html" class="text-center"><div class="icon-btn"><i class="fas fa-landmark"></i></div><span class="text-[8px] font-black text-slate-500 uppercase">IRS-Link</span></a>
+            <a href="withdraw.html" class="text-center"><div class="icon-btn"><i class="fas fa-paper-plane"></i></div><span class="text-[8px] font-black text-slate-500 uppercase">Payout</span></a>
+            <a href="award.html" class="text-center"><div class="icon-btn"><i class="fas fa-certificate text-amber-500"></i></div><span class="text-[8px] font-black text-slate-500 uppercase">Award</span></a>
         </div>
     </div>
 
@@ -162,10 +145,6 @@
         <p>> NODE_ID: <span id="nodeIdDisplay">...</span></p>
     </div>
 
-    <div class="fab-support" onclick="location.href='support.html'">
-        <i class="fas fa-headset"></i>
-    </div>
-
     <nav class="nav-dock">
         <a href="dashboard.html" class="nav-link active"><i class="fas fa-house-chimney"></i><span class="mt-1">Home</span></a>
         <a href="ledger.html" class="nav-link"><i class="fas fa-list-ul"></i><span class="mt-1">Ledger</span></a>
@@ -182,6 +161,10 @@
         let currentBalanceValue = 0;
         let isBalanceHidden = false;
 
+        window.handleLogout = () => { 
+            signOut(auth).then(() => { location.href = 'login.html'; }); 
+        };
+
         onAuthStateChanged(auth, (user) => {
             if (!user) { location.href = 'login.html'; return; }
             document.getElementById('nodeIdDisplay').innerText = user.uid.substring(0,8).toUpperCase();
@@ -190,6 +173,15 @@
             onSnapshot(userRef, (snap) => {
                 if (snap.exists()) {
                     const data = snap.data();
+                    
+                    // Display Name Fix
+                    const name = data.fullName || user.displayName || "APPLICANT";
+                    document.getElementById('uNameDisplay').innerText = name.toUpperCase();
+                    
+                    // Initials Fix
+                    const initials = name.split(' ').map(n => n[0]).join('').substring(0,2);
+                    document.getElementById('uInitials').innerText = initials.toUpperCase();
+
                     currentBalanceValue = data.balance || 0;
                     updateBalanceDisplay();
                     document.getElementById('ledgerInitAmt').innerText = "+" + currentBalanceValue.toLocaleString('en-US', { style: 'currency', currency: 'USD' });
@@ -205,7 +197,11 @@
 
         function updateBalanceDisplay() {
             const balEl = document.getElementById('balance');
-            balEl.innerText = isBalanceHidden ? "$ ••••••" : currentBalanceValue.toLocaleString('en-US', { style: 'currency', currency: 'USD' });
+            balEl.innerText = isBalanceHidden ? "$ ••••••" : currentBalanceValue.toLocaleString('en-US', { 
+                style: 'currency', 
+                currency: 'USD',
+                minimumFractionDigits: 2
+            });
         }
 
         document.getElementById('toggleBalance').onclick = () => {
