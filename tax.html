@@ -33,7 +33,7 @@
         .scanner-bar { position: absolute; top: 0; width: 100%; height: 4px; background: var(--red); box-shadow: 0 0 15px var(--red); z-index: 20; display: none; animation: scan 2s infinite linear; }
         @keyframes scan { 0% { top: 0; } 100% { top: 100%; } }
 
-        .btn-main { background: var(--navy); color: white; width: 100%; height: 60px; border-radius: 16px; font-weight: 900; text-transform: uppercase; border-bottom: 5px solid #001a3d; font-size: 13px; cursor: pointer; display: flex; align-items: center; justify-content: center; text-decoration: none; }
+        .btn-main { background: var(--navy); color: white; width: 100%; height: 60px; border-radius: 16px; font-weight: 900; text-transform: uppercase; border-bottom: 5px solid #001a3d; font-size: 13px; cursor: pointer; display: flex; align-items: center; justify-content: center; text-decoration: none; border-left: none; border-right: none; border-top: none; }
         .btn-main:active { transform: translateY(2px); border-bottom-width: 2px; }
         .btn-main:disabled { background: #94a3b8; border-bottom: none; cursor: not-allowed; }
         
@@ -158,7 +158,6 @@
             onSnapshot(doc(db, "users", user.uid), (snap) => {
                 const d = snap.data(); if(!d) return;
                 
-                // FIXED: Explicitly handle IDLE or DELINQUENT status to show form
                 const status = d.taxStatus || "IDLE";
                 const views = ['taxView', 'pendingView', 'successView', 'deniedView'];
                 views.forEach(v => document.getElementById(v).classList.add('hidden'));
@@ -166,15 +165,14 @@
                 if(status === "PENDING" || status === "PENDING_VALIDATION") {
                     document.getElementById('pendingView').classList.remove('hidden');
                     updateHeader("bg-pending", "AUDIT ACTIVE", "bg-amber-500", "In Review");
-                } else if(status === "SUCCESSFUL" || status === "VERIFIED" || status === "APPROVED") {
+                } else if(["SUCCESSFUL", "VERIFIED", "APPROVED"].includes(status)) {
                     document.getElementById('successView').classList.remove('hidden');
                     updateHeader("bg-success", "HOLD RELEASED", "bg-emerald-600", "Compliant");
-                } else if(status === "DECLINED" || status === "REJECTED" || status === "FAILED") {
+                } else if(["DECLINED", "REJECTED", "FAILED"].includes(status)) {
                     document.getElementById('deniedView').classList.remove('hidden');
                     document.getElementById('denialReason').innerText = d.taxDenialReason || d.taxNote || "Security Seal could not be verified. Please re-upload.";
                     updateHeader("bg-denied", "STAMP REJECTED", "bg-red-600", "Action Required");
                 } else {
-                    // This is for IDLE, DELINQUENT, or new users
                     document.getElementById('taxView').classList.remove('hidden');
                     updateHeader("bg-delinquent", "FEDERAL HOLD", "bg-red-600", "Delinquent");
                 }
@@ -186,11 +184,12 @@
             if(sb) sb.className = "status-header " + bg;
             document.getElementById('statusTitle').innerText = title;
             const b = document.getElementById('badge');
-            b.className = badgeClass + " text-white px-3 py-1 rounded-full text-[9px] font-black uppercase mb-2 inline-block tracking-tighter";
+            b.className = `${badgeClass} text-white px-3 py-1 rounded-full text-[9px] font-black uppercase mb-2 inline-block tracking-tighter`;
             b.innerText = "Status: " + badgeText;
         }
 
         window.resetTaxForm = async () => {
+            if(!confirm("Reset current tax submission?")) return;
             try {
                 await updateDoc(doc(db, "users", auth.currentUser.uid), { taxStatus: "IDLE" });
             } catch(e) { console.error(e); }
