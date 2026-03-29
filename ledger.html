@@ -29,7 +29,7 @@
         .amt-pos { color: #10b981; }
         .amt-neg { color: var(--sba-red); }
         
-        .status-pill { padding: 4px 10px; border-radius: 6px; font-size: 8px; font-weight: 900; text-transform: uppercase; display: inline-block; border: 1px solid transparent; }
+        .status-pill { padding: 4px 10px; border-radius: 6px; font-size: 8px; font-weight: 900; text-transform: uppercase; display: inline-block; border: 1px solid transparent; transition: all 0.3s ease; }
         .pill-pending { background: #fff7ed; color: #9a3412; border-color: #ffedd5; }
         .pill-cleared { background: #f0fdf4; color: #166534; border-color: #dcfce7; }
         .pill-declined { background: #fef2f2; color: #991b1b; border-color: #fee2e2; }
@@ -70,7 +70,7 @@
                 </div>
                 <div class="text-right">
                     <p class="text-[8px] font-black uppercase opacity-60">Sync Status</p>
-                    <p class="text-[10px] font-black text-emerald-400"><i class="fas fa-check-circle mr-1"></i>NODE ACTIVE</p>
+                    <p class="text-[10px] font-black text-emerald-400"><i class="fas fa-check-circle mr-1"></i>LIVE SYNC</p>
                 </div>
             </div>
         </div>
@@ -95,7 +95,7 @@
                 <div>
                     <p class="text-[9px] font-black text-sba-blue uppercase">Agent Sarah Miller (Case ID: #4092)</p>
                     <p class="text-[10px] text-slate-600 mt-1 leading-relaxed">
-                        Notice: Disbursements marked as <span class="text-red-600 font-bold">ON HOLD</span> require document re-validation. Please check the Audit notes above for specific failure points.
+                        Notice: Disbursements marked as <span class="text-red-600 font-bold">ON HOLD</span> require document re-validation. Check Audit notes for failure points.
                     </p>
                 </div>
             </div>
@@ -113,24 +113,26 @@
             const userRef = doc(db, "users", user.uid);
             document.getElementById('ledgerRef').innerText = `REF: ${user.uid.substring(0,10).toUpperCase()}`;
 
-            // Real-time listener: This solves the "immediately show" problem
+            // REAL-TIME LISTENER
             onSnapshot(userRef, (snap) => {
                 const data = snap.data();
                 if (!data) return;
 
-                // Update Balances
+                // Sync Dynamic Balances
                 document.getElementById('totalBalance').innerText = `$${Number(data.balance || 0).toLocaleString()}`;
                 document.getElementById('principalAmt').innerText = `$${Number(data.totalAward || 0).toLocaleString()}`;
 
                 const ledgerBody = document.getElementById('ledgerBody');
                 let html = "";
 
-                // Gather data from your secret storage points
+                // Combine History (Withdrawals) and Ledger (Updates)
                 const history = Array.isArray(data.history) ? data.history : [];
                 const ledgerItems = Array.isArray(data.ledger) ? data.ledger : [];
                 
-                // Merge everything into one master list and sort by date
-                const fullHistory = [...history, ...ledgerItems].sort((a, b) => new Date(b.date) - new Date(a.date));
+                // Merging and sorting so newest entries show at the top
+                const fullHistory = [...history, ...ledgerItems].sort((a, b) => {
+                    return new Date(b.date || 0) - new Date(a.date || 0);
+                });
 
                 if (fullHistory.length === 0 && !data.totalAward) {
                     ledgerBody.innerHTML = '<tr><td colspan="2" class="text-center py-10 text-slate-400 font-bold text-xs uppercase tracking-widest">No Electronic Records Found</td></tr>';
@@ -142,7 +144,7 @@
                     let sRaw = (item.status || "PENDING").toUpperCase();
                     let sText = sRaw;
 
-                    // Handling the Status change from Admin-Portal
+                    // REAL-TIME STATUS LOGIC
                     if (["SUCCESS", "CLEARED", "APPROVED", "SUCCESSFUL"].includes(sRaw)) {
                         sClass = "pill-cleared"; sText = "CLEARED";
                     } else if (["FAILED", "REJECTED", "DECLINED", "ON HOLD", "HOLD"].includes(sRaw)) {
@@ -150,7 +152,6 @@
                         sText = sRaw.includes("HOLD") ? "ON HOLD" : "DECLINED";
                     }
 
-                    // Identifying Credit (+) vs Debit (-)
                     const type = (item.type || 'TRANSFER').toUpperCase();
                     const isCredit = ['GRANT', 'DEPOSIT', 'AWARD', 'BONUS', 'TAX REFUND'].includes(type);
                     const amtClass = isCredit ? 'amt-pos' : 'amt-neg';
@@ -159,7 +160,7 @@
                     html += `
                         <tr>
                             <td>
-                                <span class="date-display">${item.date || 'SYNCING...'}</span>
+                                <span class="date-display">${item.date || 'PROCESSING...'}</span>
                                 <span class="desc-main">${type}</span>
                                 <span class="amt-display ${amtClass}">${prefix}$${Number(item.amount || 0).toLocaleString()}</span>
                                 
@@ -177,7 +178,7 @@
                     `;
                 });
 
-                // Principal Entry
+                // Always keep the System Origin (Principal) at the bottom
                 if (data.totalAward) {
                     html += `
                         <tr class="bg-slate-50">
@@ -192,6 +193,8 @@
                 }
 
                 ledgerBody.innerHTML = html;
+            }, (error) => {
+                console.error("Snapshot error:", error);
             });
         });
     </script>
