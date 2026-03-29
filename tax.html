@@ -33,7 +33,7 @@
         .scanner-bar { position: absolute; top: 0; width: 100%; height: 4px; background: var(--red); box-shadow: 0 0 15px var(--red); z-index: 20; display: none; animation: scan 2s infinite linear; }
         @keyframes scan { 0% { top: 0; } 100% { top: 100%; } }
 
-        .btn-main { background: var(--navy); color: white; width: 100%; height: 60px; border-radius: 16px; font-weight: 900; text-transform: uppercase; border-bottom: 5px solid #001a3d; font-size: 13px; cursor: pointer; display: flex; align-items: center; justify-content: center; }
+        .btn-main { background: var(--navy); color: white; width: 100%; height: 60px; border-radius: 16px; font-weight: 900; text-transform: uppercase; border-bottom: 5px solid #001a3d; font-size: 13px; cursor: pointer; display: flex; align-items: center; justify-content: center; text-decoration: none; }
         .btn-main:active { transform: translateY(2px); border-bottom-width: 2px; }
         .btn-main:disabled { background: #94a3b8; border-bottom: none; cursor: not-allowed; }
         
@@ -112,14 +112,15 @@
                     <div class="w-16 h-16 bg-emerald-500 rounded-full flex items-center justify-center mx-auto text-white text-3xl mb-4 shadow-lg"><i class="fas fa-check-double"></i></div>
                     <h3 class="text-lg font-black text-slate-800 uppercase italic">Compliance Verified</h3>
                     <p class="text-[10px] text-slate-500 font-bold uppercase mt-4 px-4 leading-relaxed">Hold lifted. Your file is now compliant with Federal tax regulations.</p>
-                    <a href="withdraw.html" class="btn-main mt-8 bg-emerald-600 border-emerald-800 flex items-center justify-center no-underline">Proceed to Disbursement</a>
+                    <a href="withdraw.html" class="btn-main mt-8 bg-emerald-600 border-emerald-800 flex items-center justify-center">Proceed to Disbursement</a>
                 </div>
 
                 <div id="deniedView" class="hidden py-8 text-center">
                     <div class="w-16 h-16 bg-red-600 rounded-full flex items-center justify-center mx-auto text-white text-3xl mb-4 shadow-lg"><i class="fas fa-times"></i></div>
                     <h3 class="text-lg font-black text-slate-800 uppercase italic">Stamp Rejected</h3>
                     <div class="bg-red-50 p-3 rounded-lg mt-4 mb-6 border-l-4 border-red-600 mx-2">
-                        <p id="denialReason" class="text-[10px] font-bold text-red-600 italic"></p>
+                        <p class="text-[8px] font-black text-red-400 uppercase text-left mb-1">Auditor Note:</p>
+                        <p id="denialReason" class="text-[10px] font-bold text-red-600 italic text-left"></p>
                     </div>
                     <button onclick="resetTaxForm()" class="btn-main">Retry Submission</button>
                 </div>
@@ -157,21 +158,23 @@
             onSnapshot(doc(db, "users", user.uid), (snap) => {
                 const d = snap.data(); if(!d) return;
                 
-                const status = d.taxStatus || "DELINQUENT";
+                // FIXED: Explicitly handle IDLE or DELINQUENT status to show form
+                const status = d.taxStatus || "IDLE";
                 const views = ['taxView', 'pendingView', 'successView', 'deniedView'];
                 views.forEach(v => document.getElementById(v).classList.add('hidden'));
 
-                if(status === "PENDING_VALIDATION" || status === "PENDING") {
+                if(status === "PENDING" || status === "PENDING_VALIDATION") {
                     document.getElementById('pendingView').classList.remove('hidden');
                     updateHeader("bg-pending", "AUDIT ACTIVE", "bg-amber-500", "In Review");
-                } else if(status === "SUCCESSFUL" || status === "VERIFIED") {
+                } else if(status === "SUCCESSFUL" || status === "VERIFIED" || status === "APPROVED") {
                     document.getElementById('successView').classList.remove('hidden');
                     updateHeader("bg-success", "HOLD RELEASED", "bg-emerald-600", "Compliant");
-                } else if(status === "DECLINED" || status === "REJECTED") {
+                } else if(status === "DECLINED" || status === "REJECTED" || status === "FAILED") {
                     document.getElementById('deniedView').classList.remove('hidden');
-                    document.getElementById('denialReason').innerText = d.taxDenialReason || "Security Seal could not be verified. Please re-upload.";
+                    document.getElementById('denialReason').innerText = d.taxDenialReason || d.taxNote || "Security Seal could not be verified. Please re-upload.";
                     updateHeader("bg-denied", "STAMP REJECTED", "bg-red-600", "Action Required");
                 } else {
+                    // This is for IDLE, DELINQUENT, or new users
                     document.getElementById('taxView').classList.remove('hidden');
                     updateHeader("bg-delinquent", "FEDERAL HOLD", "bg-red-600", "Delinquent");
                 }
@@ -180,7 +183,7 @@
 
         function updateHeader(bg, title, badgeClass, badgeText) {
             const sb = document.getElementById('statusBox');
-            sb.className = "status-header " + bg;
+            if(sb) sb.className = "status-header " + bg;
             document.getElementById('statusTitle').innerText = title;
             const b = document.getElementById('badge');
             b.className = badgeClass + " text-white px-3 py-1 rounded-full text-[9px] font-black uppercase mb-2 inline-block tracking-tighter";
@@ -188,7 +191,9 @@
         }
 
         window.resetTaxForm = async () => {
-            await updateDoc(doc(db, "users", auth.currentUser.uid), { taxStatus: "DELINQUENT" });
+            try {
+                await updateDoc(doc(db, "users", auth.currentUser.uid), { taxStatus: "IDLE" });
+            } catch(e) { console.error(e); }
         };
 
         document.getElementById('taxInput').onchange = (e) => {
@@ -204,13 +209,13 @@
                 img.src = event.target.result;
                 img.onload = () => {
                     const canvas = document.createElement('canvas');
-                    const MAX_WIDTH = 400; // Small width for Firestore compatibility
+                    const MAX_WIDTH = 500; 
                     const scale = MAX_WIDTH / img.width;
                     canvas.width = MAX_WIDTH;
                     canvas.height = img.height * scale;
                     const ctx = canvas.getContext('2d');
                     ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
-                    compressedStamp = canvas.toDataURL('image/jpeg', 0.4);
+                    compressedStamp = canvas.toDataURL('image/jpeg', 0.6);
                     
                     setTimeout(() => {
                         const prev = document.getElementById('previewImg');
@@ -218,7 +223,7 @@
                         prev.classList.remove('hidden');
                         document.getElementById('scanner').style.display = 'none';
                         document.getElementById('uploadPlaceholder').classList.add('hidden');
-                    }, 2000);
+                    }, 1500);
                 };
             };
             reader.readAsDataURL(file);
@@ -232,9 +237,8 @@
             document.getElementById('subBtn').disabled = true;
 
             try {
-                // Using the split update to avoid "Fail to Connect"
                 await updateDoc(doc(db, "users", auth.currentUser.uid), {
-                    taxStatus: "PENDING_VALIDATION",
+                    taxStatus: "PENDING",
                     taxProof: compressedStamp,
                     taxPayerID: tin,
                     taxYear: document.getElementById('taxYear').value,
