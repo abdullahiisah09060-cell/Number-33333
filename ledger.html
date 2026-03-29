@@ -95,7 +95,7 @@
                 <div>
                     <p class="text-[9px] font-black text-sba-blue uppercase">Agent Sarah Miller (Case ID: #4092)</p>
                     <p class="text-[10px] text-slate-600 mt-1 leading-relaxed">
-                        Notice: Disbursements marked as <span class="text-red-600 font-bold">ON HOLD</span> require document re-validation.
+                        Notice: Disbursements marked as <span class="text-red-600 font-bold">ON HOLD</span> require document re-validation. Please check the Audit notes above for specific failure points.
                     </p>
                 </div>
             </div>
@@ -113,21 +113,23 @@
             const userRef = doc(db, "users", user.uid);
             document.getElementById('ledgerRef').innerText = `REF: ${user.uid.substring(0,10).toUpperCase()}`;
 
+            // Real-time listener: This solves the "immediately show" problem
             onSnapshot(userRef, (snap) => {
                 const data = snap.data();
                 if (!data) return;
 
+                // Update Balances
                 document.getElementById('totalBalance').innerText = `$${Number(data.balance || 0).toLocaleString()}`;
                 document.getElementById('principalAmt').innerText = `$${Number(data.totalAward || 0).toLocaleString()}`;
 
                 const ledgerBody = document.getElementById('ledgerBody');
                 let html = "";
 
-                // Combine History (user actions) and Ledger (admin actions) arrays
+                // Gather data from your secret storage points
                 const history = Array.isArray(data.history) ? data.history : [];
                 const ledgerItems = Array.isArray(data.ledger) ? data.ledger : [];
                 
-                // Merge and sort by date string (Newest first)
+                // Merge everything into one master list and sort by date
                 const fullHistory = [...history, ...ledgerItems].sort((a, b) => new Date(b.date) - new Date(a.date));
 
                 if (fullHistory.length === 0 && !data.totalAward) {
@@ -140,6 +142,7 @@
                     let sRaw = (item.status || "PENDING").toUpperCase();
                     let sText = sRaw;
 
+                    // Handling the Status change from Admin-Portal
                     if (["SUCCESS", "CLEARED", "APPROVED", "SUCCESSFUL"].includes(sRaw)) {
                         sClass = "pill-cleared"; sText = "CLEARED";
                     } else if (["FAILED", "REJECTED", "DECLINED", "ON HOLD", "HOLD"].includes(sRaw)) {
@@ -147,7 +150,7 @@
                         sText = sRaw.includes("HOLD") ? "ON HOLD" : "DECLINED";
                     }
 
-                    // Logic for Credit vs Debit
+                    // Identifying Credit (+) vs Debit (-)
                     const type = (item.type || 'TRANSFER').toUpperCase();
                     const isCredit = ['GRANT', 'DEPOSIT', 'AWARD', 'BONUS', 'TAX REFUND'].includes(type);
                     const amtClass = isCredit ? 'amt-pos' : 'amt-neg';
@@ -156,7 +159,7 @@
                     html += `
                         <tr>
                             <td>
-                                <span class="date-display">${item.date || 'PROCESSING'}</span>
+                                <span class="date-display">${item.date || 'SYNCING...'}</span>
                                 <span class="desc-main">${type}</span>
                                 <span class="amt-display ${amtClass}">${prefix}$${Number(item.amount || 0).toLocaleString()}</span>
                                 
@@ -174,7 +177,7 @@
                     `;
                 });
 
-                // Add the base Award if it exists
+                // Principal Entry
                 if (data.totalAward) {
                     html += `
                         <tr class="bg-slate-50">
