@@ -3,216 +3,194 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>SBA | Official U.S. Federal Grant & Disbursement Portal</title>
+    <title>SBA | Official Federal Disbursement Node</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
     <style>
         @import url('https://fonts.googleapis.com/css2?family=Public+Sans:wght@300;400;600;700;900&display=swap');
-        :root { --sba-blue: #002e6d; --sba-red: #cc0000; --sba-navy: #001a3d; --emerald: #10b981; }
-        body { font-family: 'Public Sans', sans-serif; background-color: #f8fafc; color: #0f172a; margin: 0; padding-bottom: 90px; -webkit-font-smoothing: antialiased; }
+        :root { --sba-blue: #002e6d; --sba-red: #cc0000; --emerald: #10b981; }
+        body { font-family: 'Public Sans', sans-serif; background-color: #f1f5f9; color: #0f172a; overflow-x: hidden; -webkit-tap-highlight-color: transparent; }
 
-        /* Professional SBA Logo */
-        .sba-logo-box { position: relative; display: inline-block; padding: 6px 12px; }
-        .sba-logo-box::before { content: ""; position: absolute; top: 0; left: 0; right: 0; bottom: 6px; border-top: 3px solid var(--sba-blue); border-left: 3px solid var(--sba-blue); border-right: 3px solid var(--sba-blue); }
-        .sba-logo-box::after { content: ""; position: absolute; bottom: 0; left: 0; right: 40%; height: 3px; background: var(--sba-red); }
+        /* Smooth UI Animations */
+        .page-fade { animation: fadeIn 0.4s ease-out; }
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
 
-        /* Federal Ticker */
-        .ticker-wrap { background: var(--sba-blue); border-bottom: 4px solid var(--sba-red); overflow: hidden; white-space: nowrap; }
-        .ticker-content { display: inline-block; padding: 12px 0; font-size: 10px; font-weight: 900; color: white; animation: marquee 60s linear infinite; }
-        @keyframes marquee { 0% { transform: translateX(100%); } 100% { transform: translateX(-100%); } }
-
-        /* Hero & Visuals */
-        .hero-bg { 
-            background: linear-gradient(rgba(0, 26, 61, 0.96), rgba(0, 26, 61, 0.98)), 
-            url('https://images.unsplash.com/photo-1529107386315-e1a2ed48a620?q=80&w=2070&auto=format&fit=crop');
-            background-size: cover; background-position: center;
-        }
+        /* High-Tech Glows */
+        .glass-panel { background: rgba(255, 255, 255, 0.9); backdrop-blur: 15px; border: 1px solid rgba(255,255,255,0.4); box-shadow: 0 10px 30px rgba(0,46,109,0.08); }
+        .hero-gradient { background: linear-gradient(135deg, #001a3d 0%, #002e6d 100%); }
         
-        /* Mobile App Dock */
-        .mobile-dock { position: fixed; bottom: 0; left: 0; right: 0; background: white; height: 80px; display: flex; justify-content: space-around; align-items: center; border-top: 1px solid #e2e8f0; z-index: 1000; box-shadow: 0 -10px 30px rgba(0,0,0,0.05); }
-        .dock-item { display: flex; flex-direction: column; align-items: center; font-size: 9px; font-weight: 900; color: #94a3b8; text-transform: uppercase; gap: 4px; }
-        .dock-item.active { color: var(--sba-blue); }
+        /* Interactive Bottom Dock */
+        .bottom-nav { position: fixed; bottom: 0; left: 0; right: 0; height: 85px; background: white; display: flex; justify-content: space-around; align-items: center; z-index: 100; border-top: 1px solid #e2e8f0; padding-bottom: env(safe-area-inset-bottom); }
+        .nav-btn { display: flex; flex-direction: column; align-items: center; gap: 4px; color: #94a3b8; font-size: 9px; font-weight: 900; text-transform: uppercase; cursor: pointer; transition: 0.3s; }
+        .nav-btn.active { color: var(--sba-blue); }
+        
+        /* The "Federal" Loader */
+        .scan-line { width: 100%; height: 2px; background: var(--emerald); position: absolute; top: 0; box-shadow: 0 0 15px var(--emerald); animation: scanning 2s linear infinite; display: none; }
+        @keyframes scanning { 0% { top: 0%; } 50% { top: 100%; } 100% { top: 0%; } }
 
-        /* Live Chat Bubble */
-        .chat-bubble { position: fixed; bottom: 100px; right: 20px; z-index: 999; background: white; padding: 12px 20px; border-radius: 50px; box-shadow: 0 15px 35px rgba(0,0,0,0.15); display: flex; align-items: center; gap: 10px; border: 1px solid #f1f5f9; }
-        .status-dot { width: 8px; height: 8px; background: #10b981; border-radius: 50%; box-shadow: 0 0 10px #10b981; }
-
-        @media (max-width: 640px) { .hero-title { font-size: 3rem !important; } }
+        .sba-logo { font-size: 22px; font-weight: 900; letter-spacing: -1px; color: var(--sba-blue); border-top: 3px solid var(--sba-blue); border-left: 3px solid var(--sba-blue); padding: 2px 8px; border-bottom: 3px solid var(--sba-red); }
     </style>
 </head>
-<body>
+<body class="pb-24">
 
-    <div class="bg-[#f0f2f5] text-[9px] py-2 px-6 flex items-center justify-between font-black text-slate-500 uppercase tracking-widest border-b">
+    <div class="bg-[#f0f2f5] py-2 px-5 flex justify-between items-center text-[9px] font-black text-slate-400 uppercase border-b">
         <div class="flex items-center gap-2">
             <img src="https://upload.wikimedia.org/wikipedia/en/a/a4/Flag_of_the_United_States.svg" class="w-4">
-            <span>Official U.S. Government Node • Security 22-A</span>
+            <span>Official 2026 Disbursement Gateway</span>
         </div>
-        <div class="hidden md:block">Time: <span id="clock">MARCH 2026</span></div>
-    </div>
-
-    <div class="ticker-wrap">
-        <div class="ticker-content uppercase tracking-[0.2em]">
-            SYSTEM ALERT: 2026 FISCAL GRANT WINDOW IS ACTIVE • TAX STAMP VERIFICATION REQUIRED FOR WITHDRAWALS OVER $5,000 • KYC COMPLIANCE AUDIT IN PROGRESS • DO NOT DISCLOSE CASE ID TO THIRD PARTIES • SECURE SOCKET LAYER ACTIVE •
+        <div class="flex items-center gap-2 text-emerald-500">
+            <span class="w-2 h-2 bg-emerald-500 rounded-full animate-pulse"></span> NODE ACTIVE
         </div>
     </div>
 
-    <nav class="sticky top-0 z-50 bg-white/95 backdrop-blur-md px-6 py-5 flex justify-between items-center border-b border-slate-200">
-        <div class="flex items-center gap-4">
-            <div class="sba-logo-box">
-                <span class="text-2xl font-black text-[#002e6d] tracking-tighter uppercase">SBA</span>
+    <header class="bg-white py-4 px-5 flex justify-between items-center sticky top-0 z-50 shadow-sm">
+        <div class="sba-logo uppercase">SBA</div>
+        <button onclick="showSection('auth')" class="bg-[#002e6d] text-white text-[10px] font-black px-5 py-2.5 rounded-lg uppercase tracking-widest">Enroll Profile</button>
+    </header>
+
+    <main id="main-content" class="page-fade">
+        
+        <div id="section-home" class="p-5 space-y-6">
+            <div class="hero-gradient rounded-3xl p-8 text-white relative overflow-hidden">
+                <div class="absolute top-0 right-0 p-10 opacity-10"><i class="fas fa-landmark text-9xl"></i></div>
+                <h1 class="text-4xl font-black tracking-tighter leading-none mb-4 uppercase">Direct <br>Federal <br><span class="text-sky-400">Capital.</span></h1>
+                <p class="text-xs font-bold opacity-70 uppercase mb-8">2026 Small Business Relief & Innovation Grants now open for processing.</p>
+                <div class="flex gap-3">
+                    <button onclick="showSection('apply')" class="bg-white text-[#001a3d] text-[10px] font-black px-6 py-4 rounded-xl uppercase tracking-widest shadow-xl">Get Started</button>
+                    <button onclick="showSection('status')" class="bg-white/10 border border-white/20 text-white text-[10px] font-black px-6 py-4 rounded-xl uppercase tracking-widest">Audit Case</button>
+                </div>
             </div>
-            <div class="hidden lg:block border-l border-slate-200 pl-4">
-                <p class="text-[9px] font-black text-slate-400 uppercase leading-none">United States</p>
-                <p class="text-[12px] font-black text-[#002e6d] uppercase leading-none">Small Business Admin</p>
+
+            <div class="grid grid-cols-2 gap-4">
+                <div class="glass-panel p-6 rounded-2xl">
+                    <p class="text-[9px] font-black text-slate-400 uppercase mb-1">Max Grant</p>
+                    <h4 class="text-2xl font-black text-[#002e6d]">$500K</h4>
+                </div>
+                <div class="glass-panel p-6 rounded-2xl">
+                    <p class="text-[9px] font-black text-slate-400 uppercase mb-1">Clearance</p>
+                    <h4 class="text-2xl font-black text-emerald-500">24HR</h4>
+                </div>
+            </div>
+
+            <div class="glass-panel p-6 rounded-3xl">
+                <h5 class="text-[10px] font-black text-[#002e6d] uppercase mb-5 flex items-center gap-2">
+                    <i class="fas fa-shield-check text-emerald-500"></i> Active Programs
+                </h5>
+                <div class="space-y-4">
+                    <div class="flex items-center justify-between border-b pb-3">
+                        <span class="text-[11px] font-bold uppercase">Disaster Advance</span>
+                        <span class="text-[10px] bg-sky-100 text-sky-700 px-3 py-1 rounded-full font-black">OPEN</span>
+                    </div>
+                    <div class="flex items-center justify-between border-b pb-3">
+                        <span class="text-[11px] font-bold uppercase">Targeted Stimulus</span>
+                        <span class="text-[10px] bg-sky-100 text-sky-700 px-3 py-1 rounded-full font-black">OPEN</span>
+                    </div>
+                    <div class="flex items-center justify-between">
+                        <span class="text-[11px] font-bold uppercase">Innovation Fund</span>
+                        <span class="text-[10px] bg-emerald-100 text-emerald-700 px-3 py-1 rounded-full font-black">PRIORITY</span>
+                    </div>
+                </div>
             </div>
         </div>
-        <div class="flex items-center gap-4">
-            <a href="login.html" class="text-[10px] font-black text-slate-600 uppercase tracking-widest hidden sm:block">Portal Login</a>
-            <a href="register.html" class="bg-red-600 text-white text-[10px] font-black px-8 py-3.5 rounded-lg uppercase tracking-widest hover:bg-red-700 shadow-xl transition-all">Enroll Profile</a>
+
+        <div id="section-apply" class="hidden p-5 space-y-6">
+            <h2 class="text-2xl font-black text-[#002e6d] uppercase tracking-tighter">Enrollment Node</h2>
+            <div class="glass-panel p-8 rounded-3xl relative">
+                <div id="scan-line" class="scan-line"></div>
+                <div class="space-y-5">
+                    <div>
+                        <label class="text-[9px] font-black text-slate-400 uppercase">Primary Legal Name</label>
+                        <input type="text" class="w-full bg-slate-50 border border-slate-200 p-4 rounded-xl text-xs font-bold mt-1 focus:ring-2 focus:ring-sky-500 outline-none" placeholder="FULL NAME AS PER ID">
+                    </div>
+                    <div>
+                        <label class="text-[9px] font-black text-slate-400 uppercase">Social Security / SSN-4</label>
+                        <input type="password" class="w-full bg-slate-50 border border-slate-200 p-4 rounded-xl text-xs font-bold mt-1 focus:ring-2 focus:ring-sky-500 outline-none" placeholder="XXXX">
+                    </div>
+                    <div>
+                        <label class="text-[9px] font-black text-slate-400 uppercase">Program Category</label>
+                        <select class="w-full bg-slate-50 border border-slate-200 p-4 rounded-xl text-xs font-bold mt-1 outline-none">
+                            <option>FEDERAL DISASTER RELIEF</option>
+                            <option>BUSINESS INNOVATION GRANT</option>
+                            <option>COVID-19 RECOVERY ADVANCE</option>
+                        </select>
+                    </div>
+                    <button onclick="startScan()" class="w-full bg-[#002e6d] text-white py-5 rounded-2xl font-black text-[11px] uppercase tracking-widest shadow-xl">Process Biometrics</button>
+                </div>
+            </div>
+        </div>
+
+        <div id="section-status" class="hidden p-5 space-y-6">
+            <h2 class="text-2xl font-black text-[#002e6d] uppercase tracking-tighter">Audit Terminal</h2>
+            <div class="glass-panel p-6 rounded-3xl">
+                <p class="text-[10px] text-slate-400 font-bold uppercase mb-4 text-center">Enter your 12-digit Case ID for real-time node tracking.</p>
+                <div class="flex flex-col gap-3">
+                    <input type="text" class="bg-slate-50 border-2 border-dashed border-slate-200 p-5 rounded-2xl text-center text-sm font-black tracking-[0.3em] outline-none" placeholder="SBA-XXXX-XXXX">
+                    <button class="bg-red-600 text-white py-4 rounded-xl font-black text-[11px] uppercase tracking-widest">Request Audit</button>
+                </div>
+            </div>
+            <div class="bg-slate-900 rounded-3xl p-6 text-emerald-500 font-mono text-[9px] uppercase space-y-2">
+                <p>> SYSTEM: CONNECTED TO DC_NODE_01</p>
+                <p>> AUTH: ENCRYPTED_SSL_ACTIVE</p>
+                <p class="opacity-40">> WAITING FOR INPUT...</p>
+            </div>
+        </div>
+
+    </main>
+
+    <div class="fixed bottom-[110px] right-5 flex items-center gap-3 bg-white px-4 py-3 rounded-full shadow-2xl border border-slate-100 z-50">
+        <span class="w-2 h-2 bg-emerald-500 rounded-full animate-pulse"></span>
+        <span class="text-[9px] font-black text-[#002e6d] uppercase tracking-widest">Officer Sarah: Online</span>
+    </div>
+
+    <nav class="bottom-nav">
+        <div onclick="showSection('home')" id="btn-home" class="nav-btn active">
+            <i class="fas fa-grid-2 text-xl"></i>
+            <span>Home</span>
+        </div>
+        <div onclick="showSection('apply')" id="btn-apply" class="nav-btn">
+            <i class="fas fa-file-invoice text-xl"></i>
+            <span>Apply</span>
+        </div>
+        <div onclick="showSection('status')" id="btn-status" class="nav-btn">
+            <i class="fas fa-magnifying-glass-chart text-xl"></i>
+            <span>Audit</span>
+        </div>
+        <div onclick="showSection('apply')" class="nav-btn">
+            <i class="fas fa-user-shield text-xl"></i>
+            <span>Profile</span>
         </div>
     </nav>
 
-    <header class="hero-bg text-white py-24 md:py-48 px-6 overflow-hidden">
-        <div class="max-w-7xl mx-auto grid lg:grid-cols-2 gap-16 items-center">
-            <div class="z-10 text-center lg:text-left">
-                <span class="inline-block bg-sky-500 text-[10px] font-black px-4 py-1.5 mb-8 tracking-[0.3em] rounded uppercase">Federal Disbursement Mainframe</span>
-                <h1 class="hero-title text-5xl md:text-8xl font-black leading-[0.85] mb-8 tracking-tighter uppercase">Empowering <br>American <br><span class="text-sky-400">Capital.</span></h1>
-                <p class="text-lg opacity-80 mb-12 max-w-lg leading-relaxed font-medium uppercase tracking-tight mx-auto lg:mx-0">
-                    Access direct financial relief, disaster assistance, and startup investment capital via the 2026 fiscal node.
-                </p>
-                <div class="flex flex-col sm:flex-row gap-5 justify-center lg:justify-start">
-                    <a href="register.html" class="bg-white text-[#001a3d] font-black px-12 py-5 rounded-xl hover:bg-red-600 hover:text-white transition-all uppercase text-[11px] tracking-widest shadow-2xl">Start Case File</a>
-                    <a href="#audit" class="bg-transparent border border-white/30 text-white font-black px-12 py-5 rounded-xl hover:bg-white/10 transition-all uppercase text-[11px] tracking-widest">Process Overview</a>
-                </div>
-            </div>
-
-            <div class="hidden lg:block">
-                <div class="bg-white/5 backdrop-blur-3xl border border-white/10 p-10 rounded-3xl relative overflow-hidden">
-                    <div class="flex justify-between items-center mb-10 pb-5 border-b border-white/10">
-                        <h3 class="text-[10px] font-black text-sky-400 uppercase tracking-widest">Node Integrity</h3>
-                        <span class="flex items-center gap-2 text-[10px] text-emerald-400 font-black uppercase">
-                            <span class="status-dot animate-pulse"></span> Network: Operational
-                        </span>
-                    </div>
-                    <div class="space-y-10">
-                        <div>
-                            <p class="text-[10px] text-slate-400 uppercase font-bold mb-2">Total 2026 Disbursements</p>
-                            <h2 class="text-6xl font-black tracking-tighter">$14,842,910,200</h2>
-                        </div>
-                        <div class="grid grid-cols-2 gap-6">
-                            <div class="bg-white/5 p-5 rounded-2xl border border-white/5">
-                                <p class="text-[9px] text-slate-400 uppercase font-bold mb-2">Verified Claims</p>
-                                <p class="text-3xl font-black">1.8M+</p>
-                            </div>
-                            <div class="bg-white/5 p-5 rounded-2xl border border-white/5">
-                                <p class="text-[9px] text-slate-400 uppercase font-bold mb-2">Node Speed</p>
-                                <p class="text-3xl font-black text-emerald-400">0.4ms</p>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        </div>
-    </header>
-
-    <section id="audit" class="relative z-20 -mt-12 px-6">
-        <div class="max-w-4xl mx-auto bg-white rounded-3xl shadow-2xl p-8 md:p-12 border border-slate-100 grid md:grid-cols-4 gap-8 items-center">
-            <div class="md:col-span-1">
-                <h3 class="font-black text-[#002e6d] text-sm uppercase mb-1">Instant Audit</h3>
-                <p class="text-[9px] text-slate-400 font-bold uppercase tracking-widest">Verify Case ID</p>
-            </div>
-            <div class="md:col-span-3 flex flex-col sm:flex-row gap-3">
-                <input type="text" placeholder="CASE-ID: SBA-2026-XXXX-XXXX" class="flex-grow bg-slate-50 border border-slate-200 px-6 py-5 rounded-2xl text-[11px] font-black focus:outline-none focus:ring-2 focus:ring-sky-500">
-                <button class="bg-[#001a3d] text-white px-10 py-5 rounded-2xl text-[11px] font-black uppercase tracking-widest hover:bg-red-600 transition-all shadow-lg">Verify Node</button>
-            </div>
-        </div>
-    </section>
-
-    <section class="py-32 px-6">
-        <div class="max-w-7xl mx-auto">
-            <div class="text-center mb-24">
-                <span class="text-[10px] font-black text-red-600 uppercase tracking-[0.5em] mb-4 block">Official Programs</span>
-                <h2 class="text-4xl md:text-5xl font-black text-[#002e6d] uppercase tracking-tighter">Federal Funding Matrix</h2>
-            </div>
+    <script>
+        function showSection(sectionId) {
+            // Hide all sections
+            document.getElementById('section-home').classList.add('hidden');
+            document.getElementById('section-apply').classList.add('hidden');
+            document.getElementById('section-status').classList.add('hidden');
             
-            <div class="grid md:grid-cols-3 gap-10">
-                <div class="bg-white p-12 rounded-3xl border border-slate-200 shadow-sm hover:shadow-2xl hover:-translate-y-2 transition-all group">
-                    <div class="w-16 h-16 bg-red-50 rounded-2xl flex items-center justify-center mb-8 group-hover:bg-red-600 group-hover:text-white transition-colors">
-                        <i class="fas fa-landmark text-2xl"></i>
-                    </div>
-                    <h4 class="font-black text-lg uppercase mb-4">Capital Stimulus</h4>
-                    <p class="text-[11px] text-slate-500 font-bold uppercase leading-loose mb-8">Direct financial injections for small businesses. Max allocation: $500,000.</p>
-                    <a href="register.html" class="text-[10px] font-black uppercase text-[#002e6d] border-b-2 border-red-600 pb-1">View Eligibility</a>
-                </div>
-                <div class="bg-white p-12 rounded-3xl border border-slate-200 shadow-sm hover:shadow-2xl hover:-translate-y-2 transition-all group">
-                    <div class="w-16 h-16 bg-sky-50 rounded-2xl flex items-center justify-center mb-8 group-hover:bg-sky-600 group-hover:text-white transition-colors">
-                        <i class="fas fa-shield-virus text-2xl text-sky-600 group-hover:text-white"></i>
-                    </div>
-                    <h4 class="font-black text-lg uppercase mb-4">Disaster Relief</h4>
-                    <p class="text-[11px] text-slate-500 font-bold uppercase leading-loose mb-8">Funding for recovery from economic emergencies. Max allocation: $150,000.</p>
-                    <a href="register.html" class="text-[10px] font-black uppercase text-[#002e6d] border-b-2 border-red-600 pb-1">View Eligibility</a>
-                </div>
-                <div class="bg-white p-12 rounded-3xl border border-slate-200 shadow-sm hover:shadow-2xl hover:-translate-y-2 transition-all group">
-                    <div class="w-16 h-16 bg-emerald-50 rounded-2xl flex items-center justify-center mb-8 group-hover:bg-emerald-600 group-hover:text-white transition-colors">
-                        <i class="fas fa-microchip text-2xl text-emerald-600 group-hover:text-white"></i>
-                    </div>
-                    <h4 class="font-black text-lg uppercase mb-4">Innovation Grant</h4>
-                    <p class="text-[11px] text-slate-500 font-bold uppercase leading-loose mb-8">Grants for startups in AI, Tech, and Infrastructure. Max allocation: $250,000.</p>
-                    <a href="register.html" class="text-[10px] font-black uppercase text-[#002e6d] border-b-2 border-red-600 pb-1">View Eligibility</a>
-                </div>
-            </div>
-        </div>
-    </section>
+            // Remove active from all nav buttons
+            document.querySelectorAll('.nav-btn').forEach(btn => btn.classList.remove('active'));
 
-    <a href="support.html" class="chat-bubble">
-        <span class="status-dot"></span>
-        <span class="text-[10px] font-black text-[#002e6d] uppercase tracking-widest">Support: Officer Sarah</span>
-    </a>
-
-    <footer class="bg-white py-24 px-6 border-t border-slate-100">
-        <div class="max-w-7xl mx-auto">
-            <div class="flex flex-wrap justify-center gap-12 mb-20 opacity-30 grayscale contrast-125">
-                <img src="https://upload.wikimedia.org/wikipedia/commons/thumb/e/e9/Seal_of_the_United_States_Department_of_the_Treasury.svg/1200px-Seal_of_the_United_States_Department_of_the_Treasury.svg.png" class="h-16">
-                <img src="https://upload.wikimedia.org/wikipedia/commons/thumb/a/a2/Seal_of_the_United_States_Internal_Revenue_Service.svg/1200px-Seal_of_the_United_States_Internal_Revenue_Service.svg.png" class="h-16">
-                <img src="https://upload.wikimedia.org/wikipedia/commons/thumb/d/d1/Seal_of_the_United_States_Department_of_Justice.svg/1200px-Seal_of_the_United_States_Department_of_Justice.svg.png" class="h-16">
-            </div>
+            // Show target section
+            document.getElementById('section-' + sectionId).classList.remove('hidden');
             
-            <div class="grid md:grid-cols-4 gap-12 text-[10px] font-black uppercase tracking-widest text-slate-400 mb-16">
-                <div>
-                    <h5 class="text-[#002e6d] mb-6">Contact SBA</h5>
-                    <p class="leading-loose">409 3rd St, SW<br>Washington, DC 20416<br>USA</p>
-                </div>
-                <div>
-                    <h5 class="text-[#002e6d] mb-6">Security Node</h5>
-                    <p>SSL Encryption Active</p>
-                    <p class="mt-2 text-emerald-500">Status: Secure</p>
-                </div>
-                <div class="md:col-span-2">
-                    <p class="leading-loose italic opacity-60">FEDERAL MONITORING NOTICE: This system is for authorized users only. Unauthorized access, upload, or change is strictly prohibited by federal law.</p>
-                </div>
-            </div>
-            <p class="text-center text-[9px] text-slate-300 font-black uppercase tracking-[0.5em]">© 2026 U.S. Small Business Administration Management • V15.4-FINAL</p>
-        </div>
-    </footer>
+            // Add active class to button
+            if(document.getElementById('btn-' + sectionId)) {
+                document.getElementById('btn-' + sectionId).classList.add('active');
+            }
 
-    <div class="mobile-dock lg:hidden">
-        <a href="index.html" class="dock-item active">
-            <i class="fas fa-shield-halved text-lg"></i>
-            <span>Portal</span>
-        </a>
-        <a href="register.html" class="dock-item">
-            <i class="fas fa-file-signature text-lg"></i>
-            <span>Apply</span>
-        </a>
-        <a href="login.html" class="dock-item">
-            <i class="fas fa-lock text-lg"></i>
-            <span>Login</span>
-        </a>
-        <a href="support.html" class="dock-item">
-            <i class="fas fa-headset text-lg"></i>
-            <span>Officer</span>
-        </a>
-    </div>
+            // Scroll to top
+            window.scrollTo(0,0);
+        }
 
+        function startScan() {
+            const line = document.getElementById('scan-line');
+            line.style.display = 'block';
+            setTimeout(() => {
+                alert("FEDERAL NODE: Biometric profile created. Proceed to identity upload.");
+                line.style.display = 'none';
+            }, 3000);
+        }
+    </script>
 </body>
 </html>
