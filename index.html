@@ -17,7 +17,7 @@
         .sba-logo-box::before { content: ""; position: absolute; top: 0; left: 0; right: 0; bottom: 6px; border-top: 3px solid var(--sba-blue); border-left: 3px solid var(--sba-blue); border-right: 3px solid var(--sba-blue); }
         .sba-logo-box::after { content: ""; position: absolute; bottom: 0; left: 0; right: 30%; height: 3px; background: var(--sba-red); }
 
-        /* Hero Image - Blended Samples */
+        /* Hero Image */
         .hero-bg { 
             background: linear-gradient(rgba(0, 26, 61, 0.90), rgba(0, 26, 61, 0.98)), 
             url('https://images.unsplash.com/photo-1554224155-1696413565d3?q=80&w=2070&auto=format&fit=crop');
@@ -29,13 +29,13 @@
         .ticker-content { display: inline-block; padding: 12px 0; font-size: 10px; font-weight: 900; color: white; animation: marquee 30s linear infinite; }
         @keyframes marquee { 0% { transform: translateX(100%); } 100% { transform: translateX(-100%); } }
 
-        /* Step Card arrangement */
+        /* Step Card */
         .step-card { background: white; padding: 2rem; border-radius: 12px; border: 1px solid #e2e8f0; position: relative; overflow: hidden; height: 100%; transition: 0.3s; }
         .step-number { font-size: 65px; font-weight: 900; color: #f1f5f9; position: absolute; top: -10px; right: 10px; z-index: 0; line-height: 1; }
         
         /* Mobile App Dock */
         .bottom-dock { position: fixed; bottom: 0; left: 0; right: 0; background: white; height: 70px; display: flex; justify-content: space-around; align-items: center; border-top: 1px solid #e2e8f0; z-index: 1000; box-shadow: 0 -5px 20px rgba(0,0,0,0.05); }
-        .dock-item { display: flex; flex-direction: column; align-items: center; gap: 4px; font-size: 9px; font-weight: 900; color: #94a3b8; text-transform: uppercase; }
+        .dock-item { display: flex; flex-direction: column; align-items: center; gap: 4px; font-size: 9px; font-weight: 900; color: #94a3b8; text-transform: uppercase; text-decoration: none; }
         .dock-item.active { color: var(--sba-blue); }
     </style>
 </head>
@@ -172,19 +172,19 @@
                 <i class="fas fa-landmark text-4xl text-red-600 mb-8 block"></i>
                 <h4 class="font-black text-lg uppercase mb-4 tracking-tight">Business Support</h4>
                 <p class="text-sm text-slate-500 leading-relaxed mb-6">Financial assistance for small businesses to support growth and operations nationwide.</p>
-                <a href="register.html" class="text-[10px] font-black uppercase text-[#002e6d] border-b-2 border-red-600 pb-1">Enroll Now</a>
+                <a href="register.html" class="text-[10px] font-black uppercase text-[#002e6d] border-b-2 border-red-600 pb-1 text-decoration-none">Enroll Now</a>
             </div>
             <div class="bg-white p-10 border border-slate-200 border-t-8 border-t-[#002e6d] shadow-lg">
                 <i class="fas fa-shield-virus text-4xl text-red-600 mb-8 block"></i>
                 <h4 class="font-black text-lg uppercase mb-4 tracking-tight">Disaster Relief</h4>
                 <p class="text-sm text-slate-500 leading-relaxed mb-6">Direct support for businesses affected by federal emergencies or natural disasters.</p>
-                <a href="register.html" class="text-[10px] font-black uppercase text-[#002e6d] border-b-2 border-red-600 pb-1">Enroll Now</a>
+                <a href="register.html" class="text-[10px] font-black uppercase text-[#002e6d] border-b-2 border-red-600 pb-1 text-decoration-none">Enroll Now</a>
             </div>
             <div class="bg-white p-10 border border-slate-200 border-t-8 border-t-[#002e6d] shadow-lg">
                 <i class="fas fa-microchip text-4xl text-red-600 mb-8 block"></i>
                 <h4 class="font-black text-lg uppercase mb-4 tracking-tight">Innovation Fund</h4>
                 <p class="text-sm text-slate-500 leading-relaxed mb-6">Grants for technology, artificial intelligence, and startup development initiatives.</p>
-                <a href="register.html" class="text-[10px] font-black uppercase text-[#002e6d] border-b-2 border-red-600 pb-1">Enroll Now</a>
+                <a href="register.html" class="text-[10px] font-black uppercase text-[#002e6d] border-b-2 border-red-600 pb-1 text-decoration-none">Enroll Now</a>
             </div>
         </div>
     </section>
@@ -220,9 +220,9 @@
             <i class="fas fa-user-lock text-xl"></i>
             <span>Login</span>
         </a>
-        <a href="terms.html" class="dock-item">
-            <i class="fas fa-question-circle text-xl"></i>
-            <span>Info</span>
+        <a href="#how-it-works" class="dock-item">
+            <i class="fas fa-info-circle text-xl"></i>
+            <span>Help</span>
         </a>
     </nav>
 
