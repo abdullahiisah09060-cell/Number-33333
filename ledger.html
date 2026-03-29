@@ -29,13 +29,16 @@
         .amt-pos { color: #10b981; }
         .amt-neg { color: var(--sba-red); }
         
-        .status-pill { padding: 4px 10px; border-radius: 6px; font-size: 8px; font-weight: 900; text-transform: uppercase; display: inline-block; border: 1px solid transparent; transition: all 0.3s ease; }
+        .status-pill { padding: 4px 10px; border-radius: 6px; font-size: 8px; font-weight: 900; text-transform: uppercase; display: inline-block; border: 1px solid transparent; }
         .pill-pending { background: #fff7ed; color: #9a3412; border-color: #ffedd5; }
         .pill-cleared { background: #f0fdf4; color: #166534; border-color: #dcfce7; }
         .pill-declined { background: #fef2f2; color: #991b1b; border-color: #fee2e2; }
         
         .reason-box { background: #fff1f2; border: 1px dashed #fda4af; padding: 10px; border-radius: 8px; margin-top: 10px; font-size: 10px; color: #9f1239; font-weight: 700; border-left: 3px solid #e11d48; }
-        .case-note { background: #f1f5f9; border-left: 4px solid var(--sba-blue); padding: 15px; border-radius: 0 12px 12px 0; margin-top: 20px; }
+        
+        /* Fast Load Shimmer */
+        .shimmer { background: linear-gradient(90deg, #f0f0f0 25%, #e0e0e0 50%, #f0f0f0 75%); background-size: 200% 100%; animation: shimmer 1.5s infinite; height: 12px; border-radius: 4px; }
+        @keyframes shimmer { 0% { background-position: 200% 0; } 100% { background-position: -200% 0; } }
     </style>
 </head>
 <body class="pb-10">
@@ -47,7 +50,7 @@
             <div class="logo-frame">SBA</div>
             <div>
                 <p class="text-[8px] font-black text-slate-400 uppercase tracking-widest leading-none">Verified</p>
-                <p class="text-[11px] font-black text-[#002e6d]" id="ledgerRef">REF: ...</p>
+                <p class="text-[11px] font-black text-[#002e6d]" id="ledgerRef">REF: AUTHENTICATING...</p>
             </div>
         </div>
         <a href="dashboard.html" class="text-[10px] font-black uppercase text-white bg-[#002e6d] px-4 py-2 rounded-lg">Exit</a>
@@ -59,18 +62,18 @@
             <div class="flex justify-between items-start mb-4">
                 <div>
                     <p class="text-[9px] font-black uppercase opacity-60 tracking-tighter">Liquid Allocation</p>
-                    <h2 class="text-3xl font-black mt-1" id="totalBalance">$0.00</h2>
+                    <h2 class="text-3xl font-black mt-1" id="totalBalance">$ --.--</h2>
                 </div>
-                <div class="bg-white/10 p-2 rounded-lg"><i class="fas fa-landmark-dome text-xl"></i></div>
+                <div class="bg-white/10 p-2 rounded-lg"><i class="fas fa-sync fa-spin text-xl opacity-30"></i></div>
             </div>
             <div class="flex justify-between border-t border-white/10 pt-4">
                 <div>
                     <p class="text-[8px] font-black uppercase opacity-60">Award Principal</p>
-                    <p class="text-sm font-black" id="principalAmt">$0.00</p>
+                    <p class="text-sm font-black" id="principalAmt">$ --.--</p>
                 </div>
                 <div class="text-right">
                     <p class="text-[8px] font-black uppercase opacity-60">Sync Status</p>
-                    <p class="text-[10px] font-black text-emerald-400"><i class="fas fa-check-circle mr-1"></i>LIVE SYNC</p>
+                    <p class="text-[10px] font-black text-blue-300" id="syncLabel"><i class="fas fa-circle-notch fa-spin mr-1"></i> CONNECTING</p>
                 </div>
             </div>
         </div>
@@ -83,11 +86,19 @@
                         <th class="text-right">Action</th>
                     </tr>
                 </thead>
-                <tbody id="ledgerBody"></tbody>
+                <tbody id="ledgerBody">
+                    <tr>
+                        <td colspan="2" class="p-10">
+                            <div class="shimmer w-3/4 mb-3"></div>
+                            <div class="shimmer w-1/2 mb-3"></div>
+                            <div class="shimmer w-2/3"></div>
+                        </td>
+                    </tr>
+                </tbody>
             </table>
         </div>
 
-        <div class="case-note">
+        <div class="case-note mt-6">
             <div class="flex gap-3">
                 <div class="w-10 h-10 rounded-full bg-blue-100 flex items-center justify-center text-sba-blue shrink-0">
                     <i class="fas fa-user-shield"></i>
@@ -95,7 +106,7 @@
                 <div>
                     <p class="text-[9px] font-black text-sba-blue uppercase">Agent Sarah Miller (Case ID: #4092)</p>
                     <p class="text-[10px] text-slate-600 mt-1 leading-relaxed">
-                        Notice: Disbursements marked as <span class="text-red-600 font-bold">ON HOLD</span> require document re-validation.
+                        Notice: Real-time ledger sync active. Records are legally binding.
                     </p>
                 </div>
             </div>
@@ -117,71 +128,74 @@
                 const data = snap.data();
                 if (!data) return;
 
+                // Fast Sync Data
                 document.getElementById('totalBalance').innerText = `$${Number(data.balance || 0).toLocaleString()}`;
                 document.getElementById('principalAmt').innerText = `$${Number(data.totalAward || 0).toLocaleString()}`;
+                document.getElementById('syncLabel').innerHTML = `<i class="fas fa-check-circle mr-1"></i> LIVE SYNC`;
+                document.getElementById('syncLabel').className = "text-[10px] font-black text-emerald-400";
 
                 const ledgerBody = document.getElementById('ledgerBody');
                 const history = Array.isArray(data.history) ? data.history : [];
                 const ledger = Array.isArray(data.ledger) ? data.ledger : [];
                 
-                // --- THE FIX: SMART MERGING ---
-                // We combine everything, sort by date (newest first), 
-                // then filter so only the latest status for a specific amount/type shows.
-                const rawHistory = [...history, ...ledger].sort((a, b) => new Date(b.date || 0) - new Date(a.date || 0));
+                // Merge and filter newest first
+                const rawAll = [...history, ...ledger].sort((a, b) => new Date(b.date || 0) - new Date(a.date || 0));
 
-                const uniqueItems = [];
-                const seenKeys = new Set();
+                // DE-DUPLICATION: If an item is approved, hide the pending one with same amount/type
+                const uniqueEntries = [];
+                const keys = new Set();
 
-                rawHistory.forEach(item => {
-                    // Create a unique key based on Amount and Type
-                    const key = `${item.amount}-${item.type}`;
-                    // Only add if we haven't seen this amount/type combo yet (since it's sorted newest first)
-                    if (!seenKeys.has(key)) {
-                        uniqueItems.push(item);
-                        seenKeys.add(key);
+                rawAll.forEach(item => {
+                    const fingerprint = `${item.amount}-${item.type}`;
+                    if (!keys.has(fingerprint)) {
+                        uniqueEntries.push(item);
+                        keys.add(fingerprint);
                     }
                 });
 
-                if (uniqueItems.length === 0 && !data.totalAward) {
-                    ledgerBody.innerHTML = '<tr><td colspan="2" class="text-center py-10 text-slate-400 font-bold text-xs uppercase">No Records</td></tr>';
+                if (uniqueEntries.length === 0 && !data.totalAward) {
+                    ledgerBody.innerHTML = '<tr><td colspan="2" class="text-center py-10 text-slate-400 font-bold text-[10px] uppercase">No Electronic Records</td></tr>';
                     return;
                 }
 
                 let html = "";
-                uniqueItems.forEach((item) => {
-                    const sRaw = (item.status || "PENDING").toUpperCase();
-                    let sClass = "pill-pending", sText = sRaw;
+                uniqueEntries.forEach((item) => {
+                    const rawS = (item.status || "PENDING").toUpperCase();
+                    let sClass = "pill-pending", sText = rawS;
 
-                    if (["SUCCESS", "CLEARED", "APPROVED", "SUCCESSFUL"].includes(sRaw)) {
+                    if (["SUCCESS", "CLEARED", "APPROVED", "SUCCESSFUL", "PAID"].includes(rawS)) {
                         sClass = "pill-cleared"; sText = "CLEARED";
-                    } else if (["FAILED", "REJECTED", "DECLINED", "ON HOLD", "HOLD"].includes(sRaw)) {
+                    } else if (["FAILED", "REJECTED", "DECLINED", "ON HOLD", "HOLD"].includes(rawS)) {
                         sClass = "pill-declined"; 
-                        sText = sRaw.includes("HOLD") ? "ON HOLD" : "DECLINED";
+                        sText = rawS.includes("HOLD") ? "ON HOLD" : "DECLINED";
                     }
 
-                    const type = (item.type || 'TRANSFER').toUpperCase();
-                    const isCredit = ['GRANT', 'DEPOSIT', 'AWARD'].includes(type);
-                    const amtClass = isCredit ? 'amt-pos' : 'amt-neg';
-                    const prefix = isCredit ? '+' : '-';
-
+                    const isCredit = ['GRANT', 'DEPOSIT', 'AWARD'].includes((item.type || '').toUpperCase());
+                    
                     html += `
                         <tr>
                             <td>
-                                <span class="date-display">${item.date || 'PENDING'}</span>
-                                <span class="desc-main">${type}</span>
-                                <span class="amt-display ${amtClass}">${prefix}$${Number(item.amount || 0).toLocaleString()}</span>
+                                <span class="date-display">${item.date || 'PROCESSING'}</span>
+                                <span class="desc-main">${(item.type || 'TRANSFER').toUpperCase()}</span>
+                                <span class="amt-display ${isCredit ? 'amt-pos' : 'amt-neg'}">
+                                    ${isCredit ? '+' : '-'}$${Number(item.amount || 0).toLocaleString()}
+                                </span>
                                 ${ (item.reason && (sText === 'DECLINED' || sText === 'ON HOLD')) ? 
-                                    `<div class="reason-box"><b>AUDIT NOTE:</b> ${item.reason}</div>` : '' }
+                                    `<div class="reason-box"><b>AUDIT:</b> ${item.reason}</div>` : '' }
                             </td>
                             <td class="text-right"><span class="status-pill ${sClass}">${sText}</span></td>
                         </tr>`;
                 });
 
+                // Bottom Entry
                 if (data.totalAward) {
-                    html += `<tr class="bg-slate-50"><td><span class="date-display">SYSTEM</span><span class="desc-main">Principal Allotment</span><span class="amt-display amt-pos">+$${Number(data.totalAward).toLocaleString()}</span></td><td class="text-right"><span class="status-pill pill-cleared">CLEARED</span></td></tr>`;
+                    html += `<tr class="bg-slate-50"><td><span class="date-display">ORIGIN</span><span class="desc-main">Principal Allotment</span><span class="amt-display amt-pos">+$${Number(data.totalAward).toLocaleString()}</span></td><td class="text-right"><span class="status-pill pill-cleared">CLEARED</span></td></tr>`;
                 }
 
                 ledgerBody.innerHTML = html;
+            }, (err) => {
+                console.error(err);
+                document.getElementById('syncLabel').innerText = "SYNC ERROR";
             });
         });
     </script>
