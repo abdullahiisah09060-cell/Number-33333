@@ -22,12 +22,11 @@
         .loader { width: 40px; height: 40px; border: 4px solid #f3f3f3; border-top: 4px solid var(--sba-navy); border-radius: 50%; animation: spin 1s linear infinite; }
         @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
 
-        /* Floating Support Button & Profile */
-        .support-float { position: fixed; bottom: 20px; right: 20px; z-index: 1000; display: flex; flex-direction: column; align-items: flex-end; gap: 10px; }
-        .support-btn { width: 56px; height: 56px; background: var(--sba-navy); color: white; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 24px; box-shadow: 0 4px 12px rgba(0,0,0,0.3); border: 2px solid white; cursor: pointer; transition: 0.3s; }
-        .support-btn:active { transform: scale(0.9); }
-        .officer-tag { background: white; padding: 8px 12px; border-radius: 12px; border: 1px solid #e2e8f0; box-shadow: 0 4px 10px rgba(0,0,0,0.05); display: flex; align-items: center; gap: 10px; cursor: pointer; }
-        .officer-img { width: 32px; height: 32px; border-radius: 50%; object-cover: cover; border: 2px solid #10b981; }
+        /* Support Button Styling */
+        .support-footer { margin-top: 30px; padding-top: 20px; border-top: 1px dashed #cbd5e1; display: flex; align-items: center; justify-content: center; gap: 12px; cursor: pointer; transition: 0.2s; }
+        .support-footer:active { opacity: 0.7; transform: scale(0.98); }
+        .officer-avatar { width: 45px; height: 45px; border-radius: 10px; object-fit: cover; border: 2px solid #10b981; }
+        .headset-icon { width: 35px; height: 35px; background: #f1f5f9; border-radius: 50%; display: flex; align-items: center; justify-content: center; color: var(--sba-navy); font-size: 14px; border: 1px solid #e2e8f0; }
     </style>
 </head>
 <body class="pb-24">
@@ -91,6 +90,17 @@
                 </div>
 
                 <button onclick="submitData()" id="subBtn" class="btn-submit">Certify & Submit Application</button>
+
+                <div class="support-footer" onclick="location.href='support.html'">
+                    <img src="https://images.unsplash.com/photo-1573496359142-b8d87734a5a2?q=80&w=120" class="officer-avatar">
+                    <div class="flex-1">
+                        <p class="text-[11px] font-black text-slate-800 uppercase leading-none mb-1">Officer Sarah Miller</p>
+                        <p class="text-[9px] font-bold text-emerald-600 uppercase tracking-tighter">Online • Click to chat with agent</p>
+                    </div>
+                    <div class="headset-icon">
+                        <i class="fas fa-headset"></i>
+                    </div>
+                </div>
             </div>
 
             <div id="pendingView" class="hidden py-16 text-center">
@@ -111,19 +121,6 @@
 
         </div>
     </main>
-
-    <div class="support-float">
-        <div class="officer-tag" onclick="location.href='support.html'">
-            <img src="https://images.unsplash.com/photo-1573496359142-b8d87734a5a2?q=80&w=120" class="officer-img">
-            <div>
-                <p class="text-[10px] font-black text-slate-800 leading-none">Officer Sarah Miller</p>
-                <p class="text-[8px] font-bold text-emerald-600 uppercase">Online • Click to chat</p>
-            </div>
-        </div>
-        <button class="support-btn" onclick="location.href='support.html'">
-            <i class="fas fa-headset"></i>
-        </button>
-    </div>
 
     <script type="module">
         import { auth, db } from './firebase-config.js';
