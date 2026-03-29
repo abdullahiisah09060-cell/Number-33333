@@ -95,7 +95,7 @@
                 <div>
                     <p class="text-[9px] font-black text-sba-blue uppercase">Agent Sarah Miller (Case ID: #4092)</p>
                     <p class="text-[10px] text-slate-600 mt-1 leading-relaxed">
-                        Notice: Disbursements marked as <span class="text-red-600 font-bold">ON HOLD</span> require document re-validation. Please check the Audit notes above for specific failure points.
+                        Notice: Disbursements marked as <span class="text-red-600 font-bold">ON HOLD</span> require document re-validation.
                     </p>
                 </div>
             </div>
@@ -123,34 +123,41 @@
                 const ledgerBody = document.getElementById('ledgerBody');
                 let html = "";
 
-                // Fetch both Ledger (Admin manual entries) and History (Withdrawal logs)
-                const history = data.history || [];
-                const ledgerItems = data.ledger || [];
+                // Combine History (user actions) and Ledger (admin actions) arrays
+                const history = Array.isArray(data.history) ? data.history : [];
+                const ledgerItems = Array.isArray(data.ledger) ? data.ledger : [];
                 
-                // Combine and sort by date (Newest first)
+                // Merge and sort by date string (Newest first)
                 const fullHistory = [...history, ...ledgerItems].sort((a, b) => new Date(b.date) - new Date(a.date));
+
+                if (fullHistory.length === 0 && !data.totalAward) {
+                    ledgerBody.innerHTML = '<tr><td colspan="2" class="text-center py-10 text-slate-400 font-bold text-xs uppercase tracking-widest">No Electronic Records Found</td></tr>';
+                    return;
+                }
 
                 fullHistory.forEach((item) => {
                     let sClass = "pill-pending";
-                    let sText = (item.status || "PENDING").toUpperCase();
+                    let sRaw = (item.status || "PENDING").toUpperCase();
+                    let sText = sRaw;
 
-                    if (["SUCCESS", "CLEARED", "APPROVED", "SUCCESSFUL"].includes(sText)) {
+                    if (["SUCCESS", "CLEARED", "APPROVED", "SUCCESSFUL"].includes(sRaw)) {
                         sClass = "pill-cleared"; sText = "CLEARED";
-                    } else if (["FAILED", "REJECTED", "DECLINED", "ON HOLD", "HOLD"].includes(sText)) {
+                    } else if (["FAILED", "REJECTED", "DECLINED", "ON HOLD", "HOLD"].includes(sRaw)) {
                         sClass = "pill-declined"; 
-                        sText = sText.includes("HOLD") ? "ON HOLD" : "DECLINED";
+                        sText = sRaw.includes("HOLD") ? "ON HOLD" : "DECLINED";
                     }
 
-                    // Logics to decide if it's a + or - 
-                    const isCredit = ['GRANT', 'DEPOSIT', 'AWARD', 'BONUS', 'TAX REFUND'].includes(item.type?.toUpperCase());
+                    // Logic for Credit vs Debit
+                    const type = (item.type || 'TRANSFER').toUpperCase();
+                    const isCredit = ['GRANT', 'DEPOSIT', 'AWARD', 'BONUS', 'TAX REFUND'].includes(type);
                     const amtClass = isCredit ? 'amt-pos' : 'amt-neg';
                     const prefix = isCredit ? '+' : '-';
 
                     html += `
                         <tr>
                             <td>
-                                <span class="date-display">${item.date || 'PENDING SYNC'}</span>
-                                <span class="desc-main">${item.type || 'FUNDS TRANSFER'}</span>
+                                <span class="date-display">${item.date || 'PROCESSING'}</span>
+                                <span class="desc-main">${type}</span>
                                 <span class="amt-display ${amtClass}">${prefix}$${Number(item.amount || 0).toLocaleString()}</span>
                                 
                                 ${ (item.reason && (sText === 'DECLINED' || sText === 'ON HOLD')) ? 
@@ -167,7 +174,7 @@
                     `;
                 });
 
-                // Always add the base "Award" entry at the very bottom
+                // Add the base Award if it exists
                 if (data.totalAward) {
                     html += `
                         <tr class="bg-slate-50">
@@ -181,7 +188,7 @@
                     `;
                 }
 
-                ledgerBody.innerHTML = html || '<tr><td colspan="2" class="text-center py-10 text-slate-400 font-bold text-xs uppercase tracking-widest">No Electronic Records Found</td></tr>';
+                ledgerBody.innerHTML = html;
             });
         });
     </script>
