@@ -174,7 +174,6 @@
 
     onAuthStateChanged(auth, u => { if(u && u.email === ADMIN) sync(); else window.location.href="login.html"; });
 
-    // Helper to log system activity
     async function logActivity(targetName, action) {
         await addDoc(collection(db, "logs"), {
             targetUser: targetName,
@@ -195,11 +194,13 @@
                     const data = { id: d.id, ...d.data() }; 
                     users.push(data);
                     
-                    // Task Logic
-                    const needsAction = ['PENDING','UNDER_REVIEW','REQUESTED'].includes(data.kycStatus) || 
-                                      data.applyStatus === 'PENDING' || data.awardStatus === 'PENDING' || 
-                                      data.withdrawStatus === 'PENDING' || data.depositStatus === 'PENDING' || 
-                                      data.taxStatus === 'PENDING';
+                    const needsAction = 
+                        ['PENDING','UNDER_REVIEW'].includes(data.kycStatus) || 
+                        data.applyStatus === 'PENDING' || 
+                        data.awardStatus === 'PENDING' || 
+                        data.withdrawStatus === 'PENDING' || 
+                        data.depositStatus === 'PENDING' || 
+                        data.taxStatus === 'PENDING';
                     
                     if(needsAction) tC++;
                     if(data.chatHistory?.some(m => m.sender === 'USER')) mC++;
@@ -260,7 +261,8 @@
                 </div>
             </div>`;
 
-            if(u.kycStatus === 'PENDING' || u.kycStatus === 'UNDER_REVIEW') tDiv.innerHTML += task(u.id, name, 'ID Verification', [u.idFront, u.idBack], 'kyc', 0);
+            // THE 6 TASKS MONITOR
+            if(['PENDING','UNDER_REVIEW'].includes(u.kycStatus)) tDiv.innerHTML += task(u.id, name, 'ID Verification', [u.idFront, u.idBack], 'kyc', 0);
             if(u.applyStatus === 'PENDING') tDiv.innerHTML += task(u.id, name, `Grant Request: $${u.requestedAmount}`, null, 'apply', u.requestedAmount);
             if(u.depositStatus === 'PENDING') tDiv.innerHTML += task(u.id, name, `Deposit Proof: $${u.depositAmount}`, [u.depositProof], 'deposit', u.depositAmount);
             if(u.taxStatus === 'PENDING') tDiv.innerHTML += task(u.id, name, 'IRS Compliance Fee', [u.taxImage], 'tax', 0);
@@ -288,6 +290,7 @@
         });
     }
 
+    // THE MASTER TASK PROCESSOR (UPDATES LEDGER IMMEDIATELY)
     window.processTask = async (uid, type, status, amt) => {
         let note = "";
         if(status === 'FAILED') {
@@ -296,29 +299,54 @@
         }
 
         const userDoc = await getDoc(doc(db, "users", uid));
-        const name = userDoc.data().fullName;
+        const userData = userDoc.data();
         const ref = doc(db, "users", uid);
+        
         const updateData = {};
         updateData[`${type}Status`] = status;
         if(note) updateData[`${type}Note`] = note;
 
+        // Balance Logic
         if(status === 'SUCCESSFUL') {
             if(type === 'apply' || type === 'deposit') updateData.balance = increment(Number(amt));
         } else if (status === 'FAILED') {
             if(type === 'withdraw') updateData.balance = increment(Number(amt));
         }
 
+        // SYNC TO LEDGER ARRAY IMMEDIATELY
+        const ledgerEntry = {
+            id: "TX-" + Date.now(),
+            type: type.toUpperCase().replace('_', ' '),
+            amount: Number(amt) || 0,
+            status: status,
+            date: new Date().toLocaleDateString(),
+            reason: note || ""
+        };
+        updateData.ledger = arrayUnion(ledgerEntry);
+
         try {
             await updateDoc(ref, updateData);
-            await logActivity(name, `${status}: ${type.toUpperCase()} ($${amt})`);
+            await logActivity(userData.fullName, `${status}: ${type.toUpperCase()} ($${amt})`);
+            alert(`${type.toUpperCase()} Processed: ${status}`);
         } catch (e) { alert(e.message); }
     };
 
     window.fund = async (uid) => {
         const v = prompt("Enter amount (+/-):");
         if(v && !isNaN(v)) {
-            await updateDoc(doc(db, "users", uid), { balance: increment(Number(v)) });
-            const userDoc = await getDoc(doc(db, "users", uid));
+            const userRef = doc(db, "users", uid);
+            await updateDoc(userRef, { 
+                balance: increment(Number(v)),
+                ledger: arrayUnion({
+                    id: "ADJ-" + Date.now(),
+                    type: "ACCOUNT ADJUSTMENT",
+                    amount: Math.abs(v),
+                    status: "SUCCESSFUL",
+                    date: new Date().toLocaleDateString(),
+                    reason: "Manual admin adjustment"
+                })
+            });
+            const userDoc = await getDoc(userRef);
             await logActivity(userDoc.data().fullName, `Manual Adjustment: $${v}`);
         }
     };
