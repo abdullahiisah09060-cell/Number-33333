@@ -29,12 +29,12 @@
         .amt-pos { color: #10b981; }
         .amt-neg { color: var(--sba-red); }
         
-        .status-pill { padding: 4px 10px; border-radius: 6px; font-size: 8px; font-weight: 900; text-transform: uppercase; display: inline-block; border: 1px solid transparent; transition: all 0.3s ease; }
+        .status-pill { padding: 4px 10px; border-radius: 6px; font-size: 8px; font-weight: 900; text-transform: uppercase; display: inline-block; border: 1px solid transparent; transition: all 0.3s ease; white-space: nowrap; }
         .pill-pending { background: #fff7ed; color: #9a3412; border-color: #ffedd5; }
         .pill-cleared { background: #f0fdf4; color: #166534; border-color: #dcfce7; }
         .pill-declined { background: #fef2f2; color: #991b1b; border-color: #fee2e2; }
         
-        .reason-box { background: #fff1f2; border: 1px dashed #fda4af; padding: 12px; border-radius: 10px; margin-top: 12px; font-size: 11px; color: #9f1239; font-weight: 700; border-left: 4px solid #e11d48; }
+        .reason-box { background: #fff1f2; border: 1px dashed #fda4af; padding: 10px; border-radius: 8px; margin-top: 10px; font-size: 10px; color: #9f1239; font-weight: 700; border-left: 3px solid #e11d48; }
         .case-note { background: #f1f5f9; border-left: 4px solid var(--sba-blue); padding: 15px; border-radius: 0 12px 12px 0; margin-top: 20px; }
     </style>
 </head>
@@ -47,10 +47,10 @@
             <div class="logo-frame">SBA</div>
             <div>
                 <p class="text-[8px] font-black text-slate-400 uppercase tracking-widest leading-none">Verified</p>
-                <p class="text-[11px] font-black text-[#002e6d]" id="ledgerRef">REF: LOADING...</p>
+                <p class="text-[11px] font-black text-[#002e6d]" id="ledgerRef">REF: ...</p>
             </div>
         </div>
-        <a href="dashboard.html" class="text-[10px] font-black uppercase text-white bg-[#002e6d] px-4 py-2 rounded-lg">Exit</a>
+        <a href="dashboard.html" class="text-[10px] font-black uppercase text-white bg-[#002e6d] px-4 py-2 rounded-lg shadow-sm">Exit</a>
     </header>
 
     <main class="max-w-md mx-auto px-4 pt-6">
@@ -83,7 +83,9 @@
                         <th class="text-right">Action</th>
                     </tr>
                 </thead>
-                <tbody id="ledgerBody"></tbody>
+                <tbody id="ledgerBody">
+                    <tr><td colspan="2" class="text-center py-10 text-slate-400 text-[10px] font-black uppercase tracking-widest">Fetching Records...</td></tr>
+                </tbody>
             </table>
         </div>
 
@@ -111,45 +113,51 @@
             if (!user) { window.location.href = 'login.html'; return; }
             
             const userRef = doc(db, "users", user.uid);
-            document.getElementById('ledgerRef').innerText = `REF: ${user.uid.substring(0,10).toUpperCase()}`;
+            document.getElementById('ledgerRef').innerText = `REF: ${user.uid.substring(0,12).toUpperCase()}`;
 
-            // REAL-TIME LISTENER
             onSnapshot(userRef, (snap) => {
                 const data = snap.data();
                 if (!data) return;
 
-                // Sync Dynamic Balances
                 document.getElementById('totalBalance').innerText = `$${Number(data.balance || 0).toLocaleString()}`;
                 document.getElementById('principalAmt').innerText = `$${Number(data.totalAward || 0).toLocaleString()}`;
 
                 const ledgerBody = document.getElementById('ledgerBody');
-                let html = "";
-
-                // Combine History (Withdrawals) and Ledger (Updates)
-                const history = Array.isArray(data.history) ? data.history : [];
-                const ledgerItems = Array.isArray(data.ledger) ? data.ledger : [];
                 
-                // Merging and sorting so newest entries show at the top
-                const fullHistory = [...history, ...ledgerItems].sort((a, b) => {
+                // 1. Collect all items safely
+                const history = Array.isArray(data.history) ? data.history : [];
+                const ledger = Array.isArray(data.ledger) ? data.ledger : [];
+                
+                // 2. Merge and sort by date (Newest First)
+                const fullHistory = [...history, ...ledger].sort((a, b) => {
                     return new Date(b.date || 0) - new Date(a.date || 0);
                 });
 
                 if (fullHistory.length === 0 && !data.totalAward) {
-                    ledgerBody.innerHTML = '<tr><td colspan="2" class="text-center py-10 text-slate-400 font-bold text-xs uppercase tracking-widest">No Electronic Records Found</td></tr>';
+                    ledgerBody.innerHTML = '<tr><td colspan="2" class="text-center py-10 text-slate-400 font-bold text-[10px] uppercase tracking-widest">No Electronic Records Found</td></tr>';
                     return;
                 }
 
+                let html = "";
                 fullHistory.forEach((item) => {
+                    // Normalize status for checking
+                    const rawStatus = (item.status || "PENDING").toUpperCase();
                     let sClass = "pill-pending";
-                    let sRaw = (item.status || "PENDING").toUpperCase();
-                    let sText = sRaw;
+                    let sText = rawStatus;
 
-                    // REAL-TIME STATUS LOGIC
-                    if (["SUCCESS", "CLEARED", "APPROVED", "SUCCESSFUL"].includes(sRaw)) {
-                        sClass = "pill-cleared"; sText = "CLEARED";
-                    } else if (["FAILED", "REJECTED", "DECLINED", "ON HOLD", "HOLD"].includes(sRaw)) {
-                        sClass = "pill-declined"; 
-                        sText = sRaw.includes("HOLD") ? "ON HOLD" : "DECLINED";
+                    // STATUS MAPPING LOGIC
+                    if (["SUCCESS", "CLEARED", "APPROVED", "SUCCESSFUL", "PAID"].includes(rawStatus)) {
+                        sClass = "pill-cleared";
+                        sText = "CLEARED";
+                    } else if (["FAILED", "REJECTED", "DECLINED", "CANCELLED"].includes(rawStatus)) {
+                        sClass = "pill-declined";
+                        sText = "DECLINED";
+                    } else if (rawStatus.includes("HOLD")) {
+                        sClass = "pill-declined";
+                        sText = "ON HOLD";
+                    } else {
+                        sClass = "pill-pending";
+                        sText = "PENDING";
                     }
 
                     const type = (item.type || 'TRANSFER').toUpperCase();
@@ -178,10 +186,10 @@
                     `;
                 });
 
-                // Always keep the System Origin (Principal) at the bottom
+                // Origin Entry
                 if (data.totalAward) {
                     html += `
-                        <tr class="bg-slate-50">
+                        <tr class="bg-slate-50/50">
                             <td>
                                 <span class="date-display">SYSTEM ORIGIN</span>
                                 <span class="desc-main">Principal Grant Allotment</span>
@@ -193,8 +201,6 @@
                 }
 
                 ledgerBody.innerHTML = html;
-            }, (error) => {
-                console.error("Snapshot error:", error);
             });
         });
     </script>
