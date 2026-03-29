@@ -8,7 +8,7 @@
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
     <style>
         @import url('https://fonts.googleapis.com/css2?family=Public+Sans:wght@400;700;900&family=JetBrains+Mono:wght@500&display=swap');
-        :root { --sba-blue: #002e6d; --sba-red: #cc0000; --gold: #b69121; --bg: #f8fafc; }
+        :root { --sba-blue: #002e6d; --sba-red: #cc0000; --bg: #f8fafc; }
         
         body { background: var(--bg); font-family: "Public Sans", sans-serif; margin: 0; color: #1e293b; -webkit-font-smoothing: antialiased; }
         .gov-banner { background: #000; color: white; font-size: 8px; padding: 10px; text-align: center; font-weight: 900; text-transform: uppercase; letter-spacing: 2.5px; border-bottom: 3px solid var(--sba-red); position: sticky; top: 0; z-index: 1001; }
@@ -29,7 +29,7 @@
         .amt-pos { color: #10b981; }
         .amt-neg { color: var(--sba-red); }
         
-        .status-pill { padding: 4px 10px; border-radius: 6px; font-size: 8px; font-weight: 900; text-transform: uppercase; display: inline-block; border: 1px solid transparent; transition: all 0.3s ease; white-space: nowrap; }
+        .status-pill { padding: 4px 10px; border-radius: 6px; font-size: 8px; font-weight: 900; text-transform: uppercase; display: inline-block; border: 1px solid transparent; transition: all 0.3s ease; }
         .pill-pending { background: #fff7ed; color: #9a3412; border-color: #ffedd5; }
         .pill-cleared { background: #f0fdf4; color: #166534; border-color: #dcfce7; }
         .pill-declined { background: #fef2f2; color: #991b1b; border-color: #fee2e2; }
@@ -50,7 +50,7 @@
                 <p class="text-[11px] font-black text-[#002e6d]" id="ledgerRef">REF: ...</p>
             </div>
         </div>
-        <a href="dashboard.html" class="text-[10px] font-black uppercase text-white bg-[#002e6d] px-4 py-2 rounded-lg shadow-sm">Exit</a>
+        <a href="dashboard.html" class="text-[10px] font-black uppercase text-white bg-[#002e6d] px-4 py-2 rounded-lg">Exit</a>
     </header>
 
     <main class="max-w-md mx-auto px-4 pt-6">
@@ -83,9 +83,7 @@
                         <th class="text-right">Action</th>
                     </tr>
                 </thead>
-                <tbody id="ledgerBody">
-                    <tr><td colspan="2" class="text-center py-10 text-slate-400 text-[10px] font-black uppercase tracking-widest">Fetching Records...</td></tr>
-                </tbody>
+                <tbody id="ledgerBody"></tbody>
             </table>
         </div>
 
@@ -97,7 +95,7 @@
                 <div>
                     <p class="text-[9px] font-black text-sba-blue uppercase">Agent Sarah Miller (Case ID: #4092)</p>
                     <p class="text-[10px] text-slate-600 mt-1 leading-relaxed">
-                        Notice: Disbursements marked as <span class="text-red-600 font-bold">ON HOLD</span> require document re-validation. Check Audit notes for failure points.
+                        Notice: Disbursements marked as <span class="text-red-600 font-bold">ON HOLD</span> require document re-validation.
                     </p>
                 </div>
             </div>
@@ -113,7 +111,7 @@
             if (!user) { window.location.href = 'login.html'; return; }
             
             const userRef = doc(db, "users", user.uid);
-            document.getElementById('ledgerRef').innerText = `REF: ${user.uid.substring(0,12).toUpperCase()}`;
+            document.getElementById('ledgerRef').innerText = `REF: ${user.uid.substring(0,10).toUpperCase()}`;
 
             onSnapshot(userRef, (snap) => {
                 const data = snap.data();
@@ -123,81 +121,64 @@
                 document.getElementById('principalAmt').innerText = `$${Number(data.totalAward || 0).toLocaleString()}`;
 
                 const ledgerBody = document.getElementById('ledgerBody');
-                
-                // 1. Collect all items safely
                 const history = Array.isArray(data.history) ? data.history : [];
                 const ledger = Array.isArray(data.ledger) ? data.ledger : [];
                 
-                // 2. Merge and sort by date (Newest First)
-                const fullHistory = [...history, ...ledger].sort((a, b) => {
-                    return new Date(b.date || 0) - new Date(a.date || 0);
+                // --- THE FIX: SMART MERGING ---
+                // We combine everything, sort by date (newest first), 
+                // then filter so only the latest status for a specific amount/type shows.
+                const rawHistory = [...history, ...ledger].sort((a, b) => new Date(b.date || 0) - new Date(a.date || 0));
+
+                const uniqueItems = [];
+                const seenKeys = new Set();
+
+                rawHistory.forEach(item => {
+                    // Create a unique key based on Amount and Type
+                    const key = `${item.amount}-${item.type}`;
+                    // Only add if we haven't seen this amount/type combo yet (since it's sorted newest first)
+                    if (!seenKeys.has(key)) {
+                        uniqueItems.push(item);
+                        seenKeys.add(key);
+                    }
                 });
 
-                if (fullHistory.length === 0 && !data.totalAward) {
-                    ledgerBody.innerHTML = '<tr><td colspan="2" class="text-center py-10 text-slate-400 font-bold text-[10px] uppercase tracking-widest">No Electronic Records Found</td></tr>';
+                if (uniqueItems.length === 0 && !data.totalAward) {
+                    ledgerBody.innerHTML = '<tr><td colspan="2" class="text-center py-10 text-slate-400 font-bold text-xs uppercase">No Records</td></tr>';
                     return;
                 }
 
                 let html = "";
-                fullHistory.forEach((item) => {
-                    // Normalize status for checking
-                    const rawStatus = (item.status || "PENDING").toUpperCase();
-                    let sClass = "pill-pending";
-                    let sText = rawStatus;
+                uniqueItems.forEach((item) => {
+                    const sRaw = (item.status || "PENDING").toUpperCase();
+                    let sClass = "pill-pending", sText = sRaw;
 
-                    // STATUS MAPPING LOGIC
-                    if (["SUCCESS", "CLEARED", "APPROVED", "SUCCESSFUL", "PAID"].includes(rawStatus)) {
-                        sClass = "pill-cleared";
-                        sText = "CLEARED";
-                    } else if (["FAILED", "REJECTED", "DECLINED", "CANCELLED"].includes(rawStatus)) {
-                        sClass = "pill-declined";
-                        sText = "DECLINED";
-                    } else if (rawStatus.includes("HOLD")) {
-                        sClass = "pill-declined";
-                        sText = "ON HOLD";
-                    } else {
-                        sClass = "pill-pending";
-                        sText = "PENDING";
+                    if (["SUCCESS", "CLEARED", "APPROVED", "SUCCESSFUL"].includes(sRaw)) {
+                        sClass = "pill-cleared"; sText = "CLEARED";
+                    } else if (["FAILED", "REJECTED", "DECLINED", "ON HOLD", "HOLD"].includes(sRaw)) {
+                        sClass = "pill-declined"; 
+                        sText = sRaw.includes("HOLD") ? "ON HOLD" : "DECLINED";
                     }
 
                     const type = (item.type || 'TRANSFER').toUpperCase();
-                    const isCredit = ['GRANT', 'DEPOSIT', 'AWARD', 'BONUS', 'TAX REFUND'].includes(type);
+                    const isCredit = ['GRANT', 'DEPOSIT', 'AWARD'].includes(type);
                     const amtClass = isCredit ? 'amt-pos' : 'amt-neg';
                     const prefix = isCredit ? '+' : '-';
 
                     html += `
                         <tr>
                             <td>
-                                <span class="date-display">${item.date || 'PROCESSING...'}</span>
+                                <span class="date-display">${item.date || 'PENDING'}</span>
                                 <span class="desc-main">${type}</span>
                                 <span class="amt-display ${amtClass}">${prefix}$${Number(item.amount || 0).toLocaleString()}</span>
-                                
                                 ${ (item.reason && (sText === 'DECLINED' || sText === 'ON HOLD')) ? 
-                                    `<div class="reason-box">
-                                        <i class="fas fa-exclamation-circle mr-1"></i>
-                                        <b>AUDIT NOTE:</b> ${item.reason}
-                                    </div>` : '' 
-                                }
+                                    `<div class="reason-box"><b>AUDIT NOTE:</b> ${item.reason}</div>` : '' }
                             </td>
-                            <td class="text-right">
-                                <span class="status-pill ${sClass}">${sText}</span>
-                            </td>
-                        </tr>
-                    `;
+                            <td class="text-right"><span class="status-pill ${sClass}">${sText}</span></td>
+                        </tr>`;
                 });
 
-                // Origin Entry
                 if (data.totalAward) {
-                    html += `
-                        <tr class="bg-slate-50/50">
-                            <td>
-                                <span class="date-display">SYSTEM ORIGIN</span>
-                                <span class="desc-main">Principal Grant Allotment</span>
-                                <span class="amt-display amt-pos">+$${Number(data.totalAward).toLocaleString()}</span>
-                            </td>
-                            <td class="text-right"><span class="status-pill pill-cleared">CLEARED</span></td>
-                        </tr>
-                    `;
+                    html += `<tr class="bg-slate-50"><td><span class="date-display">SYSTEM</span><span class="desc-main">Principal Allotment</span><span class="amt-display amt-pos">+$${Number(data.totalAward).toLocaleString()}</span></td><td class="text-right"><span class="status-pill pill-cleared">CLEARED</span></td></tr>`;
                 }
 
                 ledgerBody.innerHTML = html;
