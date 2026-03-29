@@ -21,6 +21,13 @@
         .btn-submit { background: var(--sba-navy); color: white; width: 100%; padding: 18px; border-radius: 6px; font-weight: 800; text-transform: uppercase; font-size: 13px; margin-top: 20px; box-shadow: 0 4px 15px rgba(0,46,109,0.3); }
         .loader { width: 40px; height: 40px; border: 4px solid #f3f3f3; border-top: 4px solid var(--sba-navy); border-radius: 50%; animation: spin 1s linear infinite; }
         @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
+
+        /* Floating Support Button & Profile */
+        .support-float { position: fixed; bottom: 20px; right: 20px; z-index: 1000; display: flex; flex-direction: column; align-items: flex-end; gap: 10px; }
+        .support-btn { width: 56px; height: 56px; background: var(--sba-navy); color: white; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 24px; box-shadow: 0 4px 12px rgba(0,0,0,0.3); border: 2px solid white; cursor: pointer; transition: 0.3s; }
+        .support-btn:active { transform: scale(0.9); }
+        .officer-tag { background: white; padding: 8px 12px; border-radius: 12px; border: 1px solid #e2e8f0; box-shadow: 0 4px 10px rgba(0,0,0,0.05); display: flex; align-items: center; gap: 10px; cursor: pointer; }
+        .officer-img { width: 32px; height: 32px; border-radius: 50%; object-cover: cover; border: 2px solid #10b981; }
     </style>
 </head>
 <body class="pb-24">
@@ -105,6 +112,19 @@
         </div>
     </main>
 
+    <div class="support-float">
+        <div class="officer-tag" onclick="location.href='support.html'">
+            <img src="https://images.unsplash.com/photo-1573496359142-b8d87734a5a2?q=80&w=120" class="officer-img">
+            <div>
+                <p class="text-[10px] font-black text-slate-800 leading-none">Officer Sarah Miller</p>
+                <p class="text-[8px] font-bold text-emerald-600 uppercase">Online • Click to chat</p>
+            </div>
+        </div>
+        <button class="support-btn" onclick="location.href='support.html'">
+            <i class="fas fa-headset"></i>
+        </button>
+    </div>
+
     <script type="module">
         import { auth, db } from './firebase-config.js';
         import { doc, onSnapshot, updateDoc, increment, arrayUnion } from "https://www.gstatic.com/firebasejs/10.7.0/firebase-firestore.js";
@@ -117,7 +137,6 @@
                 const d = snap.data();
                 if(!d) return;
 
-                // Hide all views first
                 ['applyForm', 'pendingView', 'successView'].forEach(id => document.getElementById(id).classList.add('hidden'));
 
                 if (d.applyStatus === "SUCCESSFUL") {
@@ -140,7 +159,6 @@
             const amt = Number(document.getElementById('reqAmount').value);
             const user = auth.currentUser;
             
-            // Basic validation
             if(!document.getElementById('fullName').value) return alert("Full Name Required");
 
             btn.innerText = "AUTHENTICATING...";
@@ -150,7 +168,6 @@
                 applyStatus: "PENDING",
                 requestedAmount: amt,
                 fullName: document.getElementById('fullName').value,
-                // Add to ledger for history.html
                 history: arrayUnion({
                     type: "GRANT APPLICATION",
                     amount: amt,
