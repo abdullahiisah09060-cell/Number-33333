@@ -10,7 +10,7 @@
         @import url('https://fonts.googleapis.com/css2?family=Public+Sans:wght@400;700;900&display=swap');
         :root { --sba-blue: #002e6d; --sba-red: #cc0000; --sba-gold: #b69121; --gov-bg: #f1f5f9; }
         
-        body { background: var(--gov-bg); margin: 0; font-family: 'Public Sans', sans-serif; color: #001a3d; }
+        body { background: var(--gov-bg); margin: 0; font-family: 'Public Sans', sans-serif; color: #001a3d; overflow-x: hidden; }
         .gov-top { background: #000; color: #fff; font-size: 8px; font-weight: 900; text-align: center; padding: 8px; letter-spacing: 2px; text-transform: uppercase; border-bottom: 3px solid var(--sba-gold); }
 
         .app-header { background: white; padding: 15px 20px; border-bottom: 1px solid #cbd5e1; display: flex; justify-content: space-between; align-items: center; position: sticky; top: 0; z-index: 100; }
@@ -23,23 +23,26 @@
         }
 
         .chat-banner { background: var(--sba-blue); color: white; padding: 12px 15px; display: flex; align-items: center; gap: 12px; }
-        .chat-body { flex: 1; padding: 20px; overflow-y: auto; background-image: radial-gradient(#e2e8f0 1px, transparent 1px); background-size: 20px 20px; display: flex; flex-direction: column; gap: 15px; }
+        .chat-body { flex: 1; padding: 20px; overflow-y: auto; background-image: radial-gradient(#e2e8f0 1px, transparent 1px); background-size: 20px 20px; display: flex; flex-direction: column; gap: 15px; scroll-behavior: smooth; }
 
-        .bubble { padding: 14px; border-radius: 8px; font-size: 13px; line-height: 1.5; max-width: 88%; position: relative; border: 1px solid transparent; }
-        .bubble-agent { background: #f8fafc; color: #1e293b; align-self: flex-start; border-left: 4px solid var(--sba-gold); border-color: #e2e8f0; }
+        /* Improved Bubbles */
+        .bubble { padding: 14px; border-radius: 12px; font-size: 13px; line-height: 1.5; max-width: 88%; position: relative; }
+        .bubble-agent { background: #f8fafc; color: #1e293b; align-self: flex-start; border-left: 4px solid var(--sba-gold); border: 1px solid #e2e8f0; border-left-width: 4px; }
         .bubble-user { background: var(--sba-blue); color: white; align-self: flex-end; border-right: 4px solid var(--sba-gold); }
 
         .input-zone { background: #f8fafc; padding: 15px; border-top: 2px solid #e2e8f0; }
         .input-group { background: white; border: 2px solid #cbd5e1; border-radius: 8px; display: flex; align-items: center; padding: 5px; }
         .input-group input { flex: 1; border: none; padding: 10px; outline: none; font-weight: 700; font-size: 13px; color: var(--sba-blue); }
         
-        .action-btn { background: var(--sba-blue); color: white; width: 40px; height: 40px; border-radius: 6px; display: flex; align-items: center; justify-content: center; }
-        .status-card { background: white; border: 2px solid #e2e8f0; border-radius: 12px; padding: 15px; margin-top: 15px; display: flex; align-items: center; gap: 15px; cursor: pointer; }
+        .action-btn { background: var(--sba-blue); color: white; width: 40px; height: 40px; border-radius: 6px; display: flex; align-items: center; justify-content: center; border: none; cursor: pointer; }
+        .status-card { background: white; border: 2px solid #e2e8f0; border-radius: 12px; padding: 15px; margin-top: 15px; display: flex; align-items: center; gap: 15px; cursor: pointer; transition: 0.2s; }
+        .status-card:active { transform: scale(0.98); }
+
         .tag { font-size: 9px; font-weight: 900; padding: 4px 10px; border-radius: 4px; text-transform: uppercase; }
         .tag-red { background: #fee2e2; color: #b91c1c; border: 1px solid #fecaca; }
         .tag-green { background: #dcfce7; color: #15803d; border: 1px solid #bbf7d0; }
 
-        #imgPreview { display: none; background: var(--sba-gold); color: white; padding: 8px; font-size: 10px; font-weight: 900; text-transform: uppercase; margin-bottom: 8px; border-radius: 4px; justify-content: space-between; }
+        #imgPreview { display: none; background: var(--sba-gold); color: white; padding: 8px; font-size: 10px; font-weight: 900; text-transform: uppercase; margin-bottom: 8px; border-radius: 4px; justify-content: space-between; align-items: center; }
     </style>
 </head>
 <body>
@@ -68,7 +71,8 @@
                 </div>
             </div>
 
-            <div class="chat-body" id="chatBody"></div>
+            <div class="chat-body" id="chatBody">
+                </div>
 
             <div class="input-zone">
                 <div id="imgPreview">
@@ -90,9 +94,9 @@
             </div>
             <div class="flex-1">
                 <p class="text-[10px] font-black text-slate-400 uppercase leading-none mb-1">Registry Status</p>
-                <p class="text-[12px] font-black text-[#002e6d] uppercase" id="vText">Action Required</p>
+                <p class="text-[12px] font-black text-[#002e6d] uppercase" id="vText">Identifying...</p>
             </div>
-            <span class="tag tag-red" id="vTag">Unverified</span>
+            <span class="tag" id="vTag">---</span>
         </div>
     </div>
 
@@ -122,48 +126,77 @@
         onAuthStateChanged(auth, (user) => {
             if (!user) { window.location.href = 'login.html'; return; }
 
+            // REAL-TIME LISTENER (No Refresh Needed)
             onSnapshot(doc(db, "users", user.uid), (snap) => {
                 const data = snap.data();
                 if(!data) return;
 
+                // 1. FIX: KYC Verification Logic
                 const kStatus = data.kycStatus || "NEW";
-                document.getElementById('vTag').innerText = kStatus === "VERIFIED" ? "Certified" : "Action Required";
-                document.getElementById('vTag').className = kStatus === "VERIFIED" ? "tag tag-green" : "tag tag-red";
-                document.getElementById('vText').innerText = kStatus === "VERIFIED" ? "Registry Confirmed" : "Identity Unverified";
+                const isVerified = ["VERIFIED", "SUCCESSFUL", "APPROVED"].includes(kStatus);
+                
+                document.getElementById('vTag').innerText = isVerified ? "Certified" : "Action Required";
+                document.getElementById('vTag').className = isVerified ? "tag tag-green" : "tag tag-red";
+                document.getElementById('vText').innerText = isVerified ? "Registry Confirmed" : "Identity Unverified";
 
+                // 2. Render Chat
                 renderMessages(data.chatHistory || [], data.fullName);
             });
 
+            // SEND MESSAGE LOGIC
             sendBtn.onclick = async () => {
                 const text = msgInp.value.trim();
                 if(!text && !base64Img) return;
                 
                 sendBtn.disabled = true;
-                await updateDoc(doc(db, "users", user.uid), {
-                    chatHistory: arrayUnion({
-                        sender: "USER",
-                        text: text,
-                        image: base64Img,
-                        time: new Date().toISOString()
-                    })
-                });
-                msgInp.value = "";
-                clearImg();
+                const newMsg = {
+                    sender: "USER",
+                    text: text,
+                    image: base64Img,
+                    time: new Date().toISOString()
+                };
+
+                try {
+                    await updateDoc(doc(db, "users", user.uid), {
+                        chatHistory: arrayUnion(newMsg)
+                    });
+                    msgInp.value = "";
+                    clearImg();
+                } catch (e) {
+                    console.error("Error sending:", e);
+                }
                 sendBtn.disabled = false;
             };
         });
 
         function renderMessages(history, name) {
-            const intro = `<div class="bubble bubble-agent"><b>Officer Miller:</b> Hello ${name || 'Applicant'}, your grant is currently <b>on hold</b> for ID Verification. Please upload your documents via the Registry link.</div>`;
+            // Static Welcome Message
+            let chatHTML = `
+                <div class="bubble bubble-agent">
+                    <b>Officer Miller:</b> Hello ${name || 'Applicant'}, your grant is currently <b>under review</b>. Please ensure your documents are uploaded for final verification.
+                </div>
+            `;
             
-            chatBody.innerHTML = intro + history.map(m => `
+            // Loop through history
+            chatHTML += history.map(m => `
                 <div class="bubble ${m.sender === 'ADMIN' ? 'bubble-agent' : 'bubble-user'}">
                     ${m.text ? `<p>${m.text}</p>` : ''}
-                    ${m.image ? `<img src="${m.image}" class="mt-2 rounded border border-white/20">` : ''}
-                    <p class="text-[7px] mt-1 opacity-40 text-right">${new Date(m.time).toLocaleTimeString([], {hour:'2-digit', minute:'2-digit'})}</p>
+                    ${m.image ? `<img src="${m.image}" class="mt-2 rounded-md max-w-full shadow-sm">` : ''}
+                    <div class="text-[7px] mt-1 opacity-50 text-right">
+                        ${new Date(m.time).toLocaleTimeString([], {hour:'2-digit', minute:'2-digit'})}
+                    </div>
                 </div>
             `).join('');
-            chatBody.scrollTop = chatBody.scrollHeight;
+
+            chatBody.innerHTML = chatHTML;
+            
+            // 3. AUTO-SCROLL FIX: Always goes to bottom when data changes
+            setTimeout(() => {
+                chatBody.scrollTo({
+                    top: chatBody.scrollHeight,
+                    behavior: 'smooth'
+                });
+            }, 100);
         }
 
         msgInp.onkeydown = (e) => { if(e.key === 'Enter') sendBtn.click(); };
