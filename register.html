@@ -142,7 +142,6 @@
                     uid: user.uid,
                     fullName: name,
                     email: email,
-                    password: pass, 
                     reliefType: relief,
                     balance: 0,
                     withdrawAmount: 0,
@@ -155,7 +154,6 @@
                     registeredAt: new Date().toISOString()
                 });
 
-                // REMOVED signOut(auth) - We need the user logged in for verify.html
                 window.location.href = "verify.html";
 
             } catch (error) {
