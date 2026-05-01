@@ -31,7 +31,7 @@
 <body class="min-h-screen flex flex-col">
 
     <div class="bg-[#efefef] py-2 px-4 flex items-center gap-2 border-b border-gray-200">
-        <img src="https://upload.wikimedia.org/wikipedia/en/a/a4/Flag_of_the_United_States.svg" class="w-4 shadow-sm">
+        <img src="https://upload.wikimedia.org/wikipedia/en/a/a4/Flag_of_the_United_States.svg" class="w-4 shadow-sm" alt="U.S. Flag">
         <span class="text-[10px] font-black text-gray-500 uppercase tracking-widest">Official Identity Audit</span>
     </div>
 
@@ -109,12 +109,10 @@
 
         onAuthStateChanged(auth, async (user) => {
             if (!user) {
-                // Only redirect if there is absolutely no session
                 window.location.href = "login.html";
             } else {
                 displayEmail.innerText = user.email.toUpperCase();
                 
-                // Start heartbeat monitor
                 checkInterval = setInterval(async () => {
                     await user.reload();
                     if (auth.currentUser.emailVerified) {
@@ -186,7 +184,7 @@
         }
 
         document.getElementById('logoutBtn').onclick = () => {
-            if(checkInterval) clearInterval(checkInterval);
+            if (checkInterval) clearInterval(checkInterval);
             signOut(auth).then(() => { window.location.href = "login.html"; });
         };
     </script>
