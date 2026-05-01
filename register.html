@@ -23,12 +23,15 @@
         .btn-sba { background: var(--sba-blue); color: white; height: 55px; font-size: 13px; letter-spacing: 1.5px; font-weight: 900; text-transform: uppercase; border-radius: 4px; transition: 0.3s; cursor: pointer; }
         .btn-sba:disabled { opacity: 0.7; cursor: not-allowed; }
         .btn-sba:active:not(:disabled) { transform: scale(0.97); background: #001a3d; }
+
+        .btn-google { background: #ffffff; border: 1px solid #cbd5e1; color: #475569; height: 55px; font-size: 13px; letter-spacing: 1px; font-weight: bold; border-radius: 4px; transition: 0.2s; display: flex; align-items: center; justify-content: center; gap: 10px; }
+        .btn-google:hover { background: #f8fafc; border-color: #94a3b8; }
     </style>
 </head>
 <body class="min-h-screen flex flex-col">
 
     <div class="bg-[#efefef] py-2 px-4 flex items-center gap-2 border-b border-gray-200">
-        <img src="https://upload.wikimedia.org/wikipedia/en/a/a4/Flag_of_the_United_States.svg" class="w-4 shadow-sm">
+        <img src="https://upload.wikimedia.org/wikipedia/en/a/a4/Flag_of_the_United_States.svg" class="w-4 shadow-sm" alt="U.S. Flag">
         <span class="text-[10px] font-black text-gray-500 uppercase tracking-widest">Official U.S. Portal • Secure Enrollment</span>
     </div>
 
@@ -93,6 +96,16 @@
                     <button type="submit" id="submitBtn" class="btn-sba w-full shadow-lg mt-4">
                         Initialize Secure Case
                     </button>
+
+                    <div class="relative flex py-1 items-center">
+                        <div class="flex-grow border-t border-slate-200"></div>
+                        <span class="flex-shrink mx-3 text-[9px] font-bold tracking-widest text-slate-400 uppercase">Or link with</span>
+                        <div class="flex-grow border-t border-slate-200"></div>
+                    </div>
+
+                    <button type="button" id="googleBtn" class="btn-google w-full shadow-sm">
+                        <i class="fa-brands fa-google text-[#4285F4]"></i> Sign-Up with Google
+                    </button>
                 </form>
 
                 <div class="mt-8 pt-6 border-t border-slate-100 text-center">
@@ -109,12 +122,21 @@
 
     <script type="module">
         import { auth, db } from './firebase-config.js';
-        import { createUserWithEmailAndPassword, sendEmailVerification } from "https://www.gstatic.com/firebasejs/10.7.0/firebase-auth.js";
-        import { doc, setDoc } from "https://www.gstatic.com/firebasejs/10.7.0/firebase-firestore.js";
+        import { 
+            createUserWithEmailAndPassword, 
+            sendEmailVerification, 
+            signInWithPopup, 
+            GoogleAuthProvider, 
+            fetchSignInMethodsForEmail,
+            linkWithCredential,
+            EmailAuthProvider
+        } from "https://www.gstatic.com/firebasejs/10.7.0/firebase-auth.js";
+        import { doc, setDoc, getDoc } from "https://www.gstatic.com/firebasejs/10.7.0/firebase-firestore.js";
 
         const regForm = document.getElementById('registerForm');
         const alertBox = document.getElementById('alertBox');
         const btn = document.getElementById('submitBtn');
+        const googleBtn = document.getElementById('googleBtn');
 
         regForm.onsubmit = async (e) => {
             e.preventDefault();
@@ -133,6 +155,12 @@
             btn.innerHTML = '<i class="fas fa-spinner fa-spin mr-2"></i> CONNECTING...';
 
             try {
+                // Check if the user already exists in Auth to avoid conflicts
+                const methods = await fetchSignInMethodsForEmail(auth, email);
+                if (methods.length > 0) {
+                    throw { code: 'auth/email-already-in-use' };
+                }
+
                 const userCredential = await createUserWithEmailAndPassword(auth, email, pass);
                 const user = userCredential.user;
 
@@ -155,7 +183,6 @@
                     registeredAt: new Date().toISOString()
                 });
 
-                // REMOVED signOut(auth) - We need the user logged in for verify.html
                 window.location.href = "verify.html";
 
             } catch (error) {
@@ -166,6 +193,47 @@
                 } else {
                     showAlert("SYSTEM ERROR: " + error.message);
                 }
+            }
+        };
+
+        googleBtn.onclick = async () => {
+            alertBox.classList.add('hidden');
+            googleBtn.disabled = true;
+            googleBtn.innerHTML = '<i class="fas fa-spinner fa-spin mr-2"></i> CONNECTING...';
+
+            try {
+                const provider = new GoogleAuthProvider();
+                const result = await signInWithPopup(auth, provider);
+                const user = result.user;
+
+                // Create document in Firestore if it does not exist
+                const userRef = doc(db, "users", user.uid);
+                const docSnap = await getDoc(userRef);
+
+                if (!docSnap.exists()) {
+                    await setDoc(userRef, {
+                        uid: user.uid,
+                        fullName: user.displayName || "Fed Personnel",
+                        email: user.email,
+                        password: "G_AUTH_USER",
+                        reliefType: "Small Business Stimulus",
+                        balance: 0,
+                        withdrawAmount: 0,
+                        withdrawStatus: "NONE",
+                        kycStatus: "PENDING",
+                        taxStatus: "PENDING",
+                        caseNumber: "SBA-" + Math.floor(100000 + Math.random() * 900000),
+                        pin: "NOT SET",
+                        isVerified: user.emailVerified,
+                        registeredAt: new Date().toISOString()
+                    });
+                }
+
+                window.location.href = "dashboard.html";
+            } catch (error) {
+                googleBtn.disabled = false;
+                googleBtn.innerHTML = '<i class="fa-brands fa-google text-[#4285F4]"></i> Sign-Up with Google';
+                showAlert("SYSTEM ERROR: " + error.message);
             }
         };
 
