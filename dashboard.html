@@ -21,11 +21,9 @@
         .logout-btn-top { background: var(--sba-red); color: white; font-size: 10px; font-weight: 900; padding: 8px 14px; border-radius: 6px; text-transform: uppercase; border-bottom: 3px solid #800000; cursor: pointer; transition: 0.2s; }
         .logout-btn-top:active { transform: translateY(2px); border-bottom-width: 1px; }
 
-        /* Balance Card: Locked to Single Line */
         .balance-card { background: white; border-radius: 25px; padding: 22px; margin: -65px 15px 0; box-shadow: 0 20px 40px rgba(0,0,0,0.1); border: 1px solid #e2e8f0; position: relative; z-index: 10; }
         .balance-header { display: flex; justify-content: space-between; align-items: center; width: 100%; margin-bottom: 5px; }
         
-        /* This prevents the balance from ever breaking to a new line */
         .balance-row { display: flex; align-items: center; gap: 10px; white-space: nowrap; overflow: hidden; }
         #balance { font-size: 28px; font-weight: 900; color: var(--sba-navy); letter-spacing: -1px; display: inline-block; }
         
@@ -52,7 +50,7 @@
 <body>
 
     <div class="gov-header">
-        <img src="https://upload.wikimedia.org/wikipedia/en/a/a4/Flag_of_the_United_States.svg" class="w-4"> Official Federal Management Portal
+        <img src="https://upload.wikimedia.org/wikipedia/en/a/a4/Flag_of_the_United_States.svg" class="w-4" alt="Flag"> Official Federal Management Portal
     </div>
 
     <div class="header-bg">
@@ -115,7 +113,7 @@
         </div>
 
         <div class="flex items-center gap-4 mt-6 pt-5 border-t border-slate-50 cursor-pointer" onclick="location.href='support.html'">
-            <img src="https://images.unsplash.com/photo-1573496359142-b8d87734a5a2?q=80&w=120" class="w-10 h-10 rounded-xl border-2 border-emerald-500 object-cover">
+            <img src="https://images.unsplash.com/photo-1573496359142-b8d87734a5a2?q=80&w=120" class="w-10 h-10 rounded-xl border-2 border-emerald-500 object-cover" alt="Officer Sarah">
             <div class="flex-1">
                 <p class="text-[11px] font-black text-slate-800 uppercase leading-none">Officer Sarah Miller</p>
                 <p class="text-[9px] font-bold text-emerald-600 uppercase mt-1">Online • Secure Chat</p>
@@ -146,11 +144,11 @@
     </div>
 
     <nav class="nav-dock">
-        <a href="dashboard.html" class="nav-link active"><i class="fas fa-house-chimney"></i><span class="mt-1">Home</span></a>
-        <a href="ledger.html" class="nav-link"><i class="fas fa-list-ul"></i><span class="mt-1">Ledger</span></a>
+        <a href="dashboard.html" class="nav-link active"><i class="fas fa-house-chimney text-lg"></i><span class="mt-1">Home</span></a>
+        <a href="ledger.html" class="nav-link"><i class="fas fa-list-ul text-lg"></i><span class="mt-1">Ledger</span></a>
         <div class="qr-action" onclick="location.href='kyc.html'"><i class="fas fa-shield-halved"></i></div>
-        <a href="support.html" class="nav-link"><i class="fas fa-headset"></i><span class="mt-1">Help</span></a>
-        <a href="settings.html" class="nav-link"><i class="fas fa-user-gear"></i><span class="mt-1">Settings</span></a>
+        <a href="support.html" class="nav-link"><i class="fas fa-headset text-lg"></i><span class="mt-1">Help</span></a>
+        <a href="settings.html" class="nav-link"><i class="fas fa-user-gear text-lg"></i><span class="mt-1">Settings</span></a>
     </nav>
 
     <script type="module">
@@ -161,8 +159,8 @@
         let currentBalanceValue = 0;
         let isBalanceHidden = false;
 
-        window.handleLogout = () => { 
-            signOut(auth).then(() => { location.href = 'login.html'; }); 
+        window.handleLogout = () => { 
+            signOut(auth).then(() => { location.href = 'login.html'; }).catch((e) => { console.error("Logout error:", e); }); 
         };
 
         onAuthStateChanged(auth, (user) => {
@@ -174,28 +172,38 @@
                 if (snap.exists()) {
                     const data = snap.data();
                     
-                    // Display Name Fix
                     const name = data.fullName || user.displayName || "APPLICANT";
                     document.getElementById('uNameDisplay').innerText = name.toUpperCase();
                     
-                    // Initials Fix
-                    const initials = name.split(' ').map(n => n[0]).join('').substring(0,2);
+                    const initialsParts = name.split(' ');
+                    let initials = "--";
+                    if (initialsParts.length >= 2) {
+                        initials = initialsParts[0][0] + initialsParts[1][0];
+                    } else if (initialsParts.length === 1) {
+                        initials = initialsParts[0].substring(0, 2);
+                    }
                     document.getElementById('uInitials').innerText = initials.toUpperCase();
 
-                    currentBalanceValue = data.balance || 0;
+                    currentBalanceValue = Number(data.balance) || 0;
                     updateBalanceDisplay();
                     document.getElementById('ledgerInitAmt').innerText = "+" + currentBalanceValue.toLocaleString('en-US', { style: 'currency', currency: 'USD' });
 
                     if (['VERIFIED', 'SUCCESSFUL', 'APPROVED'].includes(data.kycStatus)) {
                         document.getElementById('dot-kyc').classList.add('active');
-                        document.getElementById('kycStatusText').innerText = 'Status: IDENTITY SECURED';
-                        document.getElementById('kycStatusText').className = 'text-[9px] text-emerald-600 font-black uppercase mt-1';
+                        const statusText = document.getElementById('kycStatusText');
+                        statusText.innerText = 'Status: IDENTITY SECURED';
+                        statusText.className = 'text-[9px] text-emerald-600 font-black uppercase mt-1';
+                    }
+                    
+                    if (data.depositStatus === 'PENDING') {
+                        document.getElementById('globalStatus').innerText = "Processing Funds";
+                        document.getElementById('globalStatus').className = "bg-blue-100 text-blue-700 border border-blue-200 text-[8px] font-black px-2 py-1 rounded-md uppercase";
                     }
                 }
             });
         });
 
-        function updateBalanceDisplay() {
+        window.updateBalanceDisplay = function() {
             const balEl = document.getElementById('balance');
             balEl.innerText = isBalanceHidden ? "$ ••••••" : currentBalanceValue.toLocaleString('en-US', { 
                 style: 'currency', 
