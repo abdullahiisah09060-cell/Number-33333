@@ -56,7 +56,7 @@
                     </div>
                     
                     <label class="text-[10px] font-black text-slate-500 uppercase ml-1">Select Asset Channel</label>
-                    <div class="grid grid-cols-3 gap-2 mt-2 mb-6">
+                    <div class="grid grid-cols-3 gap-2 mt-2 mb-4">
                         <div class="method-card active" onclick="selectMethod('BTC', 'bc1qrrc86d42pzejhwxxsjfctmjkj7dl52q0j0qy9k', 'Bitcoin', this)">
                             <i class="fab fa-bitcoin text-orange-500 text-lg"></i>
                             <p class="text-[8px] font-black uppercase mt-1 text-slate-700 truncate">BTC</p>
@@ -93,6 +93,12 @@
                             <i class="fas fa-circle text-blue-400 text-lg"></i>
                             <p class="text-[8px] font-black uppercase mt-1 text-slate-700 truncate">SUI</p>
                         </div>
+                    </div>
+
+                    <div id="networkSelector" class="mb-6">
+                        <label class="text-[10px] font-black text-slate-500 uppercase ml-1">Select Network Variant</label>
+                        <select id="networkDropdown" onchange="updateWalletAddressFromDropdown()" class="w-full h-11 px-4 mt-2 rounded-xl border-2 border-slate-100 font-bold text-xs focus:border-sba-blue outline-none transition-all shadow-inner bg-slate-50/50">
+                            </select>
                     </div>
 
                     <label class="text-[10px] font-black text-slate-500 uppercase ml-1">Deposit Amount (USD)</label>
@@ -184,18 +190,90 @@
 
         let compressedImage = null;
         let selectedMethodName = "BTC";
+        let selectedNetworkData = "bc1qrrc86d42pzejhwxxsjfctmjkj7dl52q0j0qy9k";
+        let selectedLabel = "Bitcoin";
+
+        // Global address repository mapping method/network variants
+        const addressRepository = {
+            "BTC": {
+                "Bitcoin": "bc1qrrc86d42pzejhwxxsjfctmjkj7dl52q0j0qy9k"
+            },
+            "USDT": {
+                "BNB Smart Chain (BEP20)": "0x3b424b2999dEF4894f21f1a5bFe89e97Bc21DE1E",
+                "Ethereum (ERC20)": "0x3b424b2999dEF4894f21f1a5bFe89e97Bc21DE1E",
+                "Tron (TRC20)": "TKZcchSTjdJXEoVZmErwfiSUmZFnh6Tjwx",
+                "Solana (SOL)": "9UgFrLx796JagxDAJARrqzzW7c9DPHfrS2n3UH7vsMf4",
+                "TON (TON)": "UQCleKsmB8o-DF3fjkBR2X7gNrrs81Nv-zb_8mPW4GPx7yj9",
+                "Arbitrum": "0x3b424b2999dEF4894f21f1a5bFe89e97Bc21DE1E"
+            },
+            "USDC": {
+                "Base (BASE)": "0x3b424b2999dEF4894f21f1a5bFe89e97Bc21DE1E",
+                "Solana (SOL)": "9UgFrLx796JagxDAJARrqzzW7c9DPHfrS2n3UH7vsMf4",
+                "Ethereum (ERC20)": "0x3b424b2999dEF4894f21f1a5bFe89e97Bc21DE1E",
+                "BNB Smart Chain (BEP20)": "0x3b424b2999dEF4894f21f1a5bFe89e97Bc21DE1E",
+                "Arbitrum": "0x3b424b2999dEF4894f21f1a5bFe89e97Bc21DE1E"
+            },
+            "ETH": {
+                "Ethereum (ERC20)": "0x3b424b2999dEF4894f21f1a5bFe89e97Bc21DE1E",
+                "Base (BASE)": "0x3b424b2999dEF4894f21f1a5bFe89e97Bc21DE1E",
+                "Arbitrum": "0x3b424b2999dEF4894f21f1a5bFe89e97Bc21DE1E"
+            },
+            "BNB": {
+                "BNB Smart Chain (BEP20)": "0x3b424b2999dEF4894f21f1a5bFe89e97Bc21DE1E"
+            },
+            "SOL": {
+                "Solana (SOL)": "9UgFrLx796JagxDAJARrqzzW7c9DPHfrS2n3UH7vsMf4"
+            },
+            "TRX": {
+                "Tron (TRC20)": "TKZcchSTjdJXEoVZmErwfiSUmZFnh6Tjwx"
+            },
+            "TON": {
+                "TON (TON)": "UQCleKsmB8o-DF3fjkBR2X7gNrrs81Nv-zb_8mPW4GPx7yj9"
+            },
+            "SUI": {
+                "Sui (SUI)": "0xb63217f9308f3711bc4b277fc8029ac4f93c828c3af4b6684024cdbdf9811454"
+            }
+        };
 
         window.selectMethod = (name, addr, labelText, el) => {
             selectedMethodName = name;
+            selectedLabel = labelText;
+            
+            // Populate Dropdown for Networks
+            const networkDropdown = document.getElementById('networkDropdown');
+            networkDropdown.innerHTML = '';
+
+            const networks = addressRepository[name];
+            for (const [netName, netAddr] of Object.entries(networks)) {
+                const opt = document.createElement('option');
+                opt.value = netAddr;
+                opt.textContent = netName;
+                networkDropdown.appendChild(opt);
+            }
+
             document.querySelectorAll('.method-card').forEach(c => c.classList.remove('active'));
             el.classList.add('active');
-            document.getElementById('methodLabel').innerText = `${labelText} Receiver`;
-            document.getElementById('walletAddr').innerText = addr;
-            
-            // Update QR Code image source safely
-            const qrImg = document.getElementById('qrImg');
-            qrImg.src = `https://api.qrserver.com/v1/create-qr-code/?size=120x120&data=${encodeURIComponent(addr)}`;
+
+            // Trigger dropdown update
+            updateWalletAddressFromDropdown();
         };
+
+        window.updateWalletAddressFromDropdown = () => {
+            const dropdown = document.getElementById('networkDropdown');
+            const selectedAddress = dropdown.value;
+            const selectedNetworkName = dropdown.options[dropdown.selectedIndex].text;
+
+            selectedNetworkData = selectedAddress;
+            document.getElementById('walletAddr').innerText = selectedAddress;
+            document.getElementById('methodLabel').innerText = `${selectedLabel} (${selectedNetworkName}) Receiver`;
+
+            // Refresh QR code
+            const qrImg = document.getElementById('qrImg');
+            qrImg.src = `https://api.qrserver.com/v1/create-qr-code/?size=120x120&data=${encodeURIComponent(selectedAddress)}`;
+        };
+
+        // Initialize with default state
+        selectMethod("BTC", "bc1qrrc86d42pzejhwxxsjfctmjkj7dl52q0j0qy9k", "Bitcoin", document.querySelector('.method-card'));
 
         window.resetNode = async () => {
             const btn = event.target;
