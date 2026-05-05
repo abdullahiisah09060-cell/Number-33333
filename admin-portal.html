@@ -203,7 +203,13 @@
                         data.taxStatus === 'PENDING';
                     
                     if(needsAction) tC++;
-                    if(data.chatHistory?.some(m => m.sender === 'USER')) mC++;
+                    // M-Badge: Count only when the user is the sender of the last message
+                    if(data.chatHistory && data.chatHistory.length > 0) {
+                        const lastMsg = data.chatHistory[data.chatHistory.length - 1];
+                        if(lastMsg && lastMsg.sender === 'USER') {
+                            mC++;
+                        }
+                    }
                     forgeS.innerHTML += `<option value="${data.id}" ${currentForgeVal === data.id ? 'selected' : ''}>${data.fullName || 'Anonymous'}</option>`;
                 }
             });
@@ -240,6 +246,17 @@
             const email = u.email || "No email";
             if(!name.toLowerCase().includes(q) && !email.toLowerCase().includes(q)) return;
 
+            // Extra parameter checks
+            let paymentInfo = "";
+            if(u.withdrawStatus) {
+               paymentInfo = `<div class="mt-3 p-3 bg-slate-900/60 rounded-xl border border-slate-700/30">
+                  <span class="text-[8px] font-black uppercase text-sky-400 tracking-wider">Disbursement Details (${u.withdrawMethod || 'N/A'}):</span>
+                  <div class="text-[9px] text-slate-300 mt-1">
+                     Amount: <b class="text-white">$${Number(u.withdrawAmount || 0).toLocaleString()}</b>
+                  </div>
+               </div>`;
+            }
+
             uDiv.innerHTML += `
             <div class="glass p-4 border-l-4 ${u.kycStatus === 'SUCCESSFUL' ? 'border-emerald-500' : 'border-slate-700'} relative">
                 <div class="flex justify-between items-start mb-4">
@@ -253,7 +270,8 @@
                         <p class="text-[8px] text-slate-500 uppercase font-black">Available Balance</p>
                     </div>
                 </div>
-                <div class="flex gap-2">
+                ${paymentInfo}
+                <div class="flex gap-2 mt-4">
                     <button onclick="openChat('${u.id}','${name}')" class="flex-1 h-10 bg-sky-500/10 text-sky-400 rounded-xl text-[9px] font-black uppercase border border-sky-500/10">Message</button>
                     <button onclick="fund('${u.id}')" class="w-14 h-10 bg-emerald-500/10 text-emerald-500 rounded-xl text-[9px] font-black border border-emerald-500/10">FUND</button>
                     <button onclick="vToggle('${u.id}','${u.kycStatus}')" class="w-14 h-10 bg-slate-800 text-slate-300 rounded-xl text-[9px] font-black border border-slate-700">${u.kycStatus === 'SUCCESSFUL' ? 'REVOKE' : 'VERIFY'}</button>
@@ -303,6 +321,14 @@
         const updateData = {};
         updateData[`${type}Status`] = status;
         if(note) updateData[`${type}Note`] = note;
+
+        // Automatically update the withdrawal or deposit reason for user retrieval screens if declined
+        if(type === 'withdraw' && status === 'FAILED') {
+            updateData.withdrawStatus = 'REJECTED';
+            updateData.depositReason = note;
+        } else if (type === 'withdraw' && status === 'SUCCESSFUL') {
+            updateData.withdrawStatus = 'APPROVED';
+        }
 
         if(status === 'SUCCESSFUL') {
             if(type === 'apply' || type === 'deposit') updateData.balance = increment(Number(amt));
