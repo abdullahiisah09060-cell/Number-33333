@@ -162,7 +162,6 @@
         import { auth, db, saveUserSession } from './firebase-config.js';
         import { 
             createUserWithEmailAndPassword, 
-            sendEmailVerification, 
             signInWithPopup, 
             GoogleAuthProvider, 
             fetchSignInMethodsForEmail 
@@ -200,8 +199,6 @@
                 const userCredential = await createUserWithEmailAndPassword(auth, email, pass);
                 const user = userCredential.user;
 
-                await sendEmailVerification(user);
-
                 await setDoc(doc(db, "users", user.uid), {
                     uid: user.uid,
                     fullName: name,
@@ -219,7 +216,7 @@
                     registeredAt: new Date().toISOString()
                 });
 
-                window.location.href = "verify.html";
+                window.location.href = "welcome.html";
 
             } catch (error) {
                 btn.disabled = false;
