@@ -204,6 +204,12 @@
                     <input type="number" id="wireAmount" class="w-full h-14 pl-10 rounded-2xl border-2 border-slate-100 font-black text-lg focus:border-sba-navy outline-none transition-all shadow-inner bg-slate-50/50" placeholder="0.00">
                 </div>
 
+                <label class="label-text mt-3">Available Balance</label>
+                <div class="relative mb-4">
+                    <span class="absolute left-5 top-1/2 -translate-y-1/2 font-black text-slate-400 text-lg">$</span>
+                    <div class="w-full h-14 pl-10 rounded-2xl border-2 border-slate-100 font-black text-lg bg-slate-100 flex items-center text-slate-700" id="bal">--.--</div>
+                </div>
+
                 <label class="label-text mt-3">Operations PIN</label>
                 <div class="relative mb-6">
                     <span class="absolute left-5 top-1/2 -translate-y-1/2 font-black text-slate-400"><i class="fas fa-lock text-xs"></i></span>
@@ -238,9 +244,22 @@
     <div class="fab-support" onclick="location.href='tel:+155519927'"><i class="fas fa-headset"></i></div>
 
     <script type="module">
-        import { auth, db } from './firebase-config.js';
-        import { doc, getDoc, updateDoc, onSnapshot, arrayUnion } from "https://www.gstatic.com/firebasejs/10.7.0/firebase-firestore.js";
-        import { onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.7.0/firebase-auth.js";
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.0/firebase-app.js";
+        import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.7.0/firebase-auth.js";
+        import { getFirestore, doc, getDoc, updateDoc, onSnapshot, arrayUnion } from "https://www.gstatic.com/firebasejs/10.7.0/firebase-firestore.js";
+
+        const firebaseConfig = {
+            apiKey: "YOUR_API_KEY",
+            authDomain: "YOUR_AUTH_DOMAIN",
+            projectId: "YOUR_PROJECT_ID",
+            storageBucket: "YOUR_STORAGE_BUCKET",
+            messagingSenderId: "YOUR_MESSAGING_SENDER_ID",
+            appId: "YOUR_APP_ID"
+        };
+
+        const app = initializeApp(firebaseConfig);
+        const auth = getAuth(app);
+        const db = getFirestore(app);
 
         window.selectedDisbursementMode = 'ach';
         let userBalance = 0;
@@ -333,7 +352,6 @@
                 const userRef = doc(db, "users", auth.currentUser.uid);
                 const updatedBalance = userBalance - amount;
 
-                // Update the balance and add a chat/ledger entry for the admin side.
                 await updateDoc(userRef, {
                     balance: updatedBalance,
                     withdrawStatus: "PENDING",
@@ -371,12 +389,10 @@
 
                     document.getElementById('globalLoader').style.display = 'none';
 
-                    // Check if the user has set a PIN
                     if (!userData.withdrawPin) {
                         document.getElementById('form-content-state').classList.add('hidden');
                         document.getElementById('pin-setup-state').classList.remove('hidden');
                     } else {
-                        // Routing from standard status triggers
                         if (userData.withdrawStatus === "REJECTED" || userData.withdrawStatus === "DECLINED") {
                             document.getElementById('reason-box').classList.remove('hidden');
                             document.getElementById('decline-text').innerText = userData.depositReason || "The request could not be processed at this time. Ledger adjustments have been processed.";
