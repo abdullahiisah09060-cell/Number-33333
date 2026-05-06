@@ -38,7 +38,7 @@
 
     <div class="bg-[#efefef] py-2 px-5 flex items-center justify-between border-b border-gray-200">
         <div class="flex items-center gap-2">
-            <img src="https://upload.wikimedia.org/wikipedia/en/a/a4/Flag_of_the_United_States.svg" class="w-4 shadow-sm">
+            <img src="https://upload.wikimedia.org/wikipedia/en/a/a4/Flag_of_the_United_States.svg" class="w-4 shadow-sm" alt="U.S. Flag">
             <span class="text-[10px] font-black text-gray-500 uppercase tracking-widest">Provisioning Receipt</span>
         </div>
         <span class="text-[9px] font-black text-green-600 uppercase tracking-tighter">SECURE_HANDSHAKE</span>
@@ -119,12 +119,6 @@
 
         onAuthStateChanged(auth, async (user) => {
             if (user) {
-                // If they haven't verified their email, kick them back to verify page
-                if (!user.emailVerified) {
-                    window.location.href = 'verify.html';
-                    return;
-                }
-
                 const shortId = user.uid.substring(0, 7).toUpperCase();
                 document.getElementById('receiptNum').innerText = `${Math.floor(3000+Math.random()*6000)}-${shortId}`;
                 document.getElementById('encKey').innerText = `NODE-${shortId}-TLS1.3`;
