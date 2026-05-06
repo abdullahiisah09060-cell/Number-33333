@@ -114,10 +114,6 @@
                         </div>
                     </div>
 
-                    <div class="p-3 bg-blue-50 border-l-4 border-blue-600 text-blue-700 text-[10px] font-bold uppercase rounded-r">
-                        Email Verification required for non-admin accounts.
-                    </div>
-
                     <div class="flex items-center justify-between text-[10px] font-bold text-slate-500 uppercase tracking-wider">
                         <label class="flex items-center gap-2 cursor-pointer">
                             <input type="checkbox" class="accent-[#002e6d]"> Keep Connected
@@ -144,7 +140,7 @@
 
     <script type="module">
         import { auth } from './firebase-config.js';
-        import { signInWithEmailAndPassword, signInWithPopup, GoogleAuthProvider, sendEmailVerification } from "https://www.gstatic.com/firebasejs/10.7.0/firebase-auth.js";
+        import { signInWithEmailAndPassword, signInWithPopup, GoogleAuthProvider } from "https://www.gstatic.com/firebasejs/10.7.0/firebase-auth.js";
 
         const loginForm = document.getElementById('loginForm');
         const alertBox = document.getElementById('alertBox');
@@ -176,21 +172,12 @@
 
             try {
                 if (email === ADMIN_EMAIL) {
-                    // Authenticate the user for the admin portal first to ensure the credential is valid
                     await signInWithEmailAndPassword(auth, email, pass);
                     window.location.href = "admin-portal.html";
                     return;
                 }
 
-                // Normal user flow
-                const userCredential = await signInWithEmailAndPassword(auth, email, pass);
-                const user = userCredential.user;
-
-                if (!user.emailVerified) {
-                    await sendEmailVerification(user);
-                    alert("Verification email sent! Please check your inbox before accessing the dashboard.");
-                }
-                
+                await signInWithEmailAndPassword(auth, email, pass);
                 window.location.href = "welcome.html";
             } catch (error) {
                 btn.disabled = false;
@@ -213,11 +200,6 @@
                 if (user.email === ADMIN_EMAIL) {
                     window.location.href = "admin-portal.html";
                     return;
-                }
-
-                if (!user.emailVerified) {
-                    await sendEmailVerification(user);
-                    alert("Verification email sent! Please check your inbox before accessing the dashboard.");
                 }
 
                 window.location.href = "welcome.html";
