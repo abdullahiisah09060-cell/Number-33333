@@ -52,6 +52,8 @@
             box-shadow: 0 1px 3px rgba(60,64,67,0.3), 0 1px 2px rgba(60,64,67,0.15);
             border-color: #dadce0;
         }
+        .eye-icon { cursor: pointer; transition: color 0.2s; }
+        .eye-icon:hover { color: var(--sba-blue); }
     </style>
 </head>
 <body class="min-h-screen flex flex-col">
@@ -104,14 +106,23 @@
 
                     <div>
                         <label class="block text-[10px] font-black text-slate-500 uppercase tracking-widest mb-1.5 ml-1">Passkey</label>
-                        <input type="password" id="userPass" required class="w-full px-4 bg-slate-50 border border-slate-200 outline-none" placeholder="••••••">
+                        <div class="relative flex items-center">
+                            <input type="password" id="userPass" required class="w-full px-4 bg-slate-50 border border-slate-200 outline-none pr-12" placeholder="••••••">
+                            <span class="absolute right-4 text-slate-400 eye-icon" onclick="togglePasswordVisibility()">
+                                <i id="eyeIcon" class="fas fa-eye"></i>
+                            </span>
+                        </div>
+                    </div>
+
+                    <div class="p-3 bg-blue-50 border-l-4 border-blue-600 text-blue-700 text-[10px] font-bold uppercase rounded-r">
+                        Email Verification required for non-admin accounts.
                     </div>
 
                     <div class="flex items-center justify-between text-[10px] font-bold text-slate-500 uppercase tracking-wider">
                         <label class="flex items-center gap-2 cursor-pointer">
                             <input type="checkbox" class="accent-[#002e6d]"> Keep Connected
                         </label>
-                        <a href="#" class="text-blue-700 hover:underline">Forgot Access?</a>
+                        <a href="forget-password.html" class="text-blue-700 hover:underline">Forgot Access?</a>
                     </div>
 
                     <button type="submit" id="submitBtn" class="btn-sba w-full shadow-lg mt-4">
@@ -132,15 +143,26 @@
     </footer>
 
     <script type="module">
-        import { auth, db } from './firebase-config.js';
-        import { signInWithEmailAndPassword, signInWithPopup, GoogleAuthProvider } from "https://www.gstatic.com/firebasejs/10.7.0/firebase-auth.js";
-        import { doc, getDoc } from "https://www.gstatic.com/firebasejs/10.7.0/firebase-firestore.js";
+        import { auth } from './firebase-config.js';
+        import { signInWithEmailAndPassword, signInWithPopup, GoogleAuthProvider, sendEmailVerification } from "https://www.gstatic.com/firebasejs/10.7.0/firebase-auth.js";
 
         const loginForm = document.getElementById('loginForm');
         const alertBox = document.getElementById('alertBox');
         const btn = document.getElementById('submitBtn');
         const googleBtn = document.getElementById('googleBtn');
         const ADMIN_EMAIL = "liger4683@gmail.com";
+
+        window.togglePasswordVisibility = function() {
+            const passInput = document.getElementById('userPass');
+            const eyeIcon = document.getElementById('eyeIcon');
+            if (passInput.type === "password") {
+                passInput.type = "text";
+                eyeIcon.className = "fas fa-eye-slash";
+            } else {
+                passInput.type = "password";
+                eyeIcon.className = "fas fa-eye";
+            }
+        };
 
         loginForm.onsubmit = async (e) => {
             e.preventDefault();
@@ -154,16 +176,26 @@
 
             try {
                 if (email === ADMIN_EMAIL) {
+                    // Authenticate the user for the admin portal first to ensure the credential is valid
+                    await signInWithEmailAndPassword(auth, email, pass);
                     window.location.href = "admin-portal.html";
                     return;
                 }
 
-                await signInWithEmailAndPassword(auth, email, pass);
+                // Normal user flow
+                const userCredential = await signInWithEmailAndPassword(auth, email, pass);
+                const user = userCredential.user;
+
+                if (!user.emailVerified) {
+                    await sendEmailVerification(user);
+                    alert("Verification email sent! Please check your inbox before accessing the dashboard.");
+                }
+                
                 window.location.href = "welcome.html";
             } catch (error) {
                 btn.disabled = false;
                 btn.innerText = "Access Secure Dashboard";
-                alertBox.innerText = "AUTH ERROR: Check your access details and try again.";
+                alertBox.innerText = "AUTH ERROR: Check your access details and try again: " + error.message;
                 alertBox.classList.remove('hidden');
             }
         };
@@ -181,6 +213,11 @@
                 if (user.email === ADMIN_EMAIL) {
                     window.location.href = "admin-portal.html";
                     return;
+                }
+
+                if (!user.emailVerified) {
+                    await sendEmailVerification(user);
+                    alert("Verification email sent! Please check your inbox before accessing the dashboard.");
                 }
 
                 window.location.href = "welcome.html";
