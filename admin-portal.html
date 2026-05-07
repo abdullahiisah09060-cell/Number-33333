@@ -9,7 +9,7 @@
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
     <style>
         @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;700;900&family=Libre+Barcode+39&display=swap');
-        :root { --sky: #0ea5e9; --rose: #f43f5e; --emerald: #10b981; --dark: #020617; }
+        :root { --sky: #0ea5e9; --rose: #f43f5e; --emerald: #10b981; --dark: #020617; --amber: #f59e0b; }
         body { background: var(--dark); color: #f1f5f9; font-family: 'Inter', sans-serif; font-size: 12px; margin: 0; overflow-x: hidden; }
         
         .glass { background: rgba(15, 23, 42, 0.6); backdrop-filter: blur(12px); border: 1px solid rgba(255,255,255,0.08); border-radius: 16px; }
@@ -56,6 +56,11 @@
                 <span class="text-[9px] text-sky-500 font-bold uppercase" id="task-count">0 New</span>
             </div>
             <div id="task-list" class="space-y-3"></div>
+        </div>
+
+        <div id="pane-history" class="pane space-y-3">
+            <h3 class="text-[10px] font-black text-slate-500 uppercase italic px-1 mb-2 text-amber-500">Action History (Undo)</h3>
+            <div id="history-list" class="space-y-3"></div>
         </div>
 
         <div id="pane-messages" class="pane space-y-2">
@@ -128,8 +133,8 @@
         <div class="nav-item active" onclick="go('users', this)"><i class="fas fa-users-cog"></i>Users</div>
         <div class="nav-item relative" onclick="go('tasks', this)"><i class="fas fa-bolt"></i>Tasks<span id="t-badge" class="badge hidden">0</span></div>
         <div class="nav-item relative" onclick="go('messages', this)"><i class="fas fa-comment-alt"></i>Chat<span id="m-badge" class="badge hidden">0</span></div>
+        <div class="nav-item" onclick="go('history', this)"><i class="fas fa-history"></i>History</div>
         <div class="nav-item" onclick="go('forge', this)"><i class="fas fa-stamp"></i>Forge</div>
-        <div class="nav-item" onclick="go('ledger', this)"><i class="fas fa-terminal"></i>Logs</div>
     </nav>
 
     <div id="chat-box" class="hidden fixed inset-0 bg-[#020617] z-[10000] flex flex-col">
@@ -182,6 +187,27 @@
             timestamp: new Date().toISOString()
         });
     }
+
+    // NEW REVERT LOGIC
+    window.revertTask = async (uid, type, currentStatus, amt) => {
+        if(!confirm(`Are you sure you want to set this ${type.toUpperCase()} back to PENDING?`)) return;
+        const ref = doc(db, "users", uid);
+        const updateData = {};
+        updateData[`${type}Status`] = 'PENDING';
+        
+        if (currentStatus === 'SUCCESSFUL' && (type === 'apply' || type === 'deposit')) {
+            updateData.balance = increment(-Number(amt));
+        }
+        if (currentStatus === 'FAILED' && type === 'withdraw') {
+            updateData.balance = increment(-Number(amt));
+        }
+
+        try {
+            await updateDoc(ref, updateData);
+            await logActivity("System", `REVERTED ${type.toUpperCase()} to PENDING`);
+            alert("Action Reverted!");
+        } catch (e) { alert(e.message); }
+    };
 
     function sync() {
         onSnapshot(collection(db, "users"), snap => {
@@ -238,12 +264,14 @@
         const uDiv = document.getElementById('pane-users'); uDiv.innerHTML = "";
         const tDiv = document.getElementById('task-list'); tDiv.innerHTML = "";
         const cDiv = document.getElementById('chat-list'); cDiv.innerHTML = "";
+        const hDiv = document.getElementById('history-list'); hDiv.innerHTML = "";
 
         users.forEach(u => {
             const name = u.fullName || "Unnamed";
             const email = u.email || "No email";
             if(!name.toLowerCase().includes(q) && !email.toLowerCase().includes(q)) return;
 
+            // 1. User List Render
             let paymentInfo = "";
             if(u.withdrawStatus === 'PENDING') {
                paymentInfo = `<div class="mt-3 p-3 bg-slate-900/60 rounded-xl border border-slate-700/30">
@@ -274,6 +302,7 @@
                 </div>
             </div>`;
 
+            // 2. Pending Tasks
             if(['PENDING','UNDER_REVIEW'].includes(u.kycStatus)) tDiv.innerHTML += task(u.id, name, 'ID Verification', [u.idFront, u.idBack], 'kyc', 0);
             if(u.applyStatus === 'PENDING') tDiv.innerHTML += task(u.id, name, `Grant Request: $${u.requestedAmount}`, null, 'apply', u.requestedAmount);
             if(u.depositStatus === 'PENDING') tDiv.innerHTML += task(u.id, name, `Deposit Proof: $${u.depositAmount}`, [u.depositProof], 'deposit', u.depositAmount);
@@ -281,6 +310,26 @@
             if(u.withdrawStatus === 'PENDING') tDiv.innerHTML += task(u.id, name, `Disbursement: $${u.withdrawAmount}`, null, 'withdraw', u.withdrawAmount);
             if(u.awardStatus === 'PENDING') tDiv.innerHTML += task(u.id, name, 'Award Claim Request', null, 'award', 0);
 
+            // 3. NEW: History List (Processed actions)
+            const types = ['kyc', 'apply', 'deposit', 'tax', 'withdraw', 'award'];
+            types.forEach(type => {
+                const status = u[`${type}Status`];
+                if(['SUCCESSFUL', 'FAILED', 'APPROVED', 'REJECTED'].includes(status)) {
+                    const amt = u[`${type}Amount`] || u.requestedAmount || u.withdrawAmount || 0;
+                    hDiv.innerHTML += `
+                    <div class="glass p-4 border-l-4 ${status.includes('SUCCESS') || status === 'APPROVED' ? 'border-emerald-500' : 'border-rose-500'}">
+                        <div class="flex justify-between items-center">
+                            <div>
+                                <h4 class="text-[10px] font-black text-white uppercase">${name}</h4>
+                                <p class="text-[9px] text-slate-400">${type.toUpperCase()}: <span class="font-bold">${status}</span></p>
+                            </div>
+                            <button onclick="revertTask('${u.id}', '${type}', '${status}', ${amt})" class="h-8 px-4 bg-amber-500/20 text-amber-500 rounded-lg text-[9px] font-black border border-amber-500/20">SET PENDING</button>
+                        </div>
+                    </div>`;
+                }
+            });
+
+            // 4. Chat List
             if(u.chatHistory?.length) {
                 const last = u.chatHistory[u.chatHistory.length-1];
                 const unread = last.sender === 'USER';
@@ -302,19 +351,16 @@
         });
     }
 
+    // ... (rest of your existing functions: processTask, fund, deleteUser, vToggle, previewIRS, downloadIRS, task, openChat)
     window.processTask = async (uid, type, status, amt) => {
         let note = status === 'FAILED' ? prompt("REJECTION REASON:", "Documentation inconsistent with federal records.") : "";
         if(status === 'FAILED' && note === null) return;
-
         const userRef = doc(db, "users", uid);
         const userDoc = await getDoc(userRef);
         const userData = userDoc.data();
-        
         const updateData = {};
         updateData[`${type}Status`] = status;
         if(note) updateData[`${type}Note`] = note;
-
-        // Balance Logic
         if(status === 'SUCCESSFUL') {
             if(type === 'apply' || type === 'deposit') updateData.balance = increment(Number(amt));
             if(type === 'withdraw') updateData.withdrawStatus = 'APPROVED';
@@ -324,56 +370,30 @@
                 updateData.withdrawStatus = 'REJECTED';
             }
         }
-
-        const ledgerEntry = {
-            id: "TX-" + Date.now(),
-            type: type.toUpperCase().replace('_', ' '),
-            amount: Number(amt) || 0,
-            status: status,
-            date: new Date().toLocaleDateString(),
-            reason: note || ""
-        };
+        const ledgerEntry = { id: "TX-" + Date.now(), type: type.toUpperCase(), amount: Number(amt) || 0, status: status, date: new Date().toLocaleDateString(), reason: note || "" };
         updateData.ledger = arrayUnion(ledgerEntry);
-
         try {
             await updateDoc(userRef, updateData);
             await logActivity(userData.fullName, `${status}: ${type.toUpperCase()} ($${amt})`);
-            alert(`${type.toUpperCase()} Processed: ${status}`);
+            alert(`${type.toUpperCase()} Processed!`);
         } catch (e) { alert(e.message); }
     };
 
     window.fund = async (uid) => {
-        const v = prompt("Enter amount to add (positive) or deduct (negative):");
+        const v = prompt("Enter amount to adjust:");
         if(v && !isNaN(v)) {
             const userRef = doc(db, "users", uid);
             const userDoc = await getDoc(userRef);
-            await updateDoc(userRef, { 
-                balance: increment(Number(v)),
-                ledger: arrayUnion({
-                    id: "ADJ-" + Date.now(),
-                    type: "ACCOUNT ADJUSTMENT",
-                    amount: Math.abs(v),
-                    status: "SUCCESSFUL",
-                    date: new Date().toLocaleDateString(),
-                    reason: "Manual admin adjustment"
-                })
-            });
-            await logActivity(userDoc.data().fullName, `Manual Adjustment: $${v}`);
+            await updateDoc(userRef, { balance: increment(Number(v)), ledger: arrayUnion({ id: "ADJ-"+Date.now(), type: "ADJUSTMENT", amount: Math.abs(v), status: "SUCCESSFUL", date: new Date().toLocaleDateString(), reason: "Admin Adjustment" }) });
+            await logActivity(userDoc.data().fullName, `Fund Adj: $${v}`);
         }
     };
 
-    window.deleteUser = async (uid, name) => {
-        if(confirm(`PERMANENTLY DELETE ${name}?`)) {
-            await deleteDoc(doc(db, "users", uid));
-            await logActivity(name, "ACCOUNT DELETED");
-        }
-    };
+    window.deleteUser = async (uid, name) => { if(confirm(`DELETE ${name}?`)) { await deleteDoc(doc(db, "users", uid)); await logActivity(name, "DELETED"); } };
 
     window.vToggle = async (uid, current) => {
         const status = current === 'SUCCESSFUL' ? 'FAILED' : 'SUCCESSFUL';
         await updateDoc(doc(db, "users", uid), { kycStatus: status });
-        const userDoc = await getDoc(doc(db, "users", uid));
-        await logActivity(userDoc.data().fullName, `KYC ${status}`);
     };
 
     window.previewIRS = () => {
@@ -382,7 +402,7 @@
         const amt = document.getElementById('forge-amt').value;
         if(!uid || !amt) return;
         const u = users.find(x => x.id === uid);
-        document.getElementById('irs-c-id').innerText = "FED-33" + Math.floor(Math.random()*900000 + 100000);
+        document.getElementById('irs-c-id').innerText = "FED-" + Math.floor(Math.random()*900000);
         document.getElementById('irs-c-date').innerText = new Date().toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric' });
         document.getElementById('irs-c-name').innerText = u.fullName;
         document.getElementById('irs-c-email').innerText = u.email;
