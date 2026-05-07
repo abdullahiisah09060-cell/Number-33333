@@ -49,6 +49,7 @@
 
     <main class="px-4 space-y-4">
         <div id="pane-users" class="pane active space-y-3"></div>
+        
         <div id="pane-tasks" class="pane space-y-3">
             <div class="flex items-center justify-between px-1">
                 <h3 class="text-[10px] font-black text-slate-500 uppercase italic">Action Required</h3>
@@ -203,12 +204,9 @@
                         data.taxStatus === 'PENDING';
                     
                     if(needsAction) tC++;
-                    // M-Badge: Count only when the user is the sender of the last message
-                    if(data.chatHistory && data.chatHistory.length > 0) {
+                    if(data.chatHistory?.length > 0) {
                         const lastMsg = data.chatHistory[data.chatHistory.length - 1];
-                        if(lastMsg && lastMsg.sender === 'USER') {
-                            mC++;
-                        }
+                        if(lastMsg.sender === 'USER') mC++;
                     }
                     forgeS.innerHTML += `<option value="${data.id}" ${currentForgeVal === data.id ? 'selected' : ''}>${data.fullName || 'Anonymous'}</option>`;
                 }
@@ -246,14 +244,11 @@
             const email = u.email || "No email";
             if(!name.toLowerCase().includes(q) && !email.toLowerCase().includes(q)) return;
 
-            // Extra parameter checks
             let paymentInfo = "";
-            if(u.withdrawStatus) {
+            if(u.withdrawStatus === 'PENDING') {
                paymentInfo = `<div class="mt-3 p-3 bg-slate-900/60 rounded-xl border border-slate-700/30">
-                  <span class="text-[8px] font-black uppercase text-sky-400 tracking-wider">Disbursement Details (${u.withdrawMethod || 'N/A'}):</span>
-                  <div class="text-[9px] text-slate-300 mt-1">
-                     Amount: <b class="text-white">$${Number(u.withdrawAmount || 0).toLocaleString()}</b>
-                  </div>
+                  <span class="text-[8px] font-black uppercase text-sky-400 tracking-wider">Withdrawal Request (${u.withdrawMethod || 'N/A'}):</span>
+                  <div class="text-[9px] text-slate-300 mt-1">Amount: <b class="text-white">$${Number(u.withdrawAmount || 0).toLocaleString()}</b></div>
                </div>`;
             }
 
@@ -308,32 +303,26 @@
     }
 
     window.processTask = async (uid, type, status, amt) => {
-        let note = "";
-        if(status === 'FAILED') {
-            note = prompt("REJECTION REASON:", "Documentation inconsistent with federal records.");
-            if(note === null) return;
-        }
+        let note = status === 'FAILED' ? prompt("REJECTION REASON:", "Documentation inconsistent with federal records.") : "";
+        if(status === 'FAILED' && note === null) return;
 
-        const userDoc = await getDoc(doc(db, "users", uid));
+        const userRef = doc(db, "users", uid);
+        const userDoc = await getDoc(userRef);
         const userData = userDoc.data();
-        const ref = doc(db, "users", uid);
         
         const updateData = {};
         updateData[`${type}Status`] = status;
         if(note) updateData[`${type}Note`] = note;
 
-        // Automatically update the withdrawal or deposit reason for user retrieval screens if declined
-        if(type === 'withdraw' && status === 'FAILED') {
-            updateData.withdrawStatus = 'REJECTED';
-            updateData.depositReason = note;
-        } else if (type === 'withdraw' && status === 'SUCCESSFUL') {
-            updateData.withdrawStatus = 'APPROVED';
-        }
-
+        // Balance Logic
         if(status === 'SUCCESSFUL') {
             if(type === 'apply' || type === 'deposit') updateData.balance = increment(Number(amt));
+            if(type === 'withdraw') updateData.withdrawStatus = 'APPROVED';
         } else if (status === 'FAILED') {
-            if(type === 'withdraw') updateData.balance = increment(Number(amt));
+            if(type === 'withdraw') {
+                updateData.balance = increment(Number(amt)); // Refund
+                updateData.withdrawStatus = 'REJECTED';
+            }
         }
 
         const ledgerEntry = {
@@ -347,16 +336,17 @@
         updateData.ledger = arrayUnion(ledgerEntry);
 
         try {
-            await updateDoc(ref, updateData);
+            await updateDoc(userRef, updateData);
             await logActivity(userData.fullName, `${status}: ${type.toUpperCase()} ($${amt})`);
             alert(`${type.toUpperCase()} Processed: ${status}`);
         } catch (e) { alert(e.message); }
     };
 
     window.fund = async (uid) => {
-        const v = prompt("Enter amount (+/-):");
+        const v = prompt("Enter amount to add (positive) or deduct (negative):");
         if(v && !isNaN(v)) {
             const userRef = doc(db, "users", uid);
+            const userDoc = await getDoc(userRef);
             await updateDoc(userRef, { 
                 balance: increment(Number(v)),
                 ledger: arrayUnion({
@@ -368,13 +358,12 @@
                     reason: "Manual admin adjustment"
                 })
             });
-            const userDoc = await getDoc(userRef);
             await logActivity(userDoc.data().fullName, `Manual Adjustment: $${v}`);
         }
     };
 
     window.deleteUser = async (uid, name) => {
-        if(confirm(`DELETE ${name}?`)) {
+        if(confirm(`PERMANENTLY DELETE ${name}?`)) {
             await deleteDoc(doc(db, "users", uid));
             await logActivity(name, "ACCOUNT DELETED");
         }
@@ -414,7 +403,7 @@
     };
 
     function task(uid, name, title, imgs, type, amt) {
-        let gallery = imgs ? `<div class="flex gap-2 my-3">` + imgs.map(i => i ? `<img src="${i}" class="w-16 h-16 object-cover rounded-xl" onclick="pop('${i}')" alt="Task Image">` : '').join('') + `</div>` : '';
+        let gallery = imgs ? `<div class="flex gap-2 my-3">` + imgs.map(i => i ? `<img src="${i}" class="w-16 h-16 object-cover rounded-xl" onclick="pop('${i}')">` : '').join('') + `</div>` : '';
         return `<div class="glass p-5 border-l-4 border-amber-500">
             <h4 class="font-black text-white text-[11px] uppercase">${name}</h4>
             <p class="text-[10px] text-amber-500 font-black uppercase italic">${title}</p>
@@ -432,7 +421,7 @@
             const h = s.data().chatHistory || [];
             document.getElementById('chat-msgs').innerHTML = h.map(m => `
                 <div class="p-4 rounded-3xl max-w-[85%] ${m.sender === 'ADMIN' ? 'bg-sky-600 self-end rounded-br-none' : 'bg-slate-800 self-start rounded-bl-none'}">
-                    ${m.image ? `<img src="${m.image}" class="w-full rounded-2xl mb-2" onclick="pop('${m.image}')" alt="Chat Image">` : ''}
+                    ${m.image ? `<img src="${m.image}" class="w-full rounded-2xl mb-2" onclick="pop('${m.image}')">` : ''}
                     <p class="text-white text-[13px]">${m.text || ''}</p>
                 </div>`).join('');
             const sc = document.getElementById('chat-msgs'); sc.scrollTop = sc.scrollHeight;
