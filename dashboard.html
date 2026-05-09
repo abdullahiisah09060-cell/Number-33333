@@ -193,7 +193,7 @@
     <script type="module">
         import { auth, db } from './firebase-config.js';
         import { onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/10.7.0/firebase-auth.js";
-        import { doc, onSnapshot, updateDoc } from "https://www.gstatic.com/firebasejs/10.7.0/firebase-firestore.js";
+        import { doc, onSnapshot, updateDoc, serverTimestamp } from "https://www.gstatic.com/firebasejs/10.7.0/firebase-firestore.js";
 
         let currentBalanceValue = 0;
         let isBalanceHidden = false;
@@ -237,7 +237,7 @@
                         document.getElementById('releaseSection').style.display = 'block';
                     }
 
-                    // AUTH CODE LOGIC WITH DISTINCT COLORS
+                    // AUTH CODE LOGIC
                     const vBtn = document.getElementById('verifyBtn');
                     const vInput = document.getElementById('releaseCodeInput');
                     const statusLabel = document.getElementById('authStatusLabel');
@@ -263,6 +263,8 @@
                         document.getElementById('authCodeContainer').style.display = 'none';
                         document.getElementById('authSuccessMsg').style.display = 'block';
                         document.getElementById('dot-payout').classList.add('active');
+                        document.getElementById('globalStatus').innerText = "Disbursed";
+                        document.getElementById('globalStatus').className = "bg-emerald-100 text-emerald-700 border border-emerald-200 text-[8px] font-black px-2 py-1 rounded-md uppercase";
                     }
 
                     // NOTIFICATIONS
@@ -278,7 +280,7 @@
                 }
             });
 
-            // HANDLE CODE SUBMISSION
+            // HANDLE CODE SUBMISSION - Updated for Admin sync
             document.getElementById('verifyBtn').onclick = async () => {
                 const code = document.getElementById('releaseCodeInput').value.trim();
                 if (!code) return alert("Please enter your Authorization Code");
@@ -291,7 +293,9 @@
                     await updateDoc(userRef, {
                         authCodeStatus: 'PENDING',
                         submittedAuthCode: code,
-                        lastAction: 'Code Verification'
+                        awardStatus: 'PENDING', // Forces visibility in Admin Portal
+                        lastAction: 'Auth Code Verification Request',
+                        updatedAt: serverTimestamp()
                     });
                     alert("Sequence Transmitted. Awaiting Officer Approval.");
                 } catch (err) {
