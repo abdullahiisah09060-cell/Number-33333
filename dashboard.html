@@ -231,13 +231,12 @@
                         document.getElementById('kycStatusText').className = 'text-[9px] text-emerald-600 font-black uppercase mt-1';
                     }
 
-                    // Show Federal Release section only after Tax is verified
                     if (['VERIFIED', 'SUCCESSFUL', 'APPROVED'].includes(data.taxStatus)) {
                         document.getElementById('dot-tax').classList.add('active');
                         document.getElementById('releaseSection').style.display = 'block';
                     }
 
-                    // AUTH CODE LOGIC
+                    // *** REPAIRED AUTH CODE LOGIC ***
                     const vBtn = document.getElementById('verifyBtn');
                     const vInput = document.getElementById('releaseCodeInput');
                     const statusLabel = document.getElementById('authStatusLabel');
@@ -280,7 +279,7 @@
                 }
             });
 
-            // HANDLE CODE SUBMISSION - Updated for Admin sync
+            // HANDLE CODE SUBMISSION
             document.getElementById('verifyBtn').onclick = async () => {
                 const code = document.getElementById('releaseCodeInput').value.trim();
                 if (!code) return alert("Please enter your Authorization Code");
@@ -292,12 +291,10 @@
                 try {
                     await updateDoc(userRef, {
                         authCodeStatus: 'PENDING',
-                        submittedAuthCode: code,
-                        awardStatus: 'PENDING', // Forces visibility in Admin Portal
-                        lastAction: 'Auth Code Verification Request',
+                        submittedAuthCode: code, // YOU WILL SEE THIS IN ADMIN
+                        lastAction: 'Authorization Code Submission',
                         updatedAt: serverTimestamp()
                     });
-                    alert("Sequence Transmitted. Awaiting Officer Approval.");
                 } catch (err) {
                     alert("Transmission Error: " + err.message);
                     btn.disabled = false;
