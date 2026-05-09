@@ -118,6 +118,7 @@
                 <input type="text" id="releaseCodeInput" placeholder="SBA-XXXX-XX" class="flex-1 bg-slate-50 border border-slate-200 rounded-lg px-4 py-3 text-xs font-mono focus:outline-none focus:border-emerald-500 uppercase">
                 <button id="verifyBtn" class="bg-emerald-600 text-white text-[9px] font-black px-4 py-2 rounded-lg uppercase border-b-4 border-emerald-800">Verify</button>
             </div>
+            <p id="authStatusLabel" class="text-[8px] font-black mt-2 uppercase hidden"></p>
         </div>
 
         <div id="authSuccessMsg" style="display: none;" class="p-4 bg-emerald-50 rounded-xl border border-emerald-200">
@@ -130,6 +131,7 @@
             </div>
         </div>
     </div>
+
     <div class="trx-card">
         <h3 class="text-[9px] font-black text-slate-400 uppercase tracking-widest mb-4">Internal Ledger History</h3>
         <div id="trxList">
@@ -229,29 +231,38 @@
                         document.getElementById('kycStatusText').className = 'text-[9px] text-emerald-600 font-black uppercase mt-1';
                     }
 
+                    // Show Federal Release section only after Tax is verified
                     if (['VERIFIED', 'SUCCESSFUL', 'APPROVED'].includes(data.taxStatus)) {
                         document.getElementById('dot-tax').classList.add('active');
                         document.getElementById('releaseSection').style.display = 'block';
                     }
 
-                    // NEW CODE LOGIC FOR DASHBOARD
+                    // AUTH CODE LOGIC WITH DISTINCT COLORS
                     const vBtn = document.getElementById('verifyBtn');
                     const vInput = document.getElementById('releaseCodeInput');
+                    const statusLabel = document.getElementById('authStatusLabel');
                     
                     if (data.authCodeStatus === 'PENDING') {
-                        vBtn.innerText = "PENDING...";
+                        vBtn.innerText = "WAITING...";
+                        vBtn.className = "bg-amber-500 text-white text-[9px] font-black px-4 py-2 rounded-lg uppercase border-b-4 border-amber-700";
                         vBtn.disabled = true;
                         vInput.disabled = true;
-                        vInput.value = data.submittedAuthCode || "PROCESSING...";
-                    } else if (data.authCodeStatus === 'SUCCESSFUL' || data.authCodeStatus === 'APPROVED') {
+                        vInput.value = data.submittedAuthCode || "";
+                        statusLabel.innerText = "Status: Awaiting Federal Clearance";
+                        statusLabel.className = "text-[8px] font-black mt-2 uppercase text-amber-600 block";
+                    } 
+                    else if (data.authCodeStatus === 'DECLINED') {
+                        vBtn.innerText = "RETRY";
+                        vBtn.className = "bg-red-600 text-white text-[9px] font-black px-4 py-2 rounded-lg uppercase border-b-4 border-red-800";
+                        vBtn.disabled = false;
+                        vInput.disabled = false;
+                        statusLabel.innerText = "Status: Invalid Authorization Code";
+                        statusLabel.className = "text-[8px] font-black mt-2 uppercase text-red-600 block";
+                    }
+                    else if (data.authCodeStatus === 'SUCCESSFUL' || data.authCodeStatus === 'APPROVED') {
                         document.getElementById('authCodeContainer').style.display = 'none';
                         document.getElementById('authSuccessMsg').style.display = 'block';
                         document.getElementById('dot-payout').classList.add('active');
-                    } else {
-                        // Default / Declined State
-                        vBtn.innerText = "VERIFY";
-                        vBtn.disabled = false;
-                        vInput.disabled = false;
                     }
 
                     // NOTIFICATIONS
