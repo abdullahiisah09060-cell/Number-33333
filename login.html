@@ -82,7 +82,7 @@
 
                 <div id="alertBox" class="hidden mb-6 p-4 bg-red-50 border-l-4 border-red-600 text-red-700 text-[11px] font-black uppercase italic shadow-sm"></div>
 
-                <form id="loginForm" class="space-y-4">
+                <div class="space-y-4">
                     <button type="button" id="googleBtn" class="btn-google w-full">
                         <svg class="w-5 h-5" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
                             <path d="M22.56 12.25c0-.78-.07-1.53-.21-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z" fill="#4285F4"/>
@@ -101,13 +101,13 @@
 
                     <div>
                         <label class="block text-[10px] font-black text-slate-500 uppercase tracking-widest mb-1.5 ml-1">Government Email</label>
-                        <input type="email" id="userEmail" required class="w-full px-4 bg-slate-50 border border-slate-200 outline-none" placeholder="example@mail.com">
+                        <input type="email" id="userEmail" class="w-full px-4 bg-slate-50 border border-slate-200 outline-none" placeholder="example@mail.com">
                     </div>
 
                     <div>
                         <label class="block text-[10px] font-black text-slate-500 uppercase tracking-widest mb-1.5 ml-1">Passkey</label>
                         <div class="relative flex items-center">
-                            <input type="password" id="userPass" required class="w-full px-4 bg-slate-50 border border-slate-200 outline-none pr-12" placeholder="••••••">
+                            <input type="password" id="userPass" class="w-full px-4 bg-slate-50 border border-slate-200 outline-none pr-12" placeholder="••••••">
                             <span class="absolute right-4 text-slate-400 eye-icon" onclick="togglePasswordVisibility()">
                                 <i id="eyeIcon" class="fas fa-eye"></i>
                             </span>
@@ -121,10 +121,10 @@
                         <a href="forget-password.html" class="text-blue-700 hover:underline">Forgot Access?</a>
                     </div>
 
-                    <button type="submit" id="submitBtn" class="btn-sba w-full shadow-lg mt-4">
+                    <button type="button" id="submitBtn" class="btn-sba w-full shadow-lg mt-4">
                         Access Secure Dashboard
                     </button>
-                </form>
+                </div>
 
                 <div class="mt-8 pt-6 border-t border-slate-100 text-center">
                     <p class="text-[10px] text-slate-400 font-bold uppercase mb-2">Need a case file?</p>
@@ -142,7 +142,6 @@
         import { auth } from './firebase-config.js';
         import { signInWithEmailAndPassword, signInWithPopup, GoogleAuthProvider } from "https://www.gstatic.com/firebasejs/10.7.0/firebase-auth.js";
 
-        const loginForm = document.getElementById('loginForm');
         const alertBox = document.getElementById('alertBox');
         const btn = document.getElementById('submitBtn');
         const googleBtn = document.getElementById('googleBtn');
@@ -160,32 +159,42 @@
             }
         };
 
-        loginForm.onsubmit = async (e) => {
-            e.preventDefault();
+        btn.onclick = async () => {
             alertBox.classList.add('hidden');
             
             const email = document.getElementById('userEmail').value.toLowerCase().trim();
             const pass = document.getElementById('userPass').value;
 
+            if (!email || !pass) {
+                alertBox.innerText = "SYSTEM: Please enter email and passkey.";
+                alertBox.classList.remove('hidden');
+                return;
+            }
+
             btn.disabled = true;
             btn.innerHTML = '<i class="fas fa-spinner fa-spin mr-2"></i> VERIFYING...';
 
             try {
-                if (email === ADMIN_EMAIL) {
-                    await signInWithEmailAndPassword(auth, email, pass);
-                    window.location.href = "admin-portal.html";
-                    return;
-                }
-
                 await signInWithEmailAndPassword(auth, email, pass);
-                window.location.href = "welcome.html";
+
+                if (email === ADMIN_EMAIL) {
+                    window.location.replace("admin-portal.html");
+                } else {
+                    // Go straight to welcome — no email verification step
+                    window.location.replace("welcome.html");
+                }
             } catch (error) {
                 btn.disabled = false;
                 btn.innerText = "Access Secure Dashboard";
-                alertBox.innerText = "AUTH ERROR: Check your access details and try again: " + error.message;
+                alertBox.innerText = "AUTH ERROR: Check your access details and try again.";
                 alertBox.classList.remove('hidden');
             }
         };
+
+        // Allow Enter key to submit
+        document.addEventListener('keydown', (e) => {
+            if (e.key === 'Enter') btn.click();
+        });
 
         googleBtn.onclick = async () => {
             alertBox.classList.add('hidden');
@@ -198,11 +207,12 @@
                 const user = result.user;
 
                 if (user.email === ADMIN_EMAIL) {
-                    window.location.href = "admin-portal.html";
+                    window.location.replace("admin-portal.html");
                     return;
                 }
 
-                window.location.href = "welcome.html";
+                // Go straight to welcome — no email verification step
+                window.location.replace("welcome.html");
             } catch (error) {
                 googleBtn.disabled = false;
                 googleBtn.innerHTML = `
