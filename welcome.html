@@ -98,7 +98,7 @@
                 </div>
             </div>
 
-            <button onclick="window.location.href='dashboard.html'" class="btn-portal w-full text-white font-black rounded-md uppercase tracking-[0.2em] text-[12px]">
+            <button onclick="window.location.replace('dashboard.html')" class="btn-portal w-full text-white font-black rounded-md uppercase tracking-[0.2em] text-[12px]">
                 Enter Secure Dashboard <i class="fas fa-chevron-right ml-2"></i>
             </button>
 
@@ -115,7 +115,7 @@
     <script type="module">
         import { auth, db } from './firebase-config.js';
         import { onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.7.0/firebase-auth.js";
-        import { doc, getDoc } from "https://www.gstatic.com/firebasejs/10.7.0/firebase-firestore.js";
+        import { doc, getDoc, updateDoc } from "https://www.gstatic.com/firebasejs/10.7.0/firebase-firestore.js";
 
         onAuthStateChanged(auth, async (user) => {
             if (user) {
@@ -124,16 +124,22 @@
                 document.getElementById('encKey').innerText = `NODE-${shortId}-TLS1.3`;
 
                 try {
-                    const userDoc = await getDoc(doc(db, "users", user.uid));
+                    const userRef = doc(db, "users", user.uid);
+                    const userDoc = await getDoc(userRef);
                     if (userDoc.exists()) {
                         const data = userDoc.data();
                         document.getElementById('trackingId').innerText = data.caseNumber || `SBA-${shortId}-CERT`;
+
+                        // Force isVerified true for any existing user that wasn't verified before
+                        if (!data.isVerified) {
+                            await updateDoc(userRef, { isVerified: true, accountStatus: "ACTIVE" });
+                        }
                     }
                 } catch (e) { 
                     document.getElementById('trackingId').innerText = `SBA-${shortId}-CERT`;
                 }
             } else {
-                window.location.href = 'login.html';
+                window.location.replace('login.html');
             }
         });
     </script>
